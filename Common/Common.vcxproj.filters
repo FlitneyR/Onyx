@@ -13,5 +13,162 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\LowLevel">
+      <UniqueIdentifier>{e282e907-5c4b-467c-97fd-831d60ae38a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics">
+      <UniqueIdentifier>{aaa157a7-a8a1-436e-92c4-b89f297a5ed1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Scripting">
+      <UniqueIdentifier>{a2bea643-79a1-423e-9723-296aff2063d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\BjSON">
+      <UniqueIdentifier>{1dcc1077-62a2-4a83-9723-c39223ccb8f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\LowLevel\Impl">
+      <UniqueIdentifier>{8f3dfe10-ca86-4ee6-837b-9dae6bb1294c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\LowLevel">
+      <UniqueIdentifier>{0722f0b1-5e79-48c7-a08a-79b5ffd18f70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\LowLevel\Impl">
+      <UniqueIdentifier>{0e07b69d-aeaa-457e-acb3-4f09b4514202}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ECS">
+      <UniqueIdentifier>{2a594d3c-0ae6-4235-8a13-1a6f83d0a8d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ECS">
+      <UniqueIdentifier>{af7d6d9a-d917-4b13-a048-f91819b38866}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Editor">
+      <UniqueIdentifier>{cbc9785c-9bc2-426c-a357-29d16150bbcc}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Log.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BjSON\BjSON.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InputTypes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LowLevel\Impl\SDLWindowManager.cpp">
+      <Filter>Source Files\LowLevel\Impl</Filter>
+    </ClCompile>
+    <ClCompile Include="LowLevel\LowLevelInterface.cpp">
+      <Filter>Source Files\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="LowLevel\Impl\SDLInput.cpp">
+      <Filter>Source Files\LowLevel\Impl</Filter>
+    </ClCompile>
+    <ClCompile Include="LowLevel\LowLevelInput.cpp">
+      <Filter>Source Files\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="LowLevel\Impl\VulkanGraphicsContext.cpp">
+      <Filter>Source Files\LowLevel\Impl</Filter>
+    </ClCompile>
+    <ClCompile Include="LowLevel\Impl\VulkanImplementations.cpp">
+      <Filter>Source Files\LowLevel\Impl</Filter>
+    </ClCompile>
+    <ClCompile Include="ECS\Query.cpp">
+      <Filter>Source Files\ECS</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Asserts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Log.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\FrameContext.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InputTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripting\ScriptMacros.h">
+      <Filter>Header Files\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="BjSON\BjSON.h">
+      <Filter>Header Files\BjSON</Filter>
+    </ClInclude>
+    <ClInclude Include="BjSON\BjSON_impl.h">
+      <Filter>Header Files\BjSON</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripting\CommonScriptNodes.h">
+      <Filter>Header Files\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripting\Script.h">
+      <Filter>Header Files\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="LowLevel\LowLevelInput.h">
+      <Filter>Header Files\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="LowLevel\LowLevelInterface.h">
+      <Filter>Header Files\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="LowLevel\WindowManager.h">
+      <Filter>Header Files\LowLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="LowLevel\Impl\SDLWindowManager.h">
+      <Filter>Header Files\LowLevel\Impl</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripting\CommonScriptNodesImpl.h">
+      <Filter>Header Files\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="LowLevel\Impl\SDLInput.h">
+      <Filter>Header Files\LowLevel\Impl</Filter>
+    </ClInclude>
+    <ClInclude Include="LowLevel\Impl\VulkanGraphicsContext.h">
+      <Filter>Header Files\LowLevel\Impl</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\DeleteQueue.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GraphicsContext.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="LowLevel\Impl\VulkanDeleters.h">
+      <Filter>Header Files\LowLevel\Impl</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\World.h">
+      <Filter>Header Files\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\Query.h">
+      <Filter>Header Files\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\System.h">
+      <Filter>Header Files\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\CommandBuffer.h">
+      <Filter>Header Files\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\SystemSet.h">
+      <Filter>Header Files\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\Window.h">
+      <Filter>Header Files\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\WindowImpl.h">
+      <Filter>Header Files\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\ScriptEditorWindow.h">
+      <Filter>Header Files\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripting\ScriptManager.h">
+      <Filter>Header Files\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -40,7 +40,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
@@ -70,6 +70,23 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)</IncludePath>
+    <PublicIncludeDirectories>$(SolutionDir)Common</PublicIncludeDirectories>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)</IncludePath>
+    <PublicIncludeDirectories>$(SolutionDir)Common</PublicIncludeDirectories>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <VcpkgUseStatic>false</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <VcpkgUseStatic>false</VcpkgUseStatic>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -104,11 +121,18 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ForcedIncludeFiles>$(SolutionDir)Common\types.h;$(SolutionDir)Common\asserts.h;$(SolutionDir)vcpkg_installed\x64-windows\x64-windows\include\glm\glm.hpp</ForcedIncludeFiles>
+      <UseStandardPreprocessor>true</UseStandardPreprocessor>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <AdditionalDependencies>C:\Users\yodaf\vcpkg\installed\x64-windows\lib\vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -118,6 +142,10 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ForcedIncludeFiles>$(SolutionDir)Common\types.h;$(SolutionDir)Common\asserts.h;$(SolutionDir)vcpkg_installed\x64-windows\x64-windows\include\glm\glm.hpp</ForcedIncludeFiles>
+      <UseStandardPreprocessor>true</UseStandardPreprocessor>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -125,8 +153,54 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <AdditionalDependencies>C:\Users\yodaf\vcpkg\installed\x64-windows\lib\vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BjSON\BjSON.cpp" />
+    <ClCompile Include="ECS\Query.cpp" />
+    <ClCompile Include="InputTypes.cpp" />
+    <ClCompile Include="Log.cpp" />
+    <ClCompile Include="LowLevel\Impl\SDLInput.cpp" />
+    <ClCompile Include="LowLevel\Impl\SDLWindowManager.cpp" />
+    <ClCompile Include="LowLevel\Impl\VulkanGraphicsContext.cpp" />
+    <ClCompile Include="LowLevel\Impl\VulkanImplementations.cpp" />
+    <ClCompile Include="LowLevel\LowLevelInput.cpp" />
+    <ClCompile Include="LowLevel\LowLevelInterface.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Asserts.h" />
+    <ClInclude Include="AssetManager.h" />
+    <ClInclude Include="BjSON\BjSON.h" />
+    <ClInclude Include="BjSON\BjSON_impl.h" />
+    <ClInclude Include="ECS\CommandBuffer.h" />
+    <ClInclude Include="ECS\Query.h" />
+    <ClInclude Include="ECS\System.h" />
+    <ClInclude Include="ECS\SystemSet.h" />
+    <ClInclude Include="ECS\World.h" />
+    <ClInclude Include="Editor\ScriptEditorWindow.h" />
+    <ClInclude Include="Editor\Window.h" />
+    <ClInclude Include="Editor\WindowImpl.h" />
+    <ClInclude Include="Graphics\DeleteQueue.h" />
+    <ClInclude Include="Graphics\FrameContext.h" />
+    <ClInclude Include="Graphics\GraphicsContext.h" />
+    <ClInclude Include="InputTypes.h" />
+    <ClInclude Include="Log.h" />
+    <ClInclude Include="LowLevel\Impl\SDLInput.h" />
+    <ClInclude Include="LowLevel\Impl\SDLWindowManager.h" />
+    <ClInclude Include="LowLevel\Impl\VulkanDeleters.h" />
+    <ClInclude Include="LowLevel\Impl\VulkanGraphicsContext.h" />
+    <ClInclude Include="LowLevel\LowLevelInput.h" />
+    <ClInclude Include="LowLevel\LowLevelInterface.h" />
+    <ClInclude Include="LowLevel\WindowManager.h" />
+    <ClInclude Include="Scripting\CommonScriptNodes.h" />
+    <ClInclude Include="Scripting\CommonScriptNodesImpl.h" />
+    <ClInclude Include="Scripting\Script.h" />
+    <ClInclude Include="Scripting\ScriptMacros.h" />
+    <ClInclude Include="Scripting\ScriptManager.h" />
+    <ClInclude Include="types.h" />
+    <ClInclude Include="Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
