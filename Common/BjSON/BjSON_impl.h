@@ -10,41 +10,43 @@ namespace BjSON
 struct Reader
 {
 	template< typename T >
-	void Read( u32& address, T* dest, u32 count = 1 )
+	u32 Read( u32& offset, T* dest, u32 count = 1 )
 	{
-		Read( address, (void*)dest, count * sizeof( T ) );
-		address += count * sizeof( T );
+		const u32 bytes = Read( offset, (void*)dest, count * sizeof( T ) );
+		offset += bytes;
+		return bytes;
 	}
 
 	template< typename T >
-	T Read( u32& address )
+	T Read( u32& offset )
 	{
 		T result;
-		Read( address, (void*)&result, sizeof( T ) );
-		address += sizeof( T );
+		BjSON_ASSERT( Read( offset, &result ) == sizeof( T ) );
 		return result;
 	}
 
-	virtual u32 Read( u32 address, void* dest, u32 size ) = 0;
+protected:
+	virtual u32 Read( u32 offset, void* dest, u32 size ) = 0;
 };
 
 struct Writer
 {
 	template< typename T >
-	void Write( u32& address, T* src, u32 count = 1 )
+	void Write( u32& offset, T* src, u32 count = 1 )
 	{
-		Write( address, (void*)src, count * sizeof( T ) );
-		address += count * sizeof( T );
+		Write( offset, (void*)src, count * sizeof( T ) );
+		offset += count * sizeof( T );
 	}
 
 	template< typename T >
-	void Write( u32& address, const T& val )
+	void Write( u32& offset, const T& val )
 	{
-		Write( address, (void*)&val, sizeof( T ) );
-		address += sizeof( T );
+		Write( offset, (void*)&val, sizeof( T ) );
+		offset += sizeof( T );
 	}
 
-	virtual void Write( u32 address, void* src, u32 size ) = 0;
+protected:
+	virtual void Write( u32 offset, void* src, u32 size ) = 0;
 };
 
 struct BufferReader : Reader
@@ -53,7 +55,7 @@ struct BufferReader : Reader
 	u32 m_size;
 
 	BufferReader( const void* buffer, u32 size );
-	u32 Read( u32 address, void* dest, u32 size ) override;
+	u32 Read( u32 offset, void* dest, u32 size ) override;
 };
 
 struct FileReader : Reader
@@ -62,7 +64,7 @@ struct FileReader : Reader
 	std::mutex m_mutex;
 
 	FileReader( std::ifstream& file );
-	u32 Read( u32 address, void* dest, u32 size ) override;
+	u32 Read( u32 offset, void* dest, u32 size ) override;
 };
 
 struct BufferWriter : Writer
@@ -71,13 +73,13 @@ struct BufferWriter : Writer
 
 	BufferWriter( std::vector< byte >& dest ) : m_buffer( dest ) { m_buffer.clear(); }
 
-	void Write( u32 address, void* src, u32 size ) override;
+	void Write( u32 offset, void* src, u32 size ) override;
 };
 
 struct MemberReference
 {
 	NameHash name;
-	u32 address;
+	u32 offset;
 };
 
 struct ReadOnlyObject : IReadOnlyObject
@@ -122,7 +124,7 @@ struct IEncoderNode
 {
 	// writes this node into the writer at the requested address
 	// returns how many bytes were written
-	virtual void Write( Writer& writer, u32& address ) const = 0;
+	virtual void Write( Writer& writer, u32& offset ) const = 0;
 };
 
 struct ReadWriteBlob;
@@ -134,7 +136,7 @@ struct ReadWriteBlob : IEncoderNode
 	std::vector< byte > data;
 
 	// IEncoderNode
-	void Write( Writer& writer, u32& address ) const override;
+	void Write( Writer& writer, u32& offset ) const override;
 };
 
 struct ReadWriteObject : IReadWriteObject, IEncoderNode
@@ -188,7 +190,7 @@ struct ReadWriteObject : IReadWriteObject, IEncoderNode
 	IReadWriteObjectArray* GetArray( NameHash name ) const override;
 
 	// IEncoderNode
-	void Write( Writer& writer, u32& address ) const override;
+	void Write( Writer& writer, u32& offset ) const override;
 };
 
 struct ReadWriteObjectArray : IReadWriteObjectArray, IEncoderNode
@@ -201,7 +203,7 @@ struct ReadWriteObjectArray : IReadWriteObjectArray, IEncoderNode
 	IReadWriteObject* GetChild( u32 index ) const override { return index >= Count() ? nullptr : m_children[ index ].get(); }
 
 	// IEncoderNode
-	void Write( Writer& writer, u32& address ) const override;
+	void Write( Writer& writer, u32& offset ) const override;
 };
 
 struct EncoderImpl : IEncoder
@@ -217,8 +219,8 @@ struct EncoderImpl : IEncoder
 	void WriteTo( std::vector< byte >& dest ) const override
 	{
 		BufferWriter writer( dest );
-		u32 address = 0;
-		m_rootObject.Write( writer, address );
+		u32 offset = 0;
+		m_rootObject.Write( writer, offset );
 	}
 
 	void WriteTo( std::ofstream& file ) const override
@@ -226,10 +228,10 @@ struct EncoderImpl : IEncoder
 		std::vector< byte > buffer;
 		BufferWriter writer( buffer );
 
-		u32 address = 0;
-		file.seekp( address );
+		u32 offset = 0;
+		file.seekp( offset );
 
-		m_rootObject.Write( writer, address );
+		m_rootObject.Write( writer, offset );
 		file.write( (char*)buffer.data(), buffer.size() );
 	}
 };

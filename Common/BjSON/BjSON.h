@@ -1,9 +1,12 @@
 #pragma once
 
-#if !defined( BjSON_ASSERT )
-#include <assert.h>
-#define BjSON_ASSERT(...) assert(__VA_ARGS__)
-#endif
+//#if !defined( BjSON_ASSERT )
+//#include <assert.h>
+//#define BjSON_ASSERT(...) assert(__VA_ARGS__)
+//#endif
+
+#include "Common/Asserts.h"
+#define BjSON_ASSERT( ... ) WEAK_ASSERT( __VA_ARGS__ )
 
 #include <memory>
 #include <fstream>
@@ -33,7 +36,10 @@ typedef unsigned char	byte;
 
 typedef u32 NameHash;
 
-constexpr NameHash HashName( const char* name ) { return !*name ? 5381 : *name + 33 * HashName( name + 1 ); }
+constexpr NameHash HashName( const char* name )
+{
+	return !*name ? 5381 : ( *name + 33 * HashName( name + 1 ) );
+}
 
 struct IReadOnlyObject;
 struct IReadOnlyObjectArray;
@@ -70,11 +76,21 @@ struct IReadOnlyObject
 	}
 
 	template<>
-	std::string GetLiteral< std::string >( NameHash name ) const
+	u32 GetLiteral< std::string >( NameHash name, std::string& result ) const
 	{
 		const u32 size = GetLiteral( name );
-		std::string result( size / sizeof( char ), '\0' );
-		GetLiteral( name, (void*)result.data(), size );
+		result.clear();
+		result.resize( size );
+		GetLiteral( name, (char*)result.c_str(), size );
+		result.resize( strlen( result.c_str() ) );
+		return size;
+	}
+
+	template<>
+	std::string GetLiteral< std::string >( NameHash name ) const
+	{
+		std::string result;
+		GetLiteral( name, result );
 		return result;
 	}
 };
@@ -88,10 +104,18 @@ struct IReadOnlyObjectArray
 struct IReadWriteObject
 {
 	template< typename T >
-	IReadWriteObject& SetLiteral( NameHash name, const T& literal ) { SetLiteral( name, &literal, sizeof( T ) ); return *this; }
+	IReadWriteObject& SetLiteral( NameHash name, const T& literal )
+	{
+		SetLiteral( name, &literal, sizeof( T ) );
+		return *this;
+	}
 
 	template<>
-	IReadWriteObject& SetLiteral< std::string >( NameHash name, const std::string& literal ) { SetLiteral( name, literal.c_str(), literal.size() ); return *this; }
+	IReadWriteObject& SetLiteral< std::string >( NameHash name, const std::string& literal )
+	{
+		SetLiteral( name, literal.c_str(), literal.size() );
+		return *this;
+	}
 
 	template< typename T >
 	T* GetLiteral( NameHash name, u32* out_count = nullptr ) const

@@ -28,13 +28,17 @@ void LowLevelInput::UpdateButtonStates()
 	}
 }
 
+std::string LowLevelInput::DebugWindow::GetWindowTitle() const
+{
+	return std::format( "Input Debug##{}", (u64)this );
+}
+
 void LowLevelInput::DebugWindow::Run()
 {
-	static char window_name[ 128 ];
-	snprintf( window_name, _countof( window_name ), "Input Debug##%pll", this );
-
-	if ( ImGui::Begin( window_name, &m_open ) )
+	if ( ImGui::Begin( GetWindowTitle().c_str(), &m_open ) )
 	{
+		ImGui::SetWindowSize( { 1000, 600 }, ImGuiCond_Once );
+
 		ImGui::SliderFloat( "Button Sensitivity", &s_buttonSensitivity, 0.0f, 1.0f, "%.1f" );
 
 		if ( ImGui::Button( "Clear" ) )

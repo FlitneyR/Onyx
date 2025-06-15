@@ -158,8 +158,10 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Assets.cpp" />
     <ClCompile Include="BjSON\BjSON.cpp" />
     <ClCompile Include="ECS\Query.cpp" />
+    <ClCompile Include="External\imnodes\imnodes.cpp" />
     <ClCompile Include="InputTypes.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="LowLevel\Impl\SDLInput.cpp" />
@@ -168,12 +170,16 @@
     <ClCompile Include="LowLevel\Impl\VulkanImplementations.cpp" />
     <ClCompile Include="LowLevel\LowLevelInput.cpp" />
     <ClCompile Include="LowLevel\LowLevelInterface.cpp" />
+    <ClCompile Include="LowLevel\WindowManager.cpp" />
+    <ClCompile Include="Scripting\Script.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Asserts.h" />
-    <ClInclude Include="AssetManager.h" />
+    <ClInclude Include="Assets.h" />
     <ClInclude Include="BjSON\BjSON.h" />
     <ClInclude Include="BjSON\BjSON_impl.h" />
+    <ClInclude Include="Components\Transform.h" />
+    <ClInclude Include="Components\TransformScriptNodesImpl.h" />
     <ClInclude Include="ECS\CommandBuffer.h" />
     <ClInclude Include="ECS\Query.h" />
     <ClInclude Include="ECS\System.h" />
@@ -182,6 +188,7 @@
     <ClInclude Include="Editor\ScriptEditorWindow.h" />
     <ClInclude Include="Editor\Window.h" />
     <ClInclude Include="Editor\WindowImpl.h" />
+    <ClInclude Include="External\imnodes\imnodes.h" />
     <ClInclude Include="Graphics\DeleteQueue.h" />
     <ClInclude Include="Graphics\FrameContext.h" />
     <ClInclude Include="Graphics\GraphicsContext.h" />

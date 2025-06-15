@@ -24,6 +24,9 @@ struct IWindowManager
 	virtual void ProcessEvents() = 0;
 
 	virtual void ImGuiNewFrame() {}
+
+	virtual std::string DoOpenFileDialog() const;
+	virtual std::string DoSaveFileDialog() const;
 };
 
 }

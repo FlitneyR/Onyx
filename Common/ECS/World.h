@@ -9,7 +9,7 @@ namespace onyx::ecs
 {
 
 typedef u32 EntityID;
-constexpr EntityID NoEntity = 0;
+const EntityID NoEntity = 0;
 
 // forward declaration from "Common/ECS/Query.h"
 struct IQuery;

@@ -21,10 +21,10 @@ BufferReader::BufferReader( const void* buffer, u32 size )
 	, m_size( size )
 {}
 
-u32 BufferReader::Read( u32 address, void* dest, u32 size )
+u32 BufferReader::Read( u32 offset, void* dest, u32 size )
 {
-	const u32 bytes_to_read = std::min( size, m_size - address );
-	memcpy( dest, m_buffer + address, bytes_to_read );
+	const u32 bytes_to_read = std::min( size, m_size - offset );
+	memcpy( dest, m_buffer + offset, bytes_to_read );
 	BjSON_ASSERT( bytes_to_read == size );
 	return bytes_to_read;
 }
@@ -33,22 +33,22 @@ FileReader::FileReader( std::ifstream& file )
 	: m_file( file )
 {}
 
-u32 FileReader::Read( u32 address, void* dest, u32 size )
+u32 FileReader::Read( u32 offset, void* dest, u32 size )
 {
 	std::scoped_lock lock( m_mutex );
 
 	return m_file
-		.seekg( address )
+		.seekg( offset )
 		.read( (char*)dest, size )
 		.gcount();
 }
 
-void BufferWriter::Write( u32 address, void* src, u32 size )
+void BufferWriter::Write( u32 offset, void* src, u32 size )
 {
-	if ( m_buffer.size() < address + size )
-		m_buffer.resize( address + size );
+	if ( m_buffer.size() < offset + size )
+		m_buffer.resize( offset + size );
 
-	std::memcpy( m_buffer.data() + address, src, size );
+	std::memcpy( m_buffer.data() + offset, src, size );
 }
 
 DecoderImpl::DecoderImpl( const void* buffer, u32 size )
@@ -61,18 +61,12 @@ DecoderImpl::DecoderImpl( std::ifstream& file )
 	, m_rootObject( *m_reader )
 {}
 
-ReadOnlyObject::ReadOnlyObject( Reader& reader, u32 address )
+ReadOnlyObject::ReadOnlyObject( Reader& reader, u32 offset )
 	: m_reader( reader )
-	, m_baseAddress( address )
+	, m_baseAddress( offset )
 {
-	if ( const u32 member_count = reader.Read< u32 >( address ) )
-	{
-		m_header.resize( member_count );
-		reader.Read( address, &m_header[ 0 ], m_header.size() );
-
-		for ( u32 i = 0; i < member_count - 1; ++i )
-			BjSON_ASSERT( m_header[ i ].name < m_header[ i + 1 ].name );
-	}
+	m_header.resize( m_reader.Read< u32 >( offset ) );
+	m_reader.Read( offset, m_header.data(), m_header.size() );
 }
 
 const MemberReference* ReadOnlyObject::GetMemberReference( NameHash name ) const
@@ -97,11 +91,11 @@ u32 ReadOnlyObject::GetLiteral( NameHash name, void* dest, u32 dest_size ) const
 	if ( !member )
 		return 0;
 
-	u32 address = m_baseAddress + member->address;
-	const u32 member_size = m_reader.Read< u32 >( address );
+	u32 offset = m_baseAddress + member->offset;
+	const u32 member_size = m_reader.Read< u32 >( offset );
 
 	if ( dest )
-		m_reader.Read( address, dest, std::min( member_size, dest_size ) );
+		m_reader.Read( offset, reinterpret_cast< byte* >( dest ), std::min( member_size, dest_size ) );
 
 	return member_size;
 }
@@ -112,7 +106,7 @@ std::shared_ptr< const IReadOnlyObject > ReadOnlyObject::GetChild( NameHash name
 	if ( !member )
 		return nullptr;
 
-	return std::make_shared< ReadOnlyObject >( m_reader, m_baseAddress + member->address );
+	return std::make_shared< ReadOnlyObject >( m_reader, m_baseAddress + member->offset );
 }
 
 std::shared_ptr< const IReadOnlyObjectArray > ReadOnlyObject::GetArray( NameHash name ) const
@@ -121,15 +115,15 @@ std::shared_ptr< const IReadOnlyObjectArray > ReadOnlyObject::GetArray( NameHash
 	if ( !member )
 		return nullptr;
 
-	return std::make_shared< ReadOnlyObjectArray >( m_reader, m_baseAddress + member->address );
+	return std::make_shared< ReadOnlyObjectArray >( m_reader, m_baseAddress + member->offset );
 }
 
-ReadOnlyObjectArray::ReadOnlyObjectArray( Reader& reader, u32 address )
+ReadOnlyObjectArray::ReadOnlyObjectArray( Reader& reader, u32 offset )
 	: m_reader( reader )
-	, m_baseAddress( address )
+	, m_baseAddress( offset )
 {
-	m_header.resize( m_reader.Read< u32 >( address ) );
-	m_reader.Read( address, m_header.data(), m_header.size() );
+	m_header.resize( m_reader.Read< u32 >( offset ) );
+	m_reader.Read( offset, m_header.data(), m_header.size() );
 }
 
 std::shared_ptr< const IReadOnlyObject > ReadOnlyObjectArray::GetChild( u32 index ) const
@@ -157,48 +151,50 @@ IReadWriteObjectArray* ReadWriteObject::GetArray( NameHash name ) const
 	return GetNamedChild< IReadWriteObjectArray >( name );
 }
 
-void ReadWriteBlob::Write( Writer& writer, u32& address ) const
+void ReadWriteBlob::Write( Writer& writer, u32& offset ) const
 {
-	writer.Write< u32 >( address, data.size() );
-	writer.Write( address, &data.front(), data.size() );
+	writer.Write< u32 >( offset, data.size() );
+	writer.Write( offset, data.data(), data.size() );
 }
 
-void ReadWriteObject::Write( Writer& writer, u32& address ) const
+void ReadWriteObject::Write( Writer& writer, u32& offset ) const
 {
-	const u32 base_address = address;
-	writer.Write< u32 >( address, m_children.size() );
+	const u32 base_address = offset;
+	writer.Write< u32 >( offset, m_children.size() );
+	u32 member_table_address = offset;
 
-	u32 member_table_address = address;
 	std::vector< MemberReference > member_table;
 	member_table.reserve( m_children.size() );
-	address += sizeof( member_table.front() ) * m_children.size();
+	offset += sizeof( member_table.front() ) * m_children.size() + 1;
 
 	for ( const auto& child : m_children )
 	{
-		member_table.push_back( { child.first, address - base_address } );
-		child.second->Write( writer, address );
+		member_table.push_back( { child.first, offset - base_address } );
+		child.second->Write( writer, offset );
+		offset += 1;
 	}
 
-	writer.Write( member_table_address, &member_table.front(), member_table.size() );
+	writer.Write( member_table_address, member_table.data(), member_table.size() );
 }
 
-void ReadWriteObjectArray::Write( Writer& writer, u32& address ) const
+void ReadWriteObjectArray::Write( Writer& writer, u32& offset ) const
 {
-	const u32 base_address = address;
-	writer.Write< u32 >( address, m_children.size() );
+	const u32 base_address = offset;
+	writer.Write< u32 >( offset, m_children.size() );
+	u32 member_table_address = offset;
 
-	u32 member_table_address = address;
 	std::vector< u32 > member_table;
 	member_table.reserve( m_children.size() );
-	address += sizeof( member_table.front() ) * m_children.size();
+	offset += sizeof( member_table.front() ) * m_children.size() + 1;
 
 	for ( const auto& child : m_children )
 	{
-		member_table.push_back( address - base_address );
-		child->Write( writer, address );
+		member_table.push_back( offset - base_address );
+		child->Write( writer, offset );
+		offset += 1;
 	}
 
-	writer.Write( member_table_address, &member_table.front(), member_table.size() );
+	writer.Write( member_table_address, member_table.data(), member_table.size() );
 }
 
 }

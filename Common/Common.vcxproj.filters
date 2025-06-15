@@ -43,6 +43,24 @@
     <Filter Include="Header Files\Editor">
       <UniqueIdentifier>{cbc9785c-9bc2-426c-a357-29d16150bbcc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Scripting">
+      <UniqueIdentifier>{2f3cd8a4-20d6-4520-bbb4-e23ac3f9498d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\External">
+      <UniqueIdentifier>{4824d0de-0015-46a3-a808-bb0aba082d3e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\External\imnodes">
+      <UniqueIdentifier>{a24521a7-234f-41a9-b3c1-ae0b87d4632b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\External">
+      <UniqueIdentifier>{ba6be318-2c33-4ee0-913e-28fc1a3f83c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\External\imnodes">
+      <UniqueIdentifier>{f151e4c4-2778-4511-972b-b2173c851a67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Components">
+      <UniqueIdentifier>{1faa9e8b-6f63-4ed1-968a-4151424ddcc0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Log.cpp">
@@ -74,6 +92,18 @@
     </ClCompile>
     <ClCompile Include="ECS\Query.cpp">
       <Filter>Source Files\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="Assets.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LowLevel\WindowManager.cpp">
+      <Filter>Source Files\LowLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="Scripting\Script.cpp">
+      <Filter>Source Files\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="External\imnodes\imnodes.cpp">
+      <Filter>Source Files\External\imnodes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -167,8 +197,17 @@
     <ClInclude Include="Scripting\ScriptManager.h">
       <Filter>Header Files\Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="AssetManager.h">
+    <ClInclude Include="Assets.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="External\imnodes\imnodes.h">
+      <Filter>Header Files\External\imnodes</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Transform.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\TransformScriptNodesImpl.h">
+      <Filter>Header Files\Components</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

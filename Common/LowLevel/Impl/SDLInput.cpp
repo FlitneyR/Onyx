@@ -151,6 +151,7 @@ InputAxis SDLInput::InputAxisFromKey( SDL_Keycode key )
 	case SDLK_F11:			return InputAxis::Keyboard_F11;
 	case SDLK_F12:			return InputAxis::Keyboard_F12;
 	case SDLK_RETURN:		return InputAxis::Keyboard_Return;
+	case SDLK_DELETE:		return InputAxis::Keyboard_Delete;
 	default:
 		return InputAxis::None;
 	}

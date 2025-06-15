@@ -1,4 +1,5 @@
 #include "Common/LowLevel/LowLevelInput.h"
+#include "Common/Assets.h"
 
 // add your window here
 // columns are: 
@@ -7,5 +8,6 @@
 #define EDITOR_WINDOWS( f ) \
 	f( ImGuiDemoWindow ) \
 	f( onyx::LowLevelInput::DebugWindow ) \
+	f( onyx::AssetManagerWindow ) \
 
 #include "Common/Editor/WindowImpl.h"

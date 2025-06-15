@@ -38,6 +38,7 @@ struct LowLevelInput
 		inline static const char* const s_name = "Input Debug";
 		bool m_inputEnabled[ (u32)onyx::InputAxis::Count ];
 		void Run() override;
+		std::string GetWindowTitle() const override;
 	};
 
 protected:

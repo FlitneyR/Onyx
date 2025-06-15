@@ -74,6 +74,7 @@ namespace onyx
 	f( Keyboard_F11					, "F11"						, Keyboard	) \
 	f( Keyboard_F12					, "F12"						, Keyboard	) \
 	f( Keyboard_Return				, "Return"					, Keyboard	) \
+	f( Keyboard_Delete				, "Delete"					, Keyboard	) \
 	f( MouseButton_Left				, "Left Click"				, Mouse		) \
 	f( MouseButton_Right			, "Right Click"				, Mouse		) \
 	f( MouseAxis_XY					, "Mouse Move"				, Mouse		) \

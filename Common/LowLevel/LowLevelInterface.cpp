@@ -44,6 +44,8 @@ void Init( const Config& config )
 		style.GrabRounding = 4.f;
 		style.WindowRounding = 4.f;
 		style.PopupRounding = 4.f;
+		style.Colors[ ImGuiCol_DockingEmptyBg ] = ImVec4( 0.05f, 0.05f, 0.05f, 1.0f );
+		// style.Colors[]
 	}
 
 	switch ( config.windowManager )

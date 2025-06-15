@@ -3,16 +3,14 @@
 #include "Common/Scripting/ScriptMacros.h"
 #include "Common/Scripting/CommonScriptNodes.h"
 
-#define SCRIPT_NODES( f )			\
-	ONYX_COMMON_SCRIPT_NODES( f )	\
+#include "Common/Components/Transform.h"
 
-namespace onyx
+#define SCRIPT_NODES( f )				\
+	ONYX_COMMON_SCRIPT_NODES( f )		\
+	ONYX_TRANSFORM2D_SCRIPT_NODES( f )	\
+
+namespace onyx::ScriptNodes
 {
-
-namespace ScriptNodes
-{
-
-SCRIPT_NODES( SCRIPT_NODE_DECL );
 
 enum struct Enum : u32
 {
@@ -24,7 +22,5 @@ enum struct Enum : u32
 Enum EnumFromName( u32 name_hash );
 const char* NameFromEnum( Enum e );
 std::unique_ptr< IScriptNode > ConstructFromEnum( Enum e );
-
-}
 
 }

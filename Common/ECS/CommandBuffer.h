@@ -22,7 +22,7 @@ struct AddEntityCommand : ICommand
 
 	AddEntityCommand( EntityID entity, Components ... components )
 		: m_entity( entity )
-		, m_components( components )
+		, m_components( components ... )
 	{}
 
 	void Execute( World& world ) override
@@ -85,7 +85,7 @@ struct CommandBuffer
 
 		EntityID entity_id = m_world.AddEntity();
 
-		m_commands.push_back( std::make_unique< AddEntityCommand< Components > >( entity_id, components ... ) );
+		m_commands.push_back( std::make_unique< AddEntityCommand< Components ... > >( entity_id, components ... ) );
 
 		return entity_id;
 	}
@@ -97,10 +97,13 @@ struct CommandBuffer
 	}
 
 	template< typename Component >
-	void AddComponent( EntityID entity, Component component )
+	Component& AddComponent( EntityID entity, Component component )
 	{
 		std::scoped_lock lock( m_mutex );
-		m_commands.push_back( std::make_unique< AddComponentCommand >( entity, component ) );
+		std::unique_ptr< AddComponentCommand< Component > > cmd = std::make_unique< AddComponentCommand< Component > >( entity, component );
+		Component& result = cmd->m_component;
+		m_commands.push_back( std::move( cmd ) );
+		return result;
 	}
 
 	template< typename Component >
