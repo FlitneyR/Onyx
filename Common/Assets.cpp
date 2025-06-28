@@ -1,8 +1,9 @@
 #include "Assets.h"
-#include "Common/LowLevel/LowLevelInterface.h"
 
 // for making new assets of these types
 #include "Common/Scripting/Script.h"
+#include "Common/Graphics/Texture.h"
+#include "Common/Graphics/Shader.h"
 
 #include <set>
 #include <map>
@@ -78,13 +79,22 @@ AssetManager::AssetManager( const BjSON::IReadOnlyObject& root_node )
 		if ( !reader || !reader->GetLiteral( "__assetType"_name ) )
 			continue;
 
+		IAsset* asset = nullptr;
+
 		switch ( reader->GetLiteral< BjSON::NameHash >( "__assetType"_name ) )
 		{
-		case "Script"_name:
-			std::shared_ptr< Script > script = New< Script >( path );
-			script->SetReader( reader );
-			// script->Load();
-			break;
+		case "Script"_name: asset = New< Script >( path ).get(); break;
+		case "Texture"_name: asset = New< TextureAsset >( path ).get(); break;
+		case "TextureAnimation"_name: asset = New< TextureAnimationAsset >( path ).get(); break;
+		case "Shader"_name: asset = New< ShaderAsset >( path ).get(); break;
+		}
+
+		if ( asset )
+		{
+			asset->SetReader( reader );
+			asset->m_assetManager = this;
+			asset->m_path = path;
+			asset->Load( IAsset::LoadType::Editor );
 		}
 	}
 }
@@ -133,7 +143,16 @@ void AssetManager::Save( BjSON::IReadWriteObject& root_node )
 	CachedBjSONWriter writer( root_node );
 
 	for ( auto& [ path, asset ] : m_assets )
-		asset->Save( writer.GetWriter( path ) );
+	{
+		if ( asset->GetLoadingState() != IAsset::LoadingState::Loaded )
+		{
+			asset->m_assetManager = this;
+			asset->m_path = path;
+			asset->Load( IAsset::LoadType::Editor );
+		}
+		
+		asset->Save( writer.GetWriter( path ), IAsset::SaveType::Save );
+	}
 }
 
 static int AssetManagerPathEditCallback( ImGuiInputTextCallbackData* data )
@@ -151,10 +170,10 @@ static int AssetManagerPathEditCallback( ImGuiInputTextCallbackData* data )
 
 std::string AssetManagerWindow::GetWindowTitle() const
 {
-	return std::format( "Asset Pack Manager: {}##{}", m_osFilePath, (u64)this );
+	return std::format( "Asset Pack Manager: {}###{}", m_osFilePath, (u64)this );
 }
 
-void AssetManagerWindow::Run()
+void AssetManagerWindow::Run( IFrameContext& frame_context )
 {
 	if ( ImGui::Begin( GetWindowTitle().c_str(), &m_open, ImGuiWindowFlags_MenuBar ) )
 	{
@@ -174,8 +193,12 @@ void AssetManagerWindow::Run()
 						Reset();
 
 						m_fileSource = std::ifstream( asset_pack_path, std::ios::binary | std::ios::beg );
-						m_decoder = std::make_unique< BjSON::Decoder >( m_fileSource );
-						m_assetManager = std::make_unique< AssetManager >( m_decoder->GetRootObject() );
+
+						if ( m_fileSource.is_open() )
+						{
+							m_decoder = std::make_unique< BjSON::Decoder >( m_fileSource );
+							m_assetManager = std::make_unique< AssetManager >( m_decoder->GetRootObject() );
+						}
 					}
 				}
 
@@ -254,6 +277,34 @@ void AssetManagerWindow::Run()
 					if ( ImGui::Selectable( "Script" ) )
 					{
 						m_assetManager->New< Script >( m_currentFolder + std::string( m_newAssetPath ) );
+
+						std::memset( m_newAssetPath, 0, sizeof( m_newAssetPath ) );
+						ImGui::CloseCurrentPopup();
+					}
+
+					if ( ImGui::Selectable( "Texture" ) )
+					{
+						TextureAsset* texture = m_assetManager->New< TextureAsset >( m_currentFolder + std::string( m_newAssetPath ) ).get();
+
+						const TextureAsset::Pixel black( 0, 0, 0, 255 );
+						texture->Init( 1, 1, &black );
+
+						std::memset( m_newAssetPath, 0, sizeof( m_newAssetPath ) );
+						ImGui::CloseCurrentPopup();
+					}
+
+					if ( ImGui::Selectable( "Texture Animation" ) )
+					{
+						m_assetManager->New< TextureAnimationAsset >( m_currentFolder + std::string( m_newAssetPath ) );
+
+						std::memset( m_newAssetPath, 0, sizeof( m_newAssetPath ) );
+						ImGui::CloseCurrentPopup();
+					}
+
+					if ( ImGui::Selectable( "Shader" ) )
+					{
+						m_assetManager->New< ShaderAsset >( m_currentFolder + std::string( m_newAssetPath ) );
+
 						std::memset( m_newAssetPath, 0, sizeof( m_newAssetPath ) );
 						ImGui::CloseCurrentPopup();
 					}
@@ -306,7 +357,7 @@ void AssetManagerWindow::Run()
 
 				for ( auto& [name, asset] : assets )
 				{
-					std::string complete_path = m_currentFolder + name;
+					const std::string complete_path = m_currentFolder + name;
 
 					ImGui::TableNextColumn();
 					ImGui::PushID( name.c_str() );
@@ -320,6 +371,10 @@ void AssetManagerWindow::Run()
 						strcpy_s( rename_buffer, name.c_str() );
 						ImGui::OpenPopup( "Rename" );
 					}
+
+					ImGui::SameLine();
+					if ( ImGui::Button( "Copy Path" ) )
+						ImGui::SetClipboardText( complete_path.c_str() );
 
 					if ( ImGui::BeginPopup( "Rename" ) )
 					{
@@ -346,7 +401,7 @@ void AssetManagerWindow::Run()
 						break;
 					}
 
-					asset->DoAssetManagerButton( name.c_str(), complete_path.c_str(), asset );
+					asset->DoAssetManagerButton( name.c_str(), complete_path.c_str(), ImGui::GetColumnWidth(), asset, frame_context );
 
 					if ( !( column = ( column + 1 ) % m_numIconsPerRow ) )
 						ImGui::TableNextRow();

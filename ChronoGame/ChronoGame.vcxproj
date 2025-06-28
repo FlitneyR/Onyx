@@ -150,9 +150,6 @@
     <ProjectReference Include="..\ChronoCommon\ChronoCommon.vcxproj">
       <Project>{34644d51-386e-462e-ad5c-51dbf75e6380}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\Engine\Engine.vcxproj">
-      <Project>{58746d44-e146-4622-b304-b7a8649c142b}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

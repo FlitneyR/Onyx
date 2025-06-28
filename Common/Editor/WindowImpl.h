@@ -10,7 +10,7 @@ namespace onyx::editor
 struct ImGuiDemoWindow : IWindow
 {
 	inline static const char* const s_name = "ImGui Demo";
-	void Run() override { ImGui::ShowDemoWindow( &m_open ); }
+	void Run( IFrameContext& frame_context ) override { ImGui::ShowDemoWindow( &m_open ); }
 	std::string GetWindowTitle() const override { return s_name; }
 };
 
@@ -48,10 +48,10 @@ void DoWindowsMenu()
 	}
 }
 
-void DoWindows()
+void DoWindows( IFrameContext& frame_context )
 {
 	for ( u32 window_index = 0; window_index < s_windows.size(); ++window_index )
-		s_windows[ window_index ]->Run();
+		s_windows[ window_index ]->Run( frame_context );
 
 	std::erase_if( s_windows, []( std::unique_ptr< IWindow >& window ) { return !window->m_open; } );
 }

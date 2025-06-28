@@ -42,9 +42,9 @@ SCRIPT_NODE_CUSTOM_SAVE( ScriptNode_MakeTransform2D )
 SCRIPT_NODE_IMPL( ScriptNode_MakeTransform2D )
 {
 	extras.Transform.SetLocale( inputs.Locale );
-	extras.Transform.SetPosition( inputs.Position );
-	extras.Transform.SetRotation( inputs.Rotation );
-	extras.Transform.SetScale( inputs.Scale );
+	extras.Transform.SetLocalPosition( inputs.Position );
+	extras.Transform.SetLocalRotation( glm::radians( inputs.Rotation ) );
+	extras.Transform.SetLocalScale( inputs.Scale );
 
 	outputs.Transform2D = &extras.Transform;
 
@@ -53,8 +53,38 @@ SCRIPT_NODE_IMPL( ScriptNode_MakeTransform2D )
 
 SCRIPT_NODE_IMPL( ScriptNode_AddComponent_Transform2D )
 {
-	if ( outputs.Cmd_Out = inputs.Cmd )
-		inputs.Cmd->AddComponent( outputs.Entity_Out = inputs.Entity, inputs.Transform2D );
+	onyx::ecs::CommandBuffer* cmd = inputs.Cmd;
+	if ( !cmd )
+		if ( onyx::ecs::CommandBuffer** _cmd = ctx.GetInput< onyx::ecs::CommandBuffer* >( "Cmd"_name ) )
+			cmd = *_cmd;
+
+	outputs.Cmd_Out = cmd;
+	outputs.Entity_Out = inputs.Entity;
+
+	if ( LOG_ASSERT( cmd && inputs.Entity ) )
+	{
+		cmd->AddComponent( inputs.Entity, inputs.Transform2D ? *inputs.Transform2D : Transform2D() );
+		return Then;
+	}
+
+	return Failed;
+}
+
+SCRIPT_NODE_IMPL( ScriptNode_AddComponent_Attachment )
+{
+	onyx::ecs::CommandBuffer* cmd = inputs.Cmd;
+	if ( !cmd )
+		if ( onyx::ecs::CommandBuffer** _cmd = ctx.GetInput< onyx::ecs::CommandBuffer* >( "Cmd"_name ) )
+			cmd = *_cmd;
+
+	outputs.Cmd_Out = cmd;
+	outputs.Entity_Out = inputs.Entity;
+
+	if ( LOG_ASSERT( cmd && inputs.Entity ) )
+	{
+		cmd->AddComponent( inputs.Entity, onyx::AttachedTo( inputs.ParentEntity ) );
+		return Then;
+	}
 
 	return Failed;
 }

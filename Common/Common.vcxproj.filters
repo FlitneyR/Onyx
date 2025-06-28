@@ -58,8 +58,23 @@
     <Filter Include="Source Files\External\imnodes">
       <UniqueIdentifier>{f151e4c4-2778-4511-972b-b2173c851a67}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Components">
+    <Filter Include="Source Files\Graphics">
+      <UniqueIdentifier>{ccc1854a-33ac-40d9-ae4e-ce740708639f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ECS\Components">
       <UniqueIdentifier>{1faa9e8b-6f63-4ed1-968a-4151424ddcc0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ECS\Components">
+      <UniqueIdentifier>{3c6c02be-6445-4d47-8407-2cd69085c60c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ECS\Systems">
+      <UniqueIdentifier>{d2eff8dc-c5a9-4fab-b809-360d3a629fcf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ECS\Systems">
+      <UniqueIdentifier>{14e4cd90-796f-4720-b492-2dd505e7149d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Shaders">
+      <UniqueIdentifier>{71f7cd25-db0c-423d-bbd1-43aef786a861}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -104,6 +119,24 @@
     </ClCompile>
     <ClCompile Include="External\imnodes\imnodes.cpp">
       <Filter>Source Files\External\imnodes</Filter>
+    </ClCompile>
+    <ClCompile Include="ECS\Systems\Rendering2D.cpp">
+      <Filter>Source Files\ECS\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="External\stb_impl.cpp">
+      <Filter>Source Files\External</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Shader.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="ECS\Systems\Transform.cpp">
+      <Filter>Source Files\ECS\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Texture.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Camera.cpp">
+      <Filter>Source Files\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -203,11 +236,64 @@
     <ClInclude Include="External\imnodes\imnodes.h">
       <Filter>Header Files\External\imnodes</Filter>
     </ClInclude>
-    <ClInclude Include="Components\Transform.h">
-      <Filter>Header Files\Components</Filter>
+    <ClInclude Include="Graphics\Texture.h">
+      <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Components\TransformScriptNodesImpl.h">
-      <Filter>Header Files\Components</Filter>
+    <ClInclude Include="Graphics\GraphicsResource.h">
+      <Filter>Header Files\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="ECS\SystemContexts.h">
+      <Filter>Header Files\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\Components\Sprite.h">
+      <Filter>Header Files\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\Components\SpriteScriptNodes.h">
+      <Filter>Header Files\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\Components\SpriteScriptNodesImpl.h">
+      <Filter>Header Files\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\Components\Transform.h">
+      <Filter>Header Files\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\Components\TransformScriptNodes.h">
+      <Filter>Header Files\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\Components\TransformScriptNodesImpl.h">
+      <Filter>Header Files\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\Systems\Rendering2D.h">
+      <Filter>Header Files\ECS\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\SpriteRenderer.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Shader.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\RenderTarget.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\Entity.h">
+      <Filter>Header Files\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\Systems\Transform.h">
+      <Filter>Header Files\ECS\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Clock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Camera.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Graphics\Shaders\SpriteRenderer.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="Graphics\Shaders\SpriteRenderer.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

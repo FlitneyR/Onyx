@@ -1,13 +1,22 @@
 #pragma once
 
-#include "Common/Scripting/ScriptMacros.h"
+#include "Common/ECS/Components/SpriteScriptNodes.h"
+#include "Common/ECS/Components/TransformScriptNodes.h"
 #include "Common/Scripting/CommonScriptNodes.h"
 
-#include "Common/Components/Transform.h"
+#include "ChronoCommon/ScriptNodes/Camera.h"
+#include "ChronoCommon/ScriptNodes/Physics.h"
+#include "ChronoCommon/ScriptNodes/Player.h"
 
-#define SCRIPT_NODES( f )				\
-	ONYX_COMMON_SCRIPT_NODES( f )		\
-	ONYX_TRANSFORM2D_SCRIPT_NODES( f )	\
+#include "Common/Scripting/ScriptMacros.h"
+
+#define SCRIPT_NODES( f ) \
+	ONYX_SPRITE_SCRIPT_NODES( f ) \
+	ONYX_TRANSFORM2D_SCRIPT_NODES( f ) \
+	ONYX_COMMON_SCRIPT_NODES( f ) \
+	Camera_ScriptNodes( f ) \
+	Physics_ScriptNodes( f ) \
+	Player_ScriptNodes( f ) \
 
 namespace onyx::ScriptNodes
 {

@@ -1,8 +1,20 @@
 #pragma once
 #include "VulkanGraphicsContext.h"
+#include "imgui_impl_vulkan.h"
 
 namespace onyx
 {
+
+template<>
+struct VulkanGraphicsContext::Deleter< vk::Buffer, vma::Allocation > : DeleteQueue::IDeleter
+{
+	vma::Allocator m_allocator;
+	vk::Buffer m_buffer;
+	vma::Allocation m_allocation;
+
+	Deleter( vma::Allocator allocator, vk::Buffer buffer, vma::Allocation allocation ) : m_allocator( allocator ), m_buffer( buffer ), m_allocation( allocation ) {}
+	void Execute() override { m_allocator.destroyBuffer( m_buffer, m_allocation ); }
+};
 
 template<>
 struct VulkanGraphicsContext::Deleter< vk::CommandPool > : DeleteQueue::IDeleter
@@ -22,6 +34,29 @@ struct VulkanGraphicsContext::Deleter< vk::DescriptorPool > : DeleteQueue::IDele
 
 	Deleter( vk::Device device, vk::DescriptorPool descriptor_pool ) : m_device( device ), m_descriptorPool( descriptor_pool ) {}
 	void Execute() override { m_device.destroyDescriptorPool( m_descriptorPool ); }
+};
+
+template<>
+struct VulkanGraphicsContext::Deleter< vk::DescriptorSet > : DeleteQueue::IDeleter
+{
+	vk::Device m_device;
+	vk::DescriptorPool m_descriptorPool;
+	vk::DescriptorSet m_descriptorSet;
+
+	Deleter( vk::Device device, vk::DescriptorPool descriptor_pool, vk::DescriptorSet descriptor_set )
+		: m_device( device ), m_descriptorPool( descriptor_pool ), m_descriptorSet( descriptor_set ) {}
+
+	void Execute() override { m_device.freeDescriptorSets( m_descriptorPool, m_descriptorSet ); }
+};
+
+template<>
+struct VulkanGraphicsContext::Deleter< vk::DescriptorSetLayout > : DeleteQueue::IDeleter
+{
+	vk::Device m_device;
+	vk::DescriptorSetLayout m_descriptorSetLayout;
+
+	Deleter( vk::Device device, vk::DescriptorSetLayout descriptor_set_layout ) : m_device( device ), m_descriptorSetLayout( descriptor_set_layout ) {}
+	void Execute() override { m_device.destroyDescriptorSetLayout( m_descriptorSetLayout ); }
 };
 
 template<>
@@ -67,6 +102,15 @@ struct VulkanGraphicsContext::Deleter< vk::ImageView > : DeleteQueue::IDeleter
 };
 
 template<>
+struct VulkanGraphicsContext::Deleter< ImTextureID > : DeleteQueue::IDeleter
+{
+	ImTextureID m_imTextureId;
+
+	Deleter( ImTextureID im_texture_id ) : m_imTextureId( im_texture_id ) {}
+	void Execute() override { ImGui_ImplVulkan_RemoveTexture( reinterpret_cast< VkDescriptorSet >( m_imTextureId ) ); }
+};
+
+template<>
 struct VulkanGraphicsContext::Deleter< vk::Instance > : DeleteQueue::IDeleter
 {
 	vk::Instance m_instance;
@@ -83,12 +127,51 @@ struct VulkanGraphicsContext::Deleter< vk::Instance > : DeleteQueue::IDeleter
 };
 
 template<>
+struct VulkanGraphicsContext::Deleter< vk::PipelineLayout > : DeleteQueue::IDeleter
+{
+	vk::Device m_device;
+	vk::PipelineLayout m_pipelineLayout;
+
+	Deleter( vk::Device device, vk::PipelineLayout pipeline_layout ) : m_device( device ), m_pipelineLayout( pipeline_layout ) {}
+	void Execute() override { m_device.destroyPipelineLayout( m_pipelineLayout ); }
+};
+
+template<>
+struct VulkanGraphicsContext::Deleter< vk::Pipeline > : DeleteQueue::IDeleter
+{
+	vk::Device m_device;
+	vk::Pipeline m_pipeline;
+
+	Deleter( vk::Device device, vk::Pipeline pipeline ) : m_device( device ), m_pipeline( pipeline ) {}
+	void Execute() override { m_device.destroyPipeline( m_pipeline ); }
+};
+
+template<>
+struct VulkanGraphicsContext::Deleter< vk::Sampler > : DeleteQueue::IDeleter
+{
+	vk::Device m_device;
+	vk::Sampler m_sampler;
+
+	Deleter( vk::Device device, vk::Sampler sampler ) : m_device( device ), m_sampler( sampler ) {}
+	void Execute() override { m_device.destroySampler( m_sampler ); }
+};
+
+template<>
 struct VulkanGraphicsContext::Deleter< vk::Semaphore > : DeleteQueue::IDeleter
 {
 	vk::Device m_device;
 	vk::Semaphore m_semaphore;
 	Deleter( vk::Device device, vk::Semaphore semaphore) : m_device( device ), m_semaphore( semaphore ) {}
 	void Execute() override { m_device.destroySemaphore( m_semaphore ); }
+};
+
+template<>
+struct VulkanGraphicsContext::Deleter< vk::ShaderModule > : DeleteQueue::IDeleter
+{
+	vk::Device m_device;
+	vk::ShaderModule m_shaderModule;
+	Deleter( vk::Device device, vk::ShaderModule shaderModule ) : m_device( device ), m_shaderModule( shaderModule ) {}
+	void Execute() override { m_device.destroyShaderModule( m_shaderModule ); }
 };
 
 template<>

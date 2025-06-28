@@ -7,7 +7,7 @@ namespace onyx::ecs
 
 void World::QueryManager::UpdateNeedsRerun( World& world )
 {
-	std::erase_if( m_queries, []( std::pair< size_t, std::weak_ptr< IQuery > > pair )
+	std::erase_if( m_queries, []( const std::pair< size_t, std::weak_ptr< IQuery > >& pair )
 	{
 		return pair.second.expired();
 	} );
@@ -36,6 +36,7 @@ void QuerySet::Update()
 	} );
 
 	std::vector< std::shared_ptr< IQuery > > queries_to_run;
+	std::set< size_t > relevant_components;
 	queries_to_run.reserve( m_queries.size() );
 
 	// find the queries that need to rerun
@@ -46,6 +47,7 @@ void QuerySet::Update()
 			if ( query->NeedsRerun() )
 			{
 				query->ClearResults();
+				query->CollectComponentTypes( relevant_components );
 				queries_to_run.push_back( query );
 			}
 		}
@@ -53,7 +55,7 @@ void QuerySet::Update()
 
 	// if any queries need to rerun, run them
 	if ( !queries_to_run.empty() )
-		for ( auto iter = m_world.Iter(); iter; ++iter )
+		for ( auto iter = m_world.Iter( &relevant_components ); iter; ++iter )
 			for ( auto query : queries_to_run )
 				query->Consider( iter );
 

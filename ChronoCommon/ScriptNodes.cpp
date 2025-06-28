@@ -1,7 +1,12 @@
 #include "ScriptNodes.h"
 
+#include "Common/ECS/Components/SpriteScriptNodesImpl.h"
+#include "Common/ECS/Components/TransformScriptNodesImpl.h"
 #include "Common/Scripting/CommonScriptNodesImpl.h"
-#include "Common/Components/TransformScriptNodesImpl.h"
+
+#include "ChronoCommon/ScriptNodes/CameraImpl.h"
+#include "ChronoCommon/ScriptNodes/PhysicsImpl.h"
+#include "ChronoCommon/ScriptNodes/PlayerImpl.h"
 
 namespace onyx::ScriptNodes
 {

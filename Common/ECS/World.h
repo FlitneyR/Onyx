@@ -1,15 +1,15 @@
 #pragma once
 
 #include <map>
+#include <set>
 #include <memory>
 #include <vector>
 #include <algorithm>
 
+#include "Entity.h"
+
 namespace onyx::ecs
 {
-
-typedef u32 EntityID;
-const EntityID NoEntity = 0;
 
 // forward declaration from "Common/ECS/Query.h"
 struct IQuery;
@@ -31,6 +31,12 @@ struct World
 	{
 		for ( auto& [hash, table] : m_componentTables )
 			table->RemoveComponent( entity );
+	}
+
+	void ResetEntities()
+	{
+		m_componentTables.clear();
+		m_nextEntityID = 1;
 	}
 
 	template< typename Component >
@@ -177,10 +183,13 @@ struct World
 
 	struct EntityIterator : BaseEntityIterator
 	{
-		EntityIterator( World& world )
+		EntityIterator( World& world, const std::set< size_t >* relevant_components )
 		{
 			for ( auto& [hash, table] : world.m_componentTables )
 			{
+				if ( relevant_components && !relevant_components->contains( hash ) )
+					continue;
+
 				auto iter = table->GenericIter();
 
 				if ( EntityID entity = iter->ID() )
@@ -244,7 +253,10 @@ struct World
 
 	QueryManager m_queryManager;
 
-	EntityIterator Iter() { return EntityIterator( *this ); }
+	EntityIterator Iter( const std::set< size_t >* relevant_components = nullptr )
+	{
+		return EntityIterator( *this, relevant_components );
+	}
 
 private:
 	EntityID m_nextEntityID = 1;

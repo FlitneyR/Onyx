@@ -161,7 +161,16 @@
     <ClCompile Include="Assets.cpp" />
     <ClCompile Include="BjSON\BjSON.cpp" />
     <ClCompile Include="ECS\Query.cpp" />
+    <ClCompile Include="ECS\Systems\Rendering2D.cpp" />
+    <ClCompile Include="ECS\Systems\Transform.cpp" />
     <ClCompile Include="External\imnodes\imnodes.cpp" />
+    <ClCompile Include="External\stb_impl.cpp">
+      <BufferSecurityCheck Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BufferSecurityCheck>
+      <BufferSecurityCheck Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</BufferSecurityCheck>
+    </ClCompile>
+    <ClCompile Include="Graphics\Camera.cpp" />
+    <ClCompile Include="Graphics\Shader.cpp" />
+    <ClCompile Include="Graphics\Texture.cpp" />
     <ClCompile Include="InputTypes.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="LowLevel\Impl\SDLInput.cpp" />
@@ -178,20 +187,34 @@
     <ClInclude Include="Assets.h" />
     <ClInclude Include="BjSON\BjSON.h" />
     <ClInclude Include="BjSON\BjSON_impl.h" />
-    <ClInclude Include="Components\Transform.h" />
-    <ClInclude Include="Components\TransformScriptNodesImpl.h" />
     <ClInclude Include="ECS\CommandBuffer.h" />
+    <ClInclude Include="ECS\Components\Sprite.h" />
+    <ClInclude Include="ECS\Components\SpriteScriptNodes.h" />
+    <ClInclude Include="ECS\Components\SpriteScriptNodesImpl.h" />
+    <ClInclude Include="ECS\Components\Transform.h" />
+    <ClInclude Include="ECS\Components\TransformScriptNodes.h" />
+    <ClInclude Include="ECS\Components\TransformScriptNodesImpl.h" />
+    <ClInclude Include="ECS\Entity.h" />
     <ClInclude Include="ECS\Query.h" />
     <ClInclude Include="ECS\System.h" />
     <ClInclude Include="ECS\SystemSet.h" />
+    <ClInclude Include="ECS\Systems\Rendering2D.h" />
+    <ClInclude Include="ECS\SystemContexts.h" />
+    <ClInclude Include="ECS\Systems\Transform.h" />
     <ClInclude Include="ECS\World.h" />
     <ClInclude Include="Editor\ScriptEditorWindow.h" />
     <ClInclude Include="Editor\Window.h" />
     <ClInclude Include="Editor\WindowImpl.h" />
     <ClInclude Include="External\imnodes\imnodes.h" />
+    <ClInclude Include="Graphics\Camera.h" />
     <ClInclude Include="Graphics\DeleteQueue.h" />
     <ClInclude Include="Graphics\FrameContext.h" />
     <ClInclude Include="Graphics\GraphicsContext.h" />
+    <ClInclude Include="Graphics\GraphicsResource.h" />
+    <ClInclude Include="Graphics\RenderTarget.h" />
+    <ClInclude Include="Graphics\Shader.h" />
+    <ClInclude Include="Graphics\Texture.h" />
+    <ClInclude Include="Graphics\SpriteRenderer.h" />
     <ClInclude Include="InputTypes.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="LowLevel\Impl\SDLInput.h" />
@@ -206,8 +229,19 @@
     <ClInclude Include="Scripting\Script.h" />
     <ClInclude Include="Scripting\ScriptMacros.h" />
     <ClInclude Include="Scripting\ScriptManager.h" />
+    <ClInclude Include="Clock.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="Window.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Graphics\Shaders\SpriteRenderer.frag">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Graphics\Shaders\SpriteRenderer.vert">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -15,12 +15,62 @@ ONYX_COMMON_SCRIPT_NODES( SCRIPT_NODE_DECL )
 
 }
 
+// AddContext
+#define __SCRIPT_NODE_ADD_CONTEXT_GENERIC_BODY( cond, value ) \
+	outputs.Ctx_Out = inputs.Ctx; \
+	if ( !LOG_ASSERT( inputs.Ctx && inputs.Name cond ) ) \
+		return Failed; \
+	inputs.Ctx->AddInput( inputs.Name, value ); \
+	return Then; \
+
+SCRIPT_NODE_IMPL( ScriptNode_AddContext_AssetLoader )
+{ __SCRIPT_NODE_ADD_CONTEXT_GENERIC_BODY( && inputs.AssetLoader, inputs.AssetLoader ); }
+
+SCRIPT_NODE_IMPL( ScriptNode_AddContext_Cmd )
+{ __SCRIPT_NODE_ADD_CONTEXT_GENERIC_BODY( && inputs.Cmd, inputs.Cmd ); }
+
+SCRIPT_NODE_IMPL( ScriptNode_AddContext_String )
+{ __SCRIPT_NODE_ADD_CONTEXT_GENERIC_BODY( && inputs.String, &inputs.String ); }
+
+SCRIPT_NODE_IMPL( ScriptNode_AddContext_Transform2D )
+{ __SCRIPT_NODE_ADD_CONTEXT_GENERIC_BODY( && inputs.Transform2D, inputs.Transform2D ); }
+
+SCRIPT_NODE_IMPL( ScriptNode_AddContext_Vec2 )
+{ __SCRIPT_NODE_ADD_CONTEXT_GENERIC_BODY( , inputs.Vec2 ); }
+
 // AddEntity
 SCRIPT_NODE_IMPL( ScriptNode_AddEntity )
 {
-	if ( outputs.Cmd_Out = inputs.Cmd )
-		outputs.Entity = inputs.Cmd->AddEntity();
+	onyx::ecs::CommandBuffer* cmd = inputs.Cmd;
+	if ( !cmd )
+		if ( onyx::ecs::CommandBuffer** _cmd = ctx.GetInput< onyx::ecs::CommandBuffer* >( "Cmd"_name ) )
+			cmd = *_cmd;
 
+	if ( outputs.Cmd_Out = cmd )
+		outputs.Entity = cmd->AddEntity();
+
+	return Then;
+}
+
+// BoolLiteral
+SCRIPT_NODE_CUSTOM_LOAD( ScriptNode_BoolLiteral )
+{
+	reader.GetLiteral( "Value"_name, self.m_extras.value );
+}
+
+SCRIPT_NODE_CUSTOM_SAVE( ScriptNode_BoolLiteral )
+{
+	writer.SetLiteral( "Value"_name, self.m_extras.value );
+}
+
+SCRIPT_NODE_CUSTOM_UI( ScriptNode_BoolLiteral )
+{
+	ImGui::Checkbox( "Value", &self.m_extras.value );
+}
+
+SCRIPT_NODE_IMPL( ScriptNode_BoolLiteral )
+{
+	outputs.Value = extras.value;
 	return Then;
 }
 
@@ -29,6 +79,49 @@ SCRIPT_NODE_IMPL( ScriptNode_Branch )
 {
 	outputs.PassThrough = inputs.Condition;
 	return inputs.Condition ? True : False;
+}
+
+// CopyContext
+SCRIPT_NODE_IMPL( ScriptNode_CopyContext )
+{
+	onyx::ScriptContext* context = inputs.Ctx;
+	if ( !context )
+		context = &ctx;
+
+	outputs.Ctx_Out = context;
+	outputs.Ctx_Copy = nullptr;
+
+	if ( !LOG_ASSERT( context ) )
+		return Failed;
+	
+	extras.ctx = *context;
+	outputs.Ctx_Copy = &extras.ctx;
+	return Then;
+}
+
+// FloatLiteral
+SCRIPT_NODE_CUSTOM_UI( ScriptNode_FloatLiteral )
+{
+	ImGui::SetNextItemWidth( 100 );
+	ImGui::InputFloat( "Value", &self.m_extras.Value );
+	self.m_outputs.Value = self.m_extras.Value;
+}
+
+SCRIPT_NODE_CUSTOM_LOAD( ScriptNode_FloatLiteral )
+{
+	reader.GetLiteral( "Value"_name, self.m_extras.Value );
+	self.m_outputs.Value = self.m_extras.Value;
+}
+
+SCRIPT_NODE_CUSTOM_SAVE( ScriptNode_FloatLiteral )
+{
+	writer.SetLiteral( "Value"_name, self.m_extras.Value );
+}
+
+SCRIPT_NODE_IMPL( ScriptNode_FloatLiteral )
+{
+	outputs.Value = extras.Value;
+	return Then;
 }
 
 // IntLiteral
@@ -78,6 +171,58 @@ SCRIPT_NODE_IMPL( ScriptNode_LogWarningMessage )
 SCRIPT_NODE_IMPL( ScriptNode_LogErrorMessage )
 {
 	ERROR( "{}", inputs.Message );
+	return Then;
+}
+
+// MakeScriptContext
+SCRIPT_NODE_IMPL( ScriptNode_MakeScriptContext )
+{
+	outputs.Ctx = &extras.ctx;
+	return Then;
+}
+
+// MakeVec2
+SCRIPT_NODE_CUSTOM_LOAD( ScriptNode_MakeVec2 )
+{
+	reader.GetLiteral( "X"_name, self.m_inputs.X );
+	reader.GetLiteral( "Y"_name, self.m_inputs.Y );
+}
+
+SCRIPT_NODE_CUSTOM_SAVE( ScriptNode_MakeVec2 )
+{
+	writer.SetLiteral( "X"_name, self.m_inputs.X );
+	writer.SetLiteral( "Y"_name, self.m_inputs.Y );
+}
+
+SCRIPT_NODE_IMPL( ScriptNode_MakeVec2 )
+{
+	outputs.Vec2 = { inputs.X, inputs.Y };
+	return Then;
+}
+
+// RunScript
+SCRIPT_NODE_IMPL( ScriptNode_RunScript )
+{
+	onyx::ScriptContext* context = inputs.Ctx;
+	if ( !context )
+		context = &ctx;
+
+	onyx::AssetLoader* asset_loader = inputs.AssetLoader;
+	if ( !asset_loader )
+		if ( onyx::AssetLoader** al = ctx.GetInput< onyx::AssetLoader* >( "AssetLoader"_name ) )
+			asset_loader = *al;
+
+	outputs.Ctx_Out = context;
+
+	if ( !LOG_ASSERT( asset_loader && inputs.ScriptPath && context ) )
+		return Failed;
+
+	std::shared_ptr< Script > script = asset_loader->Load< Script >( inputs.ScriptPath );
+	if ( !LOG_ASSERT( script ) )
+		return Failed;
+
+	outputs.Succeeded = onyx::ScriptRunner( script, *context ).Run();
+
 	return Then;
 }
 

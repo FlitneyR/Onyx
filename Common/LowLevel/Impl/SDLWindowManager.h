@@ -17,8 +17,8 @@ struct SDLWindow : IWindow
 
 	bool HasClosed() const override;
 	void Close() override;
-	glm::ivec2 GetSize() const override;
-	void SetSize( const glm::ivec2& new_size ) override;
+	glm::uvec2 GetSize() const override;
+	void SetSize( const glm::uvec2& new_size ) override;
 };
 
 struct SDLWindowManager : IWindowManager

@@ -8,6 +8,7 @@ namespace onyx
 {
 
 f32 LowLevelInput::s_buttonSensitivity = 0.5f;
+f32 LowLevelInput::s_deadZone = 0.125f;
 
 LowLevelInput::LowLevelInput()
 {
@@ -30,10 +31,10 @@ void LowLevelInput::UpdateButtonStates()
 
 std::string LowLevelInput::DebugWindow::GetWindowTitle() const
 {
-	return std::format( "Input Debug##{}", (u64)this );
+	return std::format( "Input Debug###{}", (u64)this );
 }
 
-void LowLevelInput::DebugWindow::Run()
+void LowLevelInput::DebugWindow::Run( IFrameContext& frame_context )
 {
 	if ( ImGui::Begin( GetWindowTitle().c_str(), &m_open ) )
 	{
@@ -155,7 +156,7 @@ void LowLevelInput::SetAxisState( InputAxis axis, f32 state )
 		break;
 	}
 
-	m_axisStates[ (u32)axis ].x = state;
+	m_axisStates[ (u32)axis ].x = glm::sign( state ) * glm::clamp( glm::abs( state ) - s_deadZone, 0.f, 1.f );
 
 	// update derived input axes
 	switch ( axis )

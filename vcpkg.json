@@ -2,16 +2,16 @@
   "name": "onyx",
   "version": "0.1.0",
   "dependencies": [
+    "assimp",
     "glm",
     {
       "name": "imgui",
       "features": [
+        "docking-experimental",
         "sdl2-binding",
-        "vulkan-binding",
-        "docking-experimental"
+        "vulkan-binding"
       ]
     },
-    "imgui-node-editor",
     {
       "name": "sdl2",
       "features": [
@@ -21,6 +21,7 @@
     "vk-bootstrap",
     "vulkan",
     "vulkan-memory-allocator",
-    "vulkan-memory-allocator-hpp"
+    "vulkan-memory-allocator-hpp",
+    "glslang"
   ]
 }

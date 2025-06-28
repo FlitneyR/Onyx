@@ -27,7 +27,7 @@ struct IScriptNodePinSet
 	virtual u32 GetPinIndex( BjSON::NameHash pin_name ) const = 0;
 };
 
-struct IScriptContext
+struct ScriptContext
 {
 	struct IPin
 	{
@@ -39,8 +39,28 @@ struct IScriptContext
 	IPin* GetInput( BjSON::NameHash name );
 	IPin* GetOutput( BjSON::NameHash name );
 
-	std::map< BjSON::NameHash, std::unique_ptr< IPin > > m_inputs;
-	std::map< BjSON::NameHash, std::unique_ptr< IPin > > m_outputs;
+	template< typename T >
+	T* GetInput( BjSON::NameHash name )
+	{
+		if ( IPin* pin = GetInput( name ) )
+			if ( pin->GetTypeID() == typeid( T ).hash_code() )
+				return reinterpret_cast< T* >( pin->GetData() );
+
+		return nullptr;
+	}
+
+	template< typename T >
+	T* GetOutput( BjSON::NameHash name )
+	{
+		if ( IPin* pin = GetOutput( name ) )
+			if ( pin->GetTypeID() == typeid( T ).hash_code() )
+				return reinterpret_cast<T*>( pin->GetData() );
+
+		return nullptr;
+	}
+
+	std::map< BjSON::NameHash, std::shared_ptr< IPin > > m_inputs;
+	std::map< BjSON::NameHash, std::shared_ptr< IPin > > m_outputs;
 
 	template< typename T >
 	struct Pin : IPin
@@ -54,21 +74,21 @@ struct IScriptContext
 		{}
 
 		size_t GetTypeID() { return typeid( T ).hash_code(); }
-		void* GetData() { return static_cast< void* >( &data ); }
-		void SetData( void* data ) { data = *static_cast< T* >( data ); }
+		void* GetData() { return reinterpret_cast< void* >( &data ); }
+		void SetData( void* in_data ) { data = *reinterpret_cast< T* >( in_data ); }
 	};
 
 	template< typename T >
-	IScriptContext& AddInput( const char* name, T value = {} )
+	ScriptContext& AddInput( const char* name, T value = {} )
 	{
-		m_inputs.insert( { BjSON::HashName( name ), std::make_unique< Pin< T > >( name, value ) } );
+		m_inputs.insert( { BjSON::HashName( name ), std::make_shared< Pin< T > >( name, value ) } );
 		return *this;
 	}
 
 	template< typename T >
-	IScriptContext& AddOutput( const char* name, T default_value = {} )
+	ScriptContext& AddOutput( const char* name, T default_value = {} )
 	{
-		m_outputs.insert( { BjSON::HashName( name ), std::make_unique< Pin< T > >( name, default_value ) } );
+		m_outputs.insert( { BjSON::HashName( name ), std::make_shared< Pin< T > >( name, default_value ) } );
 		return *this;
 	}
 };
@@ -78,7 +98,7 @@ struct IScriptNode
 	virtual const char* GetScriptNodeTypeName() const = 0;
 	virtual IScriptNodePinSet& GetInputs() = 0;
 	virtual IScriptNodePinSet& GetOutputs() = 0;
-	virtual u32 Exec( IScriptContext& ctx ) = 0;
+	virtual u32 Exec( ScriptContext& ctx ) = 0;
 	virtual const char* const* GetExecPinNames( u32& count ) const = 0;
 	virtual u32 GetExecPinIndex( BjSON::NameHash pin_name ) const = 0;
 	virtual void DoCustomUI() {}
@@ -90,7 +110,7 @@ void ScriptNodes_DoCustomUI( IScriptNode& node );
 void ScriptNodes_DoCustomLoad( IScriptNode& node, const BjSON::IReadOnlyObject& reader );
 void ScriptNodes_DoCustomSave( IScriptNode& node, BjSON::IReadWriteObject& writer );
 
-struct Script : IAsset
+struct Script final : IAsset
 {
 	struct NodeWrapper;
 
@@ -128,21 +148,21 @@ struct Script : IAsset
 	std::map< std::string, size_t > m_outputs;
 	BjSON::NameHash m_entryPoint = 0;
 
-	void Load() override;
-	void Save( BjSON::IReadWriteObject& writer ) override;
-	void DoAssetManagerButton( const char* name, const char* path, std::shared_ptr< IAsset > asset ) override;
+	void Load( LoadType type ) override;
+	void Save( BjSON::IReadWriteObject& writer, SaveType type ) override;
+	void DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context ) override;
 	std::vector< std::shared_ptr< NodeWrapper > >::iterator GetNode( BjSON::NameHash name_hash );
 };
 
 struct ScriptRunner
 {
-	ScriptRunner( std::shared_ptr< Script > script, std::shared_ptr< IScriptContext > ctx );
+	ScriptRunner( std::shared_ptr< Script > script, ScriptContext& ctx );
 	bool Run();
 	bool IsRunning() const { m_currentNode; }
 
 private:
+	ScriptContext& m_context;
 	std::shared_ptr< Script > m_script;
-	std::shared_ptr< IScriptContext > m_context;
 	std::shared_ptr< Script::NodeWrapper > m_currentNode;
 };
 
@@ -171,7 +191,7 @@ struct ScriptEditor : editor::IWindow
 
 	inline static const char* const s_name = "Script Editor";
 	const char* GetName() const override { return s_name; }
-	void Run() override;
+	void Run( IFrameContext& frame_context ) override;
 	std::string GetWindowTitle() const override;
 
 	i32 GetPinID( BjSON::NameHash node_name, BjSON::NameHash pin_name );

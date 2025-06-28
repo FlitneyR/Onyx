@@ -10,7 +10,7 @@
 namespace onyx
 {
 
-IScriptContext::IPin* IScriptContext::GetInput( BjSON::NameHash name )
+ScriptContext::IPin* ScriptContext::GetInput( BjSON::NameHash name )
 {
 	auto iter = m_inputs.find( name );
 	if ( iter == m_inputs.end() )
@@ -19,7 +19,7 @@ IScriptContext::IPin* IScriptContext::GetInput( BjSON::NameHash name )
 	return iter->second.get();
 }
 
-IScriptContext::IPin* IScriptContext::GetOutput( BjSON::NameHash name )
+ScriptContext::IPin* ScriptContext::GetOutput( BjSON::NameHash name )
 {
 	auto iter = m_outputs.find( name );
 	if ( iter == m_outputs.end() )
@@ -32,18 +32,20 @@ void ScriptNodes_DoCustomUI( IScriptNode& node ) {}
 void ScriptNodes_DoCustomLoad( IScriptNode& node, const BjSON::IReadOnlyObject& reader ) {}
 void ScriptNodes_DoCustomSave( IScriptNode& node, BjSON::IReadWriteObject& writer ) {}
 
-void Script::Load()
+void Script::Load( LoadType type )
 {
-	if ( !WEAK_ASSERT( m_reader, "We can't start reading until we have a reader!" ) )
+	m_loadingState = LoadingState::Loading;
+
+	const BjSON::IReadOnlyObject* const reader = GetReader();
+
+	if ( !WEAK_ASSERT( reader, "We can't start reading until we have a reader!" ) )
 	{
 		m_loadingState = LoadingState::Errored;
 		return;
 	}
-	
-	m_loadingState = LoadingState::Loading;
 
 	u32 asset_type = 0;
-	WEAK_ASSERT( m_reader->GetLiteral( "__assetType"_name, asset_type ) == sizeof( asset_type ) );
+	WEAK_ASSERT( reader->GetLiteral( "__assetType"_name, asset_type ) == sizeof( asset_type ) );
 
 	if ( !WEAK_ASSERT( asset_type == "Script"_name, "Trying to load a script, but the file isn't a script" ) )
 	{
@@ -51,20 +53,20 @@ void Script::Load()
 		return;
 	}
 
-	if ( !WEAK_ASSERT( m_reader->GetLiteral( "entry_point"_name, m_entryPoint ) == sizeof( m_entryPoint ) ) )
+	if ( !WEAK_ASSERT( reader->GetLiteral( "entry_point"_name, m_entryPoint ) == sizeof( m_entryPoint ) ) )
 	{
 		m_loadingState = LoadingState::Errored;
 		return;
 	}
 
-	if ( std::shared_ptr< const BjSON::IReadOnlyObjectArray > inputs_reader = m_reader->GetArray( "inputs"_name ) )
+	if ( std::shared_ptr< const BjSON::IReadOnlyObjectArray > inputs_reader = reader->GetArray( "inputs"_name ) )
 	{
 		for ( u32 index = 0; index < inputs_reader->Count(); ++index )
 			if ( std::shared_ptr< const BjSON::IReadOnlyObject > input = inputs_reader->GetChild( index ) )
 				m_inputs.insert( { input->GetLiteral< std::string >( "name"_name ), 0 } );
 	}
 
-	std::shared_ptr< const BjSON::IReadOnlyObjectArray > nodes_reader = m_reader->GetArray( "nodes"_name );
+	std::shared_ptr< const BjSON::IReadOnlyObjectArray > nodes_reader = reader->GetArray( "nodes"_name );
 	if ( !WEAK_ASSERT( nodes_reader ) )
 	{
 		m_loadingState = LoadingState::Errored;
@@ -155,7 +157,7 @@ void Script::Load()
 	m_loadingState = LoadingState::Loaded;
 }
 
-void Script::Save( BjSON::IReadWriteObject& writer )
+void Script::Save( BjSON::IReadWriteObject& writer, SaveType type )
 {
 	writer.SetLiteral( "__assetType"_name, "Script"_name );
 	writer.SetLiteral( "entry_point"_name, m_entryPoint );
@@ -210,31 +212,31 @@ void Script::Save( BjSON::IReadWriteObject& writer )
 	}
 }
 
-void Script::DoAssetManagerButton( const char* name, const char* path, std::shared_ptr< IAsset > asset )
+void Script::DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context )
 {
 	switch ( m_loadingState )
 	{
 	case LoadingState::Loaded:
-		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0.f, 0.25f, 0.25f, 1.f ) );
-		ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0.f, 0.5f, 0.25f, 1.f ) );
-		ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0.f, 0.125f, 0.125f, 1.f ) );
+		ImGui::PushStyleColor( ImGuiCol_Button,			ImVec4( 0.f, 0.25f, 0.25f, 1.f ) );
+		ImGui::PushStyleColor( ImGuiCol_ButtonHovered,	ImVec4( 0.f, 0.5f, 0.25f, 1.f ) );
+		ImGui::PushStyleColor( ImGuiCol_ButtonActive,	ImVec4( 0.f, 0.125f, 0.125f, 1.f ) );
 		break;
 	case LoadingState::Errored:
-		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0.25f, 0.f, 0.f, 1.f ) );
-		ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0.5f, 0.25f, 0.25f, 1.f ) );
-		ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0.125f, 0.f, 0.f, 1.f ) );
+		ImGui::PushStyleColor( ImGuiCol_Button,			ImVec4( 0.25f, 0.f, 0.f, 1.f ) );
+		ImGui::PushStyleColor( ImGuiCol_ButtonHovered,	ImVec4( 0.5f, 0.25f, 0.25f, 1.f ) );
+		ImGui::PushStyleColor( ImGuiCol_ButtonActive,	ImVec4( 0.125f, 0.f, 0.f, 1.f ) );
 		break;
 	default:
-		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0.25f, 0.25f, 0.25f, 1.f ) );
-		ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0.25f, 0.25f, 0.25f, 1.f ) );
-		ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0.125f, 0.125f, 0.125f, 1.f ) );
+		ImGui::PushStyleColor( ImGuiCol_Button,			ImVec4( 0.25f, 0.25f, 0.25f, 1.f ) );
+		ImGui::PushStyleColor( ImGuiCol_ButtonHovered,	ImVec4( 0.25f, 0.25f, 0.25f, 1.f ) );
+		ImGui::PushStyleColor( ImGuiCol_ButtonActive,	ImVec4( 0.125f, 0.125f, 0.125f, 1.f ) );
 		break;
 	}
 	
 	if ( ImGui::Button( name ) )
 	{
 		if ( m_loadingState == LoadingState::Unloaded )
-			Load();
+			Load( IAsset::LoadType::Editor );
 
 		ScriptEditor* const window = editor::AddWindow< ScriptEditor >();
 		window->m_script = std::static_pointer_cast< Script >( asset );
@@ -252,15 +254,21 @@ std::vector< std::shared_ptr< Script::NodeWrapper > >::iterator Script::GetNode(
 	} );
 }
 
-ScriptRunner::ScriptRunner( std::shared_ptr< Script > script, std::shared_ptr< IScriptContext > ctx )
+ScriptRunner::ScriptRunner( std::shared_ptr< Script > script, ScriptContext& ctx )
 	: m_script( script )
 	, m_context( ctx )
 {
-	STRONG_ASSERT( script && ctx );
+	STRONG_ASSERT( script );
 }
 
 bool ScriptRunner::Run()
 {
+	if ( m_script->m_entryPoint == 0 )
+	{
+		LOG_ASSERT( m_script->m_nodes.empty(), "Script has nodes, but none are selected as the entry point" );
+		return true;
+	}
+
 	auto iter = m_script->GetNode( m_script->m_entryPoint );
 	if ( !WEAK_ASSERT( iter != m_script->m_nodes.end() && ( *iter )->m_nameHash == m_script->m_entryPoint ) )
 		return false;
@@ -285,11 +293,11 @@ bool ScriptRunner::Run()
 				if ( !WEAK_ASSERT( src_type && dst_type && *src_type == *dst_type ) )
 					return false;
 				
-				m_currentNode->m_node->GetInputs().CopyPinData( m_currentNode->m_inputLinks[ idx ].m_sourcePin, src );
+				m_currentNode->m_node->GetInputs().CopyPinData( input_names[ idx ], src );
 			}
 			else if ( m_currentNode->m_inputLinks[ idx ].m_sourceNodeNameHash == "__entryPoint"_name )
 			{
-				if ( IScriptContext::IPin* pin = m_context->GetInput( m_currentNode->m_inputLinks[ idx ].m_sourcePin ) )
+				if ( ScriptContext::IPin* pin = m_context.GetInput( m_currentNode->m_inputLinks[ idx ].m_sourcePin ) )
 				{
 					void* const src = pin->GetData();
 					size_t src_type = pin->GetTypeID();
@@ -299,12 +307,12 @@ bool ScriptRunner::Run()
 					if ( !WEAK_ASSERT( dst_type && src_type == *dst_type ) )
 						return false;
 
-					m_currentNode->m_node->GetInputs().CopyPinData( m_currentNode->m_inputLinks[ idx ].m_sourcePin, src );
+					m_currentNode->m_node->GetInputs().CopyPinData( input_names[ idx ], src );
 				}
 			}
 		}
 
-		const u32 result = m_currentNode->m_node->Exec( *m_context );
+		const u32 result = m_currentNode->m_node->Exec( m_context );
 		if ( !WEAK_ASSERT( result != ~0u, "Script failed on {}", m_currentNode->m_name ) )
 		{
 			m_currentNode = nullptr;
@@ -329,10 +337,10 @@ ScriptEditor::~ScriptEditor()
 
 std::string ScriptEditor::GetWindowTitle() const
 {
-	return std::format( "Script Editor: {}##{}", m_scriptPath, (u64)this );
+	return std::format( "Script Editor: {}###{}", m_scriptPath, (u64)this );
 }
 
-void ScriptEditor::Run()
+void ScriptEditor::Run( IFrameContext& frame_context )
 {
 	if ( ImGui::Begin( GetWindowTitle().c_str(), &m_open, ImGuiWindowFlags_MenuBar ) )
 	{
@@ -351,14 +359,6 @@ void ScriptEditor::Run()
 			if ( ImGui::BeginMenu( "View" ) )
 			{
 				ImGui::Checkbox( "Show Minimap", &m_showMiniMap );
-				ImGui::EndMenu();
-			}
-
-			if ( ImGui::BeginMenu( "Run" ) )
-			{
-				if ( ImGui::Selectable( "No Context") )
-					WEAK_ASSERT( ScriptRunner( m_script, std::make_shared< IScriptContext >() ).Run() );
-
 				ImGui::EndMenu();
 			}
 

@@ -5,8 +5,8 @@
 namespace onyx
 {
 
-#define SCRIPT_NODE_DEFAULT_INPUTS( f ) f( u8, __ignore, = 0 )
-#define SCRIPT_NODE_DEFAULT_OUTPUTS( f ) f( u8, __ignore, = 0 )
+#define SCRIPT_NODE_DEFAULT_INPUTS( f ) f( nullptr_t, __ignore, = nullptr )
+#define SCRIPT_NODE_DEFAULT_OUTPUTS( f ) f( nullptr_t, __ignore, = nullptr )
 #define SCRIPT_NODE_DEFAULT_EXEC_PINS( f ) f( Then )
 #define SCRIPT_NODE_NO_EXTRA_MEMBERS
 
@@ -53,6 +53,11 @@ namespace onyx
 		static BjSON::NameHash s_names[] {											\
 			pin_set( SCRIPT_NODE_PIN_SET_HASH )										\
 		};																			\
+		if ( s_names[ 0 ] == "__ignore"_name )										\
+		{																			\
+			count = 0;																\
+			return nullptr;															\
+		}																			\
 		count = _countof( s_names );												\
 		return s_names;																\
 	}																				\
@@ -99,7 +104,7 @@ namespace onyx
 	{ onyx::ScriptNodes_DoCustomSave( *this, writer ); }							\
 
 #define SCRIPT_NODE_FUNCTION_DECL( node, _inputs, _outputs, exec_pins, _extras ) \
-	ScriptNodes::node::ExecPin ScriptNodes::node::Exec( IScriptContext& ctx, const Inputs& inputs, Outputs& outputs, Extras& extras )
+	ScriptNodes::node::ExecPin ScriptNodes::node::Exec( ScriptContext& ctx, const Inputs& inputs, Outputs& outputs, Extras& extras )
 
 #define EXEC_PIN_ENUM( pin ) pin,
 #define EXEC_PIN_NAME( pin ) #pin,
@@ -143,7 +148,7 @@ namespace onyx
 																							\
 		IScriptNodePinSet& GetOutputs() override { return m_outputs; }						\
 																							\
-		u32 Exec( IScriptContext& ctx ) override											\
+		u32 Exec( ScriptContext& ctx ) override											\
 		{																					\
 			return Exec( ctx, m_inputs, m_outputs, m_extras );								\
 		}																					\
@@ -169,7 +174,7 @@ namespace onyx
 		}																					\
 	private:																				\
 		static ExecPin Exec(																\
-			IScriptContext& ctx,															\
+			ScriptContext& ctx,															\
 			const Inputs& inputs,															\
 			Outputs& outputs,																\
 			Extras& extra																	\

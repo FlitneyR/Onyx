@@ -6,34 +6,20 @@
 
 #include "imgui.h"
 
-#include <glm/gtx/transform.hpp>
-
-#include "Common/ECS/World.h"
-#include "Common/ECS/Query.h"
-#include "Common/ECS/System.h"
-#include "Common/ECS/SystemSet.h"
-#include "Common/ECS/CommandBuffer.h"
-
-struct TickSystemContext
-{
-	onyx::ecs::CommandBuffer cmd;
-	f32 deltaTime;
-};
-
-struct LifeTime
-{
-	f32 remaining;
-};
-
-void UpdateLifetimes( TickSystemContext& ctx, const onyx::ecs::Query< LifeTime >& entities )
-{
-	for ( auto& entity : entities )
-		if ( ( entity.Get< LifeTime >().remaining -= ctx.deltaTime ) < 0.f )
-			ctx.cmd.RemoveEntity( entity.ID() );
-}
-
 int main( int argc, const char** argv )
 {
+	INFO( "Loading Onyx core asset pack" );
+	std::ifstream core_asset_pack_file( "../Common/onyx.pack", std::ios::binary | std::ios::beg );
+	
+	std::unique_ptr< BjSON::Decoder > core_decoder = nullptr;
+	std::unique_ptr< onyx::AssetLoader > core_asset_loader = nullptr;
+
+	if ( WEAK_ASSERT( core_asset_pack_file.is_open(), "onyx.pack file missing" ) )
+	{
+		core_decoder = std::make_unique< BjSON::Decoder >( core_asset_pack_file );
+		core_asset_loader = std::make_unique< onyx::AssetLoader >( core_decoder->GetRootObject() );
+	}
+
 	INFO( "Launching Chrono Editor" );
 
 	// todo: load this from a file
@@ -42,7 +28,7 @@ int main( int argc, const char** argv )
 	config.graphicsAPI = onyx::LowLevel::Config::GraphicsAPI::Vulkan;
 	config.enableImGui = true;
 
-	onyx::LowLevel::Init( config );
+	onyx::LowLevel::Init( config, core_asset_loader.get() );
 
 	onyx::LowLevelInput& input = onyx::LowLevel::GetInput();
 	onyx::IWindowManager& window_manager = onyx::LowLevel::GetWindowManager();
@@ -71,7 +57,7 @@ int main( int argc, const char** argv )
 					ImGui::EndMainMenuBar();
 				}
 
-				onyx::editor::DoWindows();
+				onyx::editor::DoWindows( *frame_context );
 
 				graphics_context.EndFrame( *frame_context );
 			}

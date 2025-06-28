@@ -2,6 +2,8 @@
 
 #include "World.h"
 
+#include <set>
+
 namespace onyx::ecs
 {
 
@@ -10,12 +12,78 @@ struct IQuery
 	virtual void ClearResults() = 0;
 	virtual void Consider( const World::EntityIterator& entity ) = 0;
 	virtual void OnComponentAddedOrRemoved( size_t component_type_hash ) = 0;
+	virtual void CollectComponentTypes( std::set< size_t >& component_set ) = 0;
 
 	bool NeedsRerun() const { return m_needsRerun; }
 	void ResetNeedsRerun() { m_needsRerun = false; }
 
 protected:
-	bool m_needsRerun = false;
+	bool m_needsRerun = true;
+};
+
+template< typename T >
+struct Read
+{
+	using Type = T;
+	using Ptr = T*;
+	using Arg = const T&;
+	static constexpr bool c_isRequired = true;
+
+	static Arg Cast( Ptr ptr ) { return *ptr; }
+};
+
+template< typename T >
+struct Write
+{
+	using Type = T;
+	using Ptr = T*;
+	using Arg = T&;
+	static constexpr bool c_isRequired = true;
+
+	static Arg Cast( Ptr ptr ) { return *ptr; }
+};
+
+template< typename T >
+struct ReadOptional
+{
+	using Type = T;
+	using Ptr = T*;
+	using Arg = const T*;
+	static constexpr bool c_isRequired = false;
+
+	static Arg Cast( Ptr ptr ) { return ptr; }
+};
+
+template< typename T >
+struct WriteOptional
+{
+	using Type = T;
+	using Ptr = T*;
+	using Arg = T*;
+	static constexpr bool c_isRequired = false;
+
+	static Arg Cast( Ptr ptr ) { return ptr; }
+};
+
+template< typename ... Components >
+struct Context
+{
+	Context( Components& ... components )
+		: m_components( components ... )
+	{}
+
+	template< typename OtherContext >
+	Context( OtherContext& other_context )
+		: m_components( std::get< std::remove_const_t< Components >& >( other_context.m_components ) ... )
+	{}
+
+	std::tuple< Components& ... > Break() { return m_components; }
+
+private:
+	template< typename ... OtherComponents >
+	friend struct Context;
+
+	std::tuple< Components& ... > m_components;
 };
 
 template< typename ... Components >
@@ -27,24 +95,39 @@ struct Query : IQuery
 
 		Result( const World::EntityIterator& entity )
 			: m_entity( entity.ID() )
-			, m_components( entity.Get< Components >() ... )
+			, m_componentPtrs( entity.Get< typename Components::Type >() ... )
 		{}
 
 		EntityID ID() const { return m_entity; }
 
-		template< typename Component >
-		Component& Get() const { return *std::get< Component* >( m_components ); }
-
-		std::tuple< Components& ... > Break() const { return { Get< Components >() ... }; }
+		std::tuple< const EntityID&, typename Components::Arg ... > Break() const
+		{
+			return {
+				m_entity,
+				Components::Cast( std::get< typename Components::Ptr >( m_componentPtrs ) ) ...
+			};
+		}
 
 	private:
 		friend Query;
-		bool IsComplete() const { return ( std::get< Components* >( m_components ) && ... ); }
+		bool IsComplete() const { return ( ( !Components::c_isRequired || std::get< typename Components::Ptr >( m_componentPtrs ) ) && ... ); }
 		operator bool() const { return IsComplete(); }
 
 		EntityID m_entity;
-		std::tuple< Components* ... > m_components;
+		std::tuple< typename Components::Ptr ... > m_componentPtrs;
 	};
+
+	const Result* Get( EntityID entity ) const
+	{
+		auto iter = std::lower_bound( begin(), end(), entity, []( const Result& result, EntityID entity ) {
+			return result.ID() < entity;
+		} );
+
+		if ( iter == end() || iter->ID() != entity )
+			return nullptr;
+
+		return &*iter;
+	}
 
 	std::vector< Result >::const_iterator begin() const { return m_results.cbegin(); }
 	std::vector< Result >::const_iterator end() const { return m_results.cend(); }
@@ -58,7 +141,12 @@ struct Query : IQuery
 
 	void OnComponentAddedOrRemoved( size_t component_type_hash ) override
 	{
-		m_needsRerun = ( ( component_type_hash == typeid( Components ).hash_code() ) || ... );
+		m_needsRerun = ( ( component_type_hash == typeid( typename Components::Type ).hash_code() ) || ... );
+	}
+
+	void CollectComponentTypes( std::set< size_t >& component_set ) override
+	{
+		component_set.insert( { typeid( typename Components::Type ).hash_code() ... } );
 	}
 
 private:

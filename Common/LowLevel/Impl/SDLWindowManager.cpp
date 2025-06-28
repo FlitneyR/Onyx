@@ -32,7 +32,7 @@ void SDLWindow::Close()
 	m_window = nullptr;
 }
 
-glm::ivec2 SDLWindow::GetSize() const
+glm::uvec2 SDLWindow::GetSize() const
 {
 	ASSERT( !HasClosed() );
 
@@ -41,7 +41,7 @@ glm::ivec2 SDLWindow::GetSize() const
 	return result;
 }
 
-void SDLWindow::SetSize( const glm::ivec2& new_size )
+void SDLWindow::SetSize( const glm::uvec2& new_size )
 {
 	ASSERT( !HasClosed() );
 

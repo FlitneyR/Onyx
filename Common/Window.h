@@ -25,8 +25,8 @@ struct IWindow
 	// todo! add has focus functions
 	virtual bool HasClosed() const = 0;
 	virtual void Close() = 0;
-	virtual glm::ivec2 GetSize() const = 0;
-	virtual void SetSize( const glm::ivec2& new_size ) = 0;
+	virtual glm::uvec2 GetSize() const = 0;
+	virtual void SetSize( const glm::uvec2& new_size ) = 0;
 
 	IWindowContext& GetWindowContext() { return *m_windowContext; }
 

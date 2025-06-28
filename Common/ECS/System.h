@@ -10,30 +10,29 @@
 namespace onyx::ecs
 {
 
-template< typename Global >
+template< typename IContext >
 struct ISystem
 {
-	virtual void Run( Global& global ) const = 0;
+	virtual void Run( IContext& context ) const = 0;
 };
 
-template< typename Global, typename Func >
+template< typename IContext, typename Func >
 struct System;
 
-template< typename Global, typename ... Queries >
-struct System< Global, void( Global&, const Queries& ... ) > : ISystem< Global >
+template< typename IContext, typename Context, typename ... Queries >
+struct System< IContext, void( Context, const Queries& ... ) > : ISystem< IContext >
 {
-	using Func = void( Global&, const Queries& ... );
-	Func* const m_callback;
+	using Func = void( Context, const Queries& ... );
 
 	System( QuerySet& query_set, Func* callback )
 		: m_callback( callback )
 		, m_queries( query_set.Get< Queries >() ... )
 	{}
 
-	void Run( Global& global ) const override { ( *m_callback )( global, *std::get< std::shared_ptr< Queries > >( m_queries ) ... ); }
+	void Run( IContext& context ) const override { ( *m_callback )( Context( context ), *std::get< std::shared_ptr< Queries > >( m_queries ) ... ); }
 
 private:
-
+	Func* const m_callback;
 	std::tuple< std::shared_ptr< Queries > ... > m_queries;
 };
 

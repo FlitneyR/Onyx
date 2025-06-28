@@ -3,9 +3,13 @@
 #include "BjSON/BjSON.h"
 
 #include "Common/Editor/Window.h"
+#include "Common/Graphics/FrameContext.h"
 
 namespace onyx
 {
+
+struct AssetLoader;
+struct AssetManager;
 
 struct IAsset
 {
@@ -18,23 +22,46 @@ struct IAsset
 		Count
 	};
 
-	std::shared_ptr< const BjSON::IReadOnlyObject > m_reader;
+	enum struct LoadType
+	{
+		// load everything we need for a game
+		Complete = 0,
+		// load only what we need to later stream the rest when needed
+		Stream,
+		// load everything we need in the editor
+		Editor
+	};
+
+	enum struct SaveType
+	{
+		// include everything we need to open this again in an editor
+		Save = 0,
+		// include only what we need to open this in a game
+		Export,
+	};
 
 	LoadingState GetLoadingState() const { return m_loadingState; }
+
+	const BjSON::IReadOnlyObject* GetReader() const { return m_reader.get(); }
 	virtual void SetReader( std::shared_ptr< const BjSON::IReadOnlyObject > reader )
 	{
 		m_reader = reader;
 		m_loadingState = LoadingState::Unloaded;
 	}
 
-	virtual void Load() = 0;
-	virtual void Save( BjSON::IReadWriteObject& writer ) = 0;
+	virtual void Load( LoadType type ) = 0;
+	virtual void Save( BjSON::IReadWriteObject& writer, SaveType type ) = 0;
+	virtual void DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context ) = 0;
 
-	virtual void DoAssetManagerButton( const char* name, const char* path, std::shared_ptr< IAsset > asset ) = 0;
+	AssetLoader* m_assetLoader = nullptr;
+	AssetManager* m_assetManager = nullptr;
+	std::string m_path = "";
 
 protected:
-
 	LoadingState m_loadingState = LoadingState::Loaded;
+
+private:
+	std::shared_ptr< const BjSON::IReadOnlyObject > m_reader;
 };
 
 struct CachedBjSONReader
@@ -71,7 +98,7 @@ public:
 	{
 		auto iter = m_assets.find( asset_path );
 		if ( iter == m_assets.end() )
-			iter = m_assets.insert( { asset_path, {} } );
+			iter = m_assets.insert( { asset_path, {} } ).first;
 
 		std::shared_ptr< IAsset > result = iter->second.lock();
 		
@@ -80,8 +107,9 @@ public:
 			if ( std::shared_ptr< const BjSON::IReadOnlyObject > reader = m_reader.GetReader( asset_path ) )
 			{
 				iter->second = ( result = std::make_shared< Asset >() );
-				result->m_reader = reader;
-				result->Load();
+				result->SetReader( reader );
+				result->m_assetLoader = this;
+				result->Load( IAsset::LoadType::Stream );
 			}
 			else
 			{
@@ -121,6 +149,9 @@ public:
 			return nullptr;
 
 		std::shared_ptr< Asset > asset = std::make_shared< Asset >();
+		asset->m_assetManager = this;
+		asset->m_path = path_to_asset;
+
 		m_assets.insert( { path_to_asset, asset } );
 		return asset;
 	}
@@ -135,8 +166,10 @@ public:
 		if ( !iter->second )
 		{
 			iter->second = std::make_shared< Asset >();
-			iter->second->m_reader = m_reader.GetReader( path_to_asset );
-			iter->second->Load();
+			iter->second->SetReader( m_reader.GetReader( path_to_asset ) );
+			iter->second->m_assetManager = this;
+			iter->second->m_path = path_to_asset;
+			iter->second->Load( IAsset::LoadType::Editor );
 		}
 
 		std::shared_ptr< Asset > asset = std::dynamic_pointer_cast< Asset >( iter->second );
@@ -164,7 +197,7 @@ struct AssetManagerWindow : onyx::editor::IWindow
 	char m_newAssetPath[ 32 ];
 	bool m_newAsset = false;
 
-	int m_numIconsPerRow = 5;
+	int m_numIconsPerRow = 3;
 
 	void Reset()
 	{
@@ -179,7 +212,7 @@ struct AssetManagerWindow : onyx::editor::IWindow
 
 	inline static const char* const s_name = "Asset Pack Manager";
 	const char* GetName() const override { return s_name; }
-	void Run() override;
+	void Run( IFrameContext& frame_context ) override;
 	std::string GetWindowTitle() const override;
 };
 
