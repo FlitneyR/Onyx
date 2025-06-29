@@ -6,6 +6,7 @@
 #include "glm/gtx/matrix_transform_2d.hpp"
 
 #include "Common/ECS/Entity.h"
+#include "Common/ECS/Scene.h"
 
 namespace onyx
 {

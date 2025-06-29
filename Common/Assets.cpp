@@ -1,7 +1,6 @@
 #include "Assets.h"
 
 // for making new assets of these types
-#include "Common/Scripting/Script.h"
 #include "Common/Graphics/Texture.h"
 #include "Common/Graphics/Shader.h"
 
@@ -89,7 +88,6 @@ AssetManager::AssetManager( const BjSON::IReadOnlyObject& root_node, Flags flags
 
 			switch ( reader->GetLiteral< BjSON::NameHash >( "__assetType"_name ) )
 			{
-			case "Script"_name: asset = New< Script >( path ).get(); break;
 			case "Texture"_name: asset = New< TextureAsset >( path ).get(); break;
 			case "TextureAnimation"_name: asset = New< TextureAnimationAsset >( path ).get(); break;
 			case "Shader"_name: asset = New< ShaderAsset >( path ).get(); break;
@@ -283,14 +281,6 @@ void AssetManagerWindow::Run( IFrameContext& frame_context )
 				ImGui::SetNextItemWidth( 100.f );
 				if ( ImGui::BeginCombo( "New Asset", "Type" ) )
 				{
-					if ( ImGui::Selectable( "Script" ) )
-					{
-						m_assetManager->New< Script >( m_currentFolder + std::string( m_newAssetPath ) );
-
-						std::memset( m_newAssetPath, 0, sizeof( m_newAssetPath ) );
-						ImGui::CloseCurrentPopup();
-					}
-
 					if ( ImGui::Selectable( "Texture" ) )
 					{
 						TextureAsset* texture = m_assetManager->New< TextureAsset >( m_currentFolder + std::string( m_newAssetPath ) ).get();
@@ -408,7 +398,7 @@ void AssetManagerWindow::Run( IFrameContext& frame_context )
 						break;
 					}
 
-					asset->DoAssetManagerButton( name.c_str(), complete_path.c_str(), ImGui::GetColumnWidth(), asset, frame_context, m_callbacks );
+					asset->DoAssetManagerButton( name.c_str(), complete_path.c_str(), ImGui::GetColumnWidth(), asset, frame_context );
 
 					ImGui::PopID();
 

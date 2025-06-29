@@ -19,17 +19,11 @@
     <Filter Include="Header Files\Systems">
       <UniqueIdentifier>{e400c704-cbca-4249-8853-e460a0a09737}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\ScriptNodes">
-      <UniqueIdentifier>{057132d1-3ec9-49ab-9a1b-eb2b24c9d195}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Systems">
       <UniqueIdentifier>{f3eb3ba9-d2c2-43f0-8da7-4bf1a73dcc13}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ScriptNodes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SystemContexts.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -45,29 +39,11 @@
     <ClInclude Include="Systems\Player.h">
       <Filter>Header Files\Systems</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptNodes\Physics.h">
-      <Filter>Header Files\ScriptNodes</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptNodes\Player.h">
-      <Filter>Header Files\ScriptNodes</Filter>
-    </ClInclude>
     <ClInclude Include="Components\Camera.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptNodes\Camera.h">
-      <Filter>Header Files\ScriptNodes</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptNodes\CameraImpl.h">
-      <Filter>Header Files\ScriptNodes</Filter>
-    </ClInclude>
     <ClInclude Include="Systems\Camera.h">
       <Filter>Header Files\Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptNodes\PhysicsImpl.h">
-      <Filter>Header Files\ScriptNodes</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptNodes\PlayerImpl.h">
-      <Filter>Header Files\ScriptNodes</Filter>
     </ClInclude>
     <ClInclude Include="Components\Spawner.h">
       <Filter>Header Files\Components</Filter>
@@ -80,9 +56,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ScriptNodes.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Systems\Physics.cpp">
       <Filter>Source Files\Systems</Filter>
     </ClCompile>

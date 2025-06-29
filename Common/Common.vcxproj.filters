@@ -19,9 +19,6 @@
     <Filter Include="Header Files\Graphics">
       <UniqueIdentifier>{aaa157a7-a8a1-436e-92c4-b89f297a5ed1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Scripting">
-      <UniqueIdentifier>{a2bea643-79a1-423e-9723-296aff2063d7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\BjSON">
       <UniqueIdentifier>{1dcc1077-62a2-4a83-9723-c39223ccb8f5}</UniqueIdentifier>
     </Filter>
@@ -42,9 +39,6 @@
     </Filter>
     <Filter Include="Header Files\Editor">
       <UniqueIdentifier>{cbc9785c-9bc2-426c-a357-29d16150bbcc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Scripting">
-      <UniqueIdentifier>{2f3cd8a4-20d6-4520-bbb4-e23ac3f9498d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\External">
       <UniqueIdentifier>{4824d0de-0015-46a3-a808-bb0aba082d3e}</UniqueIdentifier>
@@ -114,9 +108,6 @@
     <ClCompile Include="LowLevel\WindowManager.cpp">
       <Filter>Source Files\LowLevel</Filter>
     </ClCompile>
-    <ClCompile Include="Scripting\Script.cpp">
-      <Filter>Source Files\Scripting</Filter>
-    </ClCompile>
     <ClCompile Include="External\imnodes\imnodes.cpp">
       <Filter>Source Files\External\imnodes</Filter>
     </ClCompile>
@@ -138,6 +129,9 @@
     <ClCompile Include="Graphics\Camera.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="ECS\Components\Transform.cpp">
+      <Filter>Source Files\ECS\Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Asserts.h">
@@ -158,20 +152,11 @@
     <ClInclude Include="InputTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scripting\ScriptMacros.h">
-      <Filter>Header Files\Scripting</Filter>
-    </ClInclude>
     <ClInclude Include="BjSON\BjSON.h">
       <Filter>Header Files\BjSON</Filter>
     </ClInclude>
     <ClInclude Include="BjSON\BjSON_impl.h">
       <Filter>Header Files\BjSON</Filter>
-    </ClInclude>
-    <ClInclude Include="Scripting\CommonScriptNodes.h">
-      <Filter>Header Files\Scripting</Filter>
-    </ClInclude>
-    <ClInclude Include="Scripting\Script.h">
-      <Filter>Header Files\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="LowLevel\LowLevelInput.h">
       <Filter>Header Files\LowLevel</Filter>
@@ -184,9 +169,6 @@
     </ClInclude>
     <ClInclude Include="LowLevel\Impl\SDLWindowManager.h">
       <Filter>Header Files\LowLevel\Impl</Filter>
-    </ClInclude>
-    <ClInclude Include="Scripting\CommonScriptNodesImpl.h">
-      <Filter>Header Files\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="LowLevel\Impl\SDLInput.h">
       <Filter>Header Files\LowLevel\Impl</Filter>
@@ -224,12 +206,6 @@
     <ClInclude Include="Editor\WindowImpl.h">
       <Filter>Header Files\Editor</Filter>
     </ClInclude>
-    <ClInclude Include="Editor\ScriptEditorWindow.h">
-      <Filter>Header Files\Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="Scripting\ScriptManager.h">
-      <Filter>Header Files\Scripting</Filter>
-    </ClInclude>
     <ClInclude Include="Assets.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -248,19 +224,7 @@
     <ClInclude Include="ECS\Components\Sprite.h">
       <Filter>Header Files\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="ECS\Components\SpriteScriptNodes.h">
-      <Filter>Header Files\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="ECS\Components\SpriteScriptNodesImpl.h">
-      <Filter>Header Files\ECS\Components</Filter>
-    </ClInclude>
     <ClInclude Include="ECS\Components\Transform.h">
-      <Filter>Header Files\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="ECS\Components\TransformScriptNodes.h">
-      <Filter>Header Files\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="ECS\Components\TransformScriptNodesImpl.h">
       <Filter>Header Files\ECS\Components</Filter>
     </ClInclude>
     <ClInclude Include="ECS\Systems\Rendering2D.h">

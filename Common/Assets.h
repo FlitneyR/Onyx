@@ -9,12 +9,6 @@ namespace onyx
 {
 
 struct AssetManager;
-struct Script;
-
-struct IAssetManagerCallbacks
-{
-	virtual void PreviewSceneScript( std::shared_ptr< Script > script ) const = 0;
-};
 
 struct IAsset
 {
@@ -58,17 +52,17 @@ struct IAsset
 	virtual void Save( BjSON::IReadWriteObject& writer, SaveType type ) = 0;
 	virtual void DoAssetManagerButton(
 		const char* name, const char* path, f32 width,
-		std::shared_ptr< IAsset > asset, IFrameContext& frame_context, const IAssetManagerCallbacks& callbacks
+		std::shared_ptr< IAsset > asset, IFrameContext& frame_context
 	) = 0;
 
 	AssetManager* m_assetManager = nullptr;
 	std::string m_path = "";
 
-protected:
-	LoadingState m_loadingState = LoadingState::Loaded;
-
 private:
 	std::shared_ptr< const BjSON::IReadOnlyObject > m_reader;
+
+protected:
+	LoadingState m_loadingState = LoadingState::Loaded;
 };
 
 struct CachedBjSONReader
@@ -178,12 +172,6 @@ public:
 
 struct AssetManagerWindow : onyx::editor::IWindow
 {
-	const IAssetManagerCallbacks& m_callbacks;
-
-	AssetManagerWindow( const IAssetManagerCallbacks& callbacks )
-		: m_callbacks( callbacks )
-	{}
-
 	std::vector< byte > m_bufferSource;
 	std::ifstream m_fileSource;
 

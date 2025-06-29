@@ -160,6 +160,7 @@
   <ItemGroup>
     <ClCompile Include="Assets.cpp" />
     <ClCompile Include="BjSON\BjSON.cpp" />
+    <ClCompile Include="ECS\Components\Transform.cpp" />
     <ClCompile Include="ECS\Query.cpp" />
     <ClCompile Include="ECS\Systems\Rendering2D.cpp" />
     <ClCompile Include="ECS\Systems\Transform.cpp" />
@@ -180,7 +181,6 @@
     <ClCompile Include="LowLevel\LowLevelInput.cpp" />
     <ClCompile Include="LowLevel\LowLevelInterface.cpp" />
     <ClCompile Include="LowLevel\WindowManager.cpp" />
-    <ClCompile Include="Scripting\Script.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Asserts.h" />
@@ -189,11 +189,7 @@
     <ClInclude Include="BjSON\BjSON_impl.h" />
     <ClInclude Include="ECS\CommandBuffer.h" />
     <ClInclude Include="ECS\Components\Sprite.h" />
-    <ClInclude Include="ECS\Components\SpriteScriptNodes.h" />
-    <ClInclude Include="ECS\Components\SpriteScriptNodesImpl.h" />
     <ClInclude Include="ECS\Components\Transform.h" />
-    <ClInclude Include="ECS\Components\TransformScriptNodes.h" />
-    <ClInclude Include="ECS\Components\TransformScriptNodesImpl.h" />
     <ClInclude Include="ECS\Entity.h" />
     <ClInclude Include="ECS\Query.h" />
     <ClInclude Include="ECS\Scene.h" />
@@ -203,7 +199,6 @@
     <ClInclude Include="ECS\SystemContexts.h" />
     <ClInclude Include="ECS\Systems\Transform.h" />
     <ClInclude Include="ECS\World.h" />
-    <ClInclude Include="Editor\ScriptEditorWindow.h" />
     <ClInclude Include="Editor\Window.h" />
     <ClInclude Include="Editor\WindowImpl.h" />
     <ClInclude Include="External\imnodes\imnodes.h" />
@@ -225,11 +220,6 @@
     <ClInclude Include="LowLevel\LowLevelInput.h" />
     <ClInclude Include="LowLevel\LowLevelInterface.h" />
     <ClInclude Include="LowLevel\WindowManager.h" />
-    <ClInclude Include="Scripting\CommonScriptNodes.h" />
-    <ClInclude Include="Scripting\CommonScriptNodesImpl.h" />
-    <ClInclude Include="Scripting\Script.h" />
-    <ClInclude Include="Scripting\ScriptMacros.h" />
-    <ClInclude Include="Scripting\ScriptManager.h" />
     <ClInclude Include="Clock.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="Window.h" />

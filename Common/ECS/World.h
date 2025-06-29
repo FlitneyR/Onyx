@@ -83,7 +83,7 @@ struct World
 	template< typename Component >
 	struct ComponentTable : IComponentTable
 	{
-		void AddComponent( EntityID entity, const Component& component )
+		Component& AddComponent( EntityID entity, const Component& component )
 		{
 			auto iter = std::lower_bound( m_components.begin(), m_components.end(), entity, PairEntityIDComparator );
 			if ( iter == m_components.end() || iter->first != entity )
@@ -95,6 +95,8 @@ struct World
 			{
 				iter->second = component;
 			}
+
+			return &iter->second;
 		}
 
 		Component* GetComponent( EntityID entity )
@@ -254,13 +256,11 @@ struct World
 	QueryManager m_queryManager;
 
 	EntityIterator Iter( const std::set< size_t >* relevant_components = nullptr )
-	{
-		return EntityIterator( *this, relevant_components );
-	}
+	{ return EntityIterator( *this, relevant_components ); }
 
 private:
-	EntityID m_nextEntityID = 1;
 	std::map< size_t, std::unique_ptr< IComponentTable > > m_componentTables;
+	EntityID m_nextEntityID = 1;
 
 	IComponentTable* GetComponentTableByHash( size_t component_type_hash )
 	{
@@ -272,6 +272,18 @@ public:
 
 	template< typename Component >
 	ComponentTable< Component >& GetComponentTable()
+	{
+		const size_t component_type_hash = typeid( Component ).hash_code();
+
+		auto iter = m_componentTables.find( component_type_hash );
+		if ( iter == m_componentTables.end() )
+			iter = m_componentTables.insert( { component_type_hash, std::make_unique< ComponentTable< Component > >() } ).first;
+
+		return *static_cast<ComponentTable< Component >*>( iter->second.get() );
+	}
+
+	template< typename Component >
+	const ComponentTable< Component >& GetComponentTable() const
 	{
 		const size_t component_type_hash = typeid( Component ).hash_code();
 

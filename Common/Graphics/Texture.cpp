@@ -105,7 +105,7 @@ void TextureAsset::Save( BjSON::IReadWriteObject& writer, SaveType type )
 	writer.SetLiteral( "Data"_name, image_data.data(), image_data.size() );
 }
 
-void TextureAsset::DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context, const IAssetManagerCallbacks& callbacks )
+void TextureAsset::DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context )
 {
 	switch ( m_loadingState )
 	{
@@ -266,7 +266,7 @@ void TextureAnimationAsset::Save( BjSON::IReadWriteObject& writer, SaveType type
 	}
 }
 
-void TextureAnimationAsset::DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context, const IAssetManagerCallbacks& callbacks )
+void TextureAnimationAsset::DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context )
 {
 	switch ( m_loadingState )
 	{
