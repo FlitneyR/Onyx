@@ -212,7 +212,7 @@ void Script::Save( BjSON::IReadWriteObject& writer, SaveType type )
 	}
 }
 
-void Script::DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context )
+void Script::DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context, const IAssetManagerCallbacks& callbacks )
 {
 	switch ( m_loadingState )
 	{
@@ -241,6 +241,14 @@ void Script::DoAssetManagerButton( const char* name, const char* path, f32 width
 		ScriptEditor* const window = editor::AddWindow< ScriptEditor >();
 		window->m_script = std::static_pointer_cast< Script >( asset );
 		window->m_scriptPath = path;
+	}
+
+	if ( ImGui::Button( "Preview" ) )
+	{
+		if ( m_loadingState == LoadingState::Unloaded )
+			Load( IAsset::LoadType::Editor );
+
+		callbacks.PreviewSceneScript( std::static_pointer_cast<Script>( asset ) );
 	}
 
 	ImGui::PopStyleColor( 3 );

@@ -148,12 +148,12 @@ namespace onyx
 																							\
 		IScriptNodePinSet& GetOutputs() override { return m_outputs; }						\
 																							\
-		u32 Exec( ScriptContext& ctx ) override											\
+		u32 Exec( ScriptContext& ctx ) override												\
 		{																					\
 			return Exec( ctx, m_inputs, m_outputs, m_extras );								\
 		}																					\
 																							\
-		enum ExecPin : u32 { Failed = -1, exec_pins( EXEC_PIN_ENUM ) Count };				\
+		enum ExecPin : u32 { Failed = ~0u, exec_pins( EXEC_PIN_ENUM ) Count };				\
 																							\
 		inline static const char* const s_ExecPin_Names[] = { exec_pins( EXEC_PIN_NAME ) };	\
 																							\
@@ -174,7 +174,7 @@ namespace onyx
 		}																					\
 	private:																				\
 		static ExecPin Exec(																\
-			ScriptContext& ctx,															\
+			ScriptContext& ctx,																\
 			const Inputs& inputs,															\
 			Outputs& outputs,																\
 			Extras& extra																	\

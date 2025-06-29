@@ -27,4 +27,10 @@ struct Collider
 	std::vector< CollisionEvent > collisions;
 };
 
+struct DamageOnCollision
+{
+	f32 selfDamage;
+	f32 otherDamage;
+};
+
 }

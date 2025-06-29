@@ -33,7 +33,7 @@ struct Config
 	bool enableImGui = false;
 };
 
-void Init( const Config& config, AssetLoader* core_asset_loader = nullptr );
+void Init( const Config& config, AssetManager* core_asset_manager = nullptr );
 void CleanUp();
 
 const Config& GetConfig();
@@ -41,7 +41,7 @@ const Config& GetConfig();
 IGraphicsContext& GetGraphicsContext();
 LowLevelInput& GetInput();
 IWindowManager& GetWindowManager();
-AssetLoader* GetCoreAssetLoader();
+AssetManager* GetCoreAssetManager();
 
 }
 

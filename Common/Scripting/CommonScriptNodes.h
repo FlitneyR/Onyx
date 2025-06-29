@@ -19,13 +19,13 @@ struct CommandBuffer;
 #define __SCRIPT_NODE_ADD_CONTEXT_GENERIC_OUTPUTS( f ) \
 	f( onyx::ScriptContext*, Ctx_Out, = nullptr ) \
 
-// AddContext_AssetLoader
-#define AddContext_AssetLoader_Inputs( f ) \
+// AddContext_AssetManager
+#define AddContext_AssetManager_Inputs( f ) \
 	__SCRIPT_NODE_ADD_CONTEXT_GENERIC_INPUTS( f ) \
-	f( onyx::AssetLoader*, AssetLoader, = nullptr ) \
+	f( onyx::AssetManager*, AssetManager, = nullptr ) \
 
-#define ScriptNode_AddContext_AssetLoader( f ) \
-	f( AddContext_AssetLoader, AddContext_AssetLoader_Inputs, __SCRIPT_NODE_ADD_CONTEXT_GENERIC_OUTPUTS, SCRIPT_NODE_DEFAULT_EXEC_PINS, SCRIPT_NODE_NO_EXTRA_MEMBERS )
+#define ScriptNode_AddContext_AssetManager( f ) \
+	f( AddContext_AssetManager, AddContext_AssetManager_Inputs, __SCRIPT_NODE_ADD_CONTEXT_GENERIC_OUTPUTS, SCRIPT_NODE_DEFAULT_EXEC_PINS, SCRIPT_NODE_NO_EXTRA_MEMBERS )
 
 // AddContext_Cmd
 #define AddContext_Cmd_Inputs( f ) \
@@ -180,7 +180,7 @@ struct CommandBuffer;
 
 // RunScript
 #define RunScript_Inputs( f ) \
-	f( onyx::AssetLoader*, AssetLoader, = nullptr) \
+	f( onyx::AssetManager*, AssetManager, = nullptr) \
 	f( const char*, ScriptPath, = nullptr ) \
 	f( onyx::ScriptContext*, Ctx, = nullptr ) \
 
@@ -202,7 +202,7 @@ struct CommandBuffer;
 	f( StringLiteral, SCRIPT_NODE_DEFAULT_INPUTS, SCRIPT_NODE_STRING_LITERAL_OUTPUTS, SCRIPT_NODE_DEFAULT_EXEC_PINS, STRING_LITERAL_SCRIPT_NODE_EXTRAS )
 
 #define ONYX_COMMON_SCRIPT_NODES( f )		\
-	f( ScriptNode_AddContext_AssetLoader )	\
+	f( ScriptNode_AddContext_AssetManager )	\
 	f( ScriptNode_AddContext_Cmd )			\
 	f( ScriptNode_AddContext_String )		\
 	f( ScriptNode_AddContext_Transform2D )	\

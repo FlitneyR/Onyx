@@ -145,6 +145,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Components\Camera.h" />
+    <ClInclude Include="Components\health.h" />
     <ClInclude Include="Components\Physics.h" />
     <ClInclude Include="Components\Player.h" />
     <ClInclude Include="Components\Spawner.h" />

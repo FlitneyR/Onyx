@@ -10,7 +10,7 @@ struct Camera
 	f32 margin = 3.f;
 	f32 moveSpeed = 0.5f;
 	f32 zoomSpeed = 0.5f;
-	f32 fov = 2000.f;
+	f32 fov = 0.5f * ( minFov + maxFov );
 };
 
 struct CameraFocus

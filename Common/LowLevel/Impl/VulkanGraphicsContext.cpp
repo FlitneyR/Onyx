@@ -751,9 +751,9 @@ void VulkanGraphicsContext::InitSpriteRendererResources()
 	}
 
 	{// create pipeline
-		AssetLoader* const core_asset_loader = STRONG_ASSERT( LowLevel::GetCoreAssetLoader() );
-		std::shared_ptr< ShaderAsset > vertex_shader_asset = STRONG_ASSERT( core_asset_loader->Load< ShaderAsset >( "/shaders/sprite_renderer/vert" ), "SpriteRenderer vertex shader missing" );
-		std::shared_ptr< ShaderAsset > fragment_shader_asset = STRONG_ASSERT( core_asset_loader->Load< ShaderAsset >( "/shaders/sprite_renderer/frag" ), "SpriteRenderer fragment shader missing" );
+		AssetManager* const core_asset_manager = STRONG_ASSERT( LowLevel::GetCoreAssetManager() );
+		std::shared_ptr< ShaderAsset > vertex_shader_asset = STRONG_ASSERT( core_asset_manager->Load< ShaderAsset >( "/shaders/sprite_renderer/vert" ), "SpriteRenderer vertex shader missing" );
+		std::shared_ptr< ShaderAsset > fragment_shader_asset = STRONG_ASSERT( core_asset_manager->Load< ShaderAsset >( "/shaders/sprite_renderer/frag" ), "SpriteRenderer fragment shader missing" );
 
 		const vk::ResultValue< vk::ShaderModule > create_vertex_shader_module = m_vkDevice.createShaderModule( vk::ShaderModuleCreateInfo().setCode( vertex_shader_asset->m_byteCode ) );
 		STRONG_ASSERT( create_vertex_shader_module.result == vk::Result::eSuccess, "Failed to create sprite renderer vertex shader: {}", vk::to_string( create_vertex_shader_module.result ) );
@@ -930,13 +930,26 @@ void VulkanGraphicsContext::WindowContext::OnResize()
 	if ( m_window->HasClosed() )
 		return;
 
+	VulkanGraphicsContext& ctx = static_cast<VulkanGraphicsContext&>( LowLevel::GetGraphicsContext() );
+
+	// vkbootstrap doesn't check for zero width/height surfaces, so do it here manually
+	if ( m_surface )
+	{
+		vk::ResultValue< vk::SurfaceCapabilitiesKHR > capabilities = ctx.m_vkPhysicalDevice.getSurfaceCapabilitiesKHR( m_surface );
+		if ( !WEAK_ASSERT( capabilities.result == vk::Result::eSuccess, "Failed to get surface capabilities: {}", vk::to_string( capabilities.result ) ) )
+			return;
+
+		if ( std::min( capabilities.value.minImageExtent.width, capabilities.value.minImageExtent.height ) == 0 )
+			return;
+	}
+
 	const glm::ivec2 window_size = m_window->GetSize();
 	if ( window_size.x == 0 || window_size.y == 0 )
 		return;
 
 	m_renderTargetSize = window_size;
 
-	static_cast<VulkanGraphicsContext&>( LowLevel::GetGraphicsContext() ).m_vkDevice.waitIdle();
+	WEAK_ASSERT( ctx.m_vkDevice.waitIdle() == vk::Result::eSuccess );
 	m_resizeDeleteQueue.Execute();
 
 	switch ( LowLevel::GetConfig().windowManager )

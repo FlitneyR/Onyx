@@ -7,7 +7,7 @@
 #define AddComponent_PlayerController_Inputs( f ) \
 	f( onyx::ecs::CommandBuffer*, Cmd, = nullptr ) \
 	f( onyx::ecs::EntityID, Entity, = onyx::ecs::NoEntity ) \
-	f( onyx::AssetLoader*, AssetLoader, = nullptr ) \
+	f( onyx::AssetManager*, AssetManager, = nullptr ) \
 	f( f32, TurnSpeed, = 1.f ) \
 	f( f32, MoveSpeed, = 1.f ) \
 	f( const char*, EngineIdleAnimationPath, = "" ) \

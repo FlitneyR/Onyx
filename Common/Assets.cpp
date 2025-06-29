@@ -5,6 +5,8 @@
 #include "Common/Graphics/Texture.h"
 #include "Common/Graphics/Shader.h"
 
+#include "imgui_stdlib.h"
+
 #include <set>
 #include <map>
 
@@ -69,32 +71,37 @@ std::shared_ptr< const BjSON::IReadOnlyObject > CachedBjSONReader::GetReader( co
 	return iter->second;
 }
 
-AssetManager::AssetManager( const BjSON::IReadOnlyObject& root_node )
+AssetManager::AssetManager( const BjSON::IReadOnlyObject& root_node, Flags flags )
 	: m_reader( root_node )
+	, m_initialFlags( flags )
 {
-	m_reader.ReadRecursive( root_node );
+	if ( flags & ( PreSearch | PreLoad ) )
+		m_reader.ReadRecursive( root_node );
 
-	for ( auto& [ path, reader ] : m_reader.m_readers )
+	if ( flags & PreLoad )
 	{
-		if ( !reader || !reader->GetLiteral( "__assetType"_name ) )
-			continue;
-
-		IAsset* asset = nullptr;
-
-		switch ( reader->GetLiteral< BjSON::NameHash >( "__assetType"_name ) )
+		for ( auto& [path, reader] : m_reader.m_readers )
 		{
-		case "Script"_name: asset = New< Script >( path ).get(); break;
-		case "Texture"_name: asset = New< TextureAsset >( path ).get(); break;
-		case "TextureAnimation"_name: asset = New< TextureAnimationAsset >( path ).get(); break;
-		case "Shader"_name: asset = New< ShaderAsset >( path ).get(); break;
-		}
+			if ( !reader || !reader->GetLiteral( "__assetType"_name ) )
+				continue;
 
-		if ( asset )
-		{
-			asset->SetReader( reader );
-			asset->m_assetManager = this;
-			asset->m_path = path;
-			asset->Load( IAsset::LoadType::Editor );
+			IAsset* asset = nullptr;
+
+			switch ( reader->GetLiteral< BjSON::NameHash >( "__assetType"_name ) )
+			{
+			case "Script"_name: asset = New< Script >( path ).get(); break;
+			case "Texture"_name: asset = New< TextureAsset >( path ).get(); break;
+			case "TextureAnimation"_name: asset = New< TextureAnimationAsset >( path ).get(); break;
+			case "Shader"_name: asset = New< ShaderAsset >( path ).get(); break;
+			}
+
+			if ( asset )
+			{
+				asset->SetReader( reader );
+				asset->m_assetManager = this;
+				asset->m_path = path;
+				asset->Load( IAsset::LoadType::Editor );
+			}
 		}
 	}
 }
@@ -142,7 +149,9 @@ void AssetManager::Save( BjSON::IReadWriteObject& root_node )
 {
 	CachedBjSONWriter writer( root_node );
 
-	for ( auto& [ path, asset ] : m_assets )
+	WEAK_ASSERT( m_initialFlags & PreLoad, "We're about to save an asset pack, but we didn't load everything at the start, so we might not save everything" );
+
+	for ( auto& [ path, asset ] : m_strongAssetReferences )
 	{
 		if ( asset->GetLoadingState() != IAsset::LoadingState::Loaded )
 		{
@@ -197,7 +206,7 @@ void AssetManagerWindow::Run( IFrameContext& frame_context )
 						if ( m_fileSource.is_open() )
 						{
 							m_decoder = std::make_unique< BjSON::Decoder >( m_fileSource );
-							m_assetManager = std::make_unique< AssetManager >( m_decoder->GetRootObject() );
+							m_assetManager = std::make_unique< AssetManager >( m_decoder->GetRootObject(), AssetManager::PreLoad );
 						}
 					}
 				}
@@ -213,7 +222,7 @@ void AssetManagerWindow::Run( IFrameContext& frame_context )
 					}
 
 					m_decoder = std::make_unique< BjSON::Decoder >( m_bufferSource );
-					m_assetManager = std::make_unique< AssetManager >( m_decoder->GetRootObject() );
+					m_assetManager = std::make_unique< AssetManager >( m_decoder->GetRootObject(), AssetManager::PreLoad );
 				}
 
 				if ( ImGui::MenuItem( "Save", nullptr, nullptr, m_assetManager != nullptr ) )
@@ -322,7 +331,7 @@ void AssetManagerWindow::Run( IFrameContext& frame_context )
 				std::map< std::string, std::shared_ptr< IAsset > > assets;
 				std::set< std::string > folders;
 
-				for ( auto& [path, asset] : m_assetManager->m_assets )
+				for ( auto& [path, asset] : m_assetManager->m_strongAssetReferences )
 				{
 					const size_t last_delimiter = path.find_last_of( '/' ) + 1;
 
@@ -363,12 +372,12 @@ void AssetManagerWindow::Run( IFrameContext& frame_context )
 					ImGui::PushID( name.c_str() );
 					
 					const bool should_delete = ImGui::Button( "[-]" );
-					static char rename_buffer[ 128 ];
+					std::string new_name;
 
 					ImGui::SameLine();
 					if ( ImGui::Button( "Rename" ) )
 					{
-						strcpy_s( rename_buffer, name.c_str() );
+						new_name = asset->m_path;
 						ImGui::OpenPopup( "Rename" );
 					}
 
@@ -378,7 +387,7 @@ void AssetManagerWindow::Run( IFrameContext& frame_context )
 
 					if ( ImGui::BeginPopup( "Rename" ) )
 					{
-						ImGui::InputText( "Name", rename_buffer, _countof( rename_buffer ) );
+						ImGui::InputText( "Name", &new_name );
 						
 						if ( ImGui::Button( "Cancel" ) )
 							ImGui::CloseCurrentPopup();
@@ -386,22 +395,22 @@ void AssetManagerWindow::Run( IFrameContext& frame_context )
 						ImGui::SameLine();
 						if ( ImGui::Button( "Ok" ) )
 						{
-							m_assetManager->m_assets.erase( complete_path );
-							m_assetManager->m_assets.insert( { m_currentFolder + rename_buffer, asset } );
+							m_assetManager->m_strongAssetReferences.erase( complete_path );
+							m_assetManager->m_strongAssetReferences.insert( { new_name, asset } );
 						}
 
 						ImGui::EndPopup();
 					}
 
-					ImGui::PopID();
-
 					if ( should_delete )
 					{
-						m_assetManager->m_assets.erase( complete_path );
+						m_assetManager->m_strongAssetReferences.erase( complete_path );
 						break;
 					}
 
-					asset->DoAssetManagerButton( name.c_str(), complete_path.c_str(), ImGui::GetColumnWidth(), asset, frame_context );
+					asset->DoAssetManagerButton( name.c_str(), complete_path.c_str(), ImGui::GetColumnWidth(), asset, frame_context, m_callbacks );
+
+					ImGui::PopID();
 
 					if ( !( column = ( column + 1 ) % m_numIconsPerRow ) )
 						ImGui::TableNextRow();

@@ -19,10 +19,10 @@ struct IWindow
 
 void AddWindow( std::unique_ptr< IWindow > window );
 
-template< typename Window >
-Window* AddWindow()
+template< typename Window, typename ... Args >
+Window* AddWindow( Args ... args )
 {
-	std::unique_ptr< Window > window = std::make_unique< Window >();
+	std::unique_ptr< Window > window = std::make_unique< Window >( args ... );
 	Window* result = window.get();
 	AddWindow( std::move( window ) );
 	return result;

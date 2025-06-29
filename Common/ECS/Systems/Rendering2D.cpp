@@ -61,7 +61,9 @@ void UpdateParallaxBackgroundLayers( ecs::Context< const Camera2D > ctx, const U
 	{
 		auto [id, sprite, transform, animator, background] = layer.Break();
 
+		#ifndef NDEBUG
 		LOG_ASSERT_ONCE( transform.GetLocale() == glm::mat3( 1.f ), "A parallax background layer is attached to something, panic!" );
+		#endif
 
 		// align self with the camera
 		transform.SetLocalPosition( camera.position );
@@ -69,7 +71,7 @@ void UpdateParallaxBackgroundLayers( ecs::Context< const Camera2D > ctx, const U
 		// cover the camera view area
 		transform.SetLocalScale( glm::vec2( 2.f * camera.fov * glm::max( camera.aspectRatio.x, camera.aspectRatio.y ) ) );
 
-		// reset the offset 
+		// reset the offset and extent if an animator hasn't
 		if ( !animator )
 		{
 			sprite.offset = {};
@@ -78,7 +80,7 @@ void UpdateParallaxBackgroundLayers( ecs::Context< const Camera2D > ctx, const U
 
 		// scale the frame selected by the sprite animator
 		const glm::vec2 scale = transform.GetLocalScale() * background.scale * sprite.extent;
-		const glm::vec2 offset = transform.GetLocalPosition() * background.scrollRate / glm::normalize( glm::vec2( sprite.extent.y, sprite.extent.x ) );
+		const glm::vec2 offset = transform.GetLocalPosition() * background.scrollRate * background.scale / glm::normalize( glm::vec2( sprite.extent.y, sprite.extent.x ) );
 
 		sprite.extent = scale;
 		sprite.offset += offset - sprite.extent / 2.f;

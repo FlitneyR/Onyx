@@ -23,9 +23,9 @@ void DoWindowsMenu()
 {
 	if ( ImGui::BeginMenu( "Windows" ) )
 	{
-		#define EDITOR_WINDOW_DO_MENU_ITEM( WindowType ) \
-			if ( ImGui::MenuItem( WindowType::s_name ) )	\
-				AddWindow< WindowType >();					\
+		#define EDITOR_WINDOW_DO_MENU_ITEM( WindowType, ... )	\
+			if ( ImGui::MenuItem( WindowType::s_name ) )		\
+				AddWindow< WindowType >( __VA_ARGS__ );			\
 
 		EDITOR_WINDOWS( EDITOR_WINDOW_DO_MENU_ITEM );
 

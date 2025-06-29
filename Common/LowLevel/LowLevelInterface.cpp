@@ -18,16 +18,16 @@ IGraphicsContext* s_graphicsContext = nullptr;
 LowLevelInput* s_lowLevelInput = nullptr;
 IWindowManager* s_windowManager = nullptr;
 
-AssetLoader* s_coreAssetLoader = nullptr;
+AssetManager* s_coreAssetManager = nullptr;
 
 Config s_config = {};
 
-void Init( const Config& config, AssetLoader* core_asset_loader )
+void Init( const Config& config, AssetManager* core_asset_manager )
 {
 	ASSERT( !s_isReady );
 
 	s_config = config;
-	s_coreAssetLoader = core_asset_loader; 
+	s_coreAssetManager = core_asset_manager; 
 
 	if ( config.enableImGui )
 	{
@@ -105,9 +105,9 @@ IWindowManager& GetWindowManager()
 	return *ASSERT( s_windowManager );
 }
 
-AssetLoader* GetCoreAssetLoader()
+AssetManager* GetCoreAssetManager()
 {
-	return s_coreAssetLoader;
+	return s_coreAssetManager;
 }
 
 }

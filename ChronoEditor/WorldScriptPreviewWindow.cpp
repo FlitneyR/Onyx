@@ -1,4 +1,4 @@
-#include "WorldPreviewWindow.h"
+#include "WorldScriptPreviewWindow.h"
 
 #include "Common/LowLevel/LowLevelInterface.h"
 
@@ -12,7 +12,7 @@
 namespace chrono
 {
 
-WorldPreviewWindow::WorldPreviewWindow()
+WorldScriptPreviewWindow::WorldScriptPreviewWindow()
 {
 	m_tickSet.AddSystem( onyx::UpdateTransform2DLocales );
 	m_tickSet.AddSystem( onyx::UpdateAnimatedSprites );
@@ -22,7 +22,7 @@ WorldPreviewWindow::WorldPreviewWindow()
 	m_spriteRenderer = onyx::LowLevel::GetGraphicsContext().CreateSpriteRenderer();
 }
 
-void WorldPreviewWindow::Run( onyx::IFrameContext& frame_context )
+void WorldScriptPreviewWindow::Run( onyx::IFrameContext& frame_context )
 {
 	if ( ImGui::Begin( GetWindowTitle().c_str(), &m_open, ImGuiWindowFlags_MenuBar ) )
 	{
@@ -30,17 +30,17 @@ void WorldPreviewWindow::Run( onyx::IFrameContext& frame_context )
 		{
 			if ( ImGui::BeginMenu( "File" ) )
 			{
-				ImGui::InputText( "Script Path", &m_scriptPath );
+				//ImGui::InputText( "Script Path", &m_scriptPath );
 
-				if ( ImGui::MenuItem( "Load" ) )
-				{
-					const std::string new_file = onyx::LowLevel::GetWindowManager().DoOpenFileDialog();
-					if ( !new_file.empty() )
-						Load( new_file, m_scriptPath );
-				}
+				//if ( ImGui::MenuItem( "Load" ) )
+				//{
+				//	const std::string new_file = onyx::LowLevel::GetWindowManager().DoOpenFileDialog();
+				//	if ( !new_file.empty() )
+				//		Load( new_file, m_scriptPath );
+				//}
 
-				if ( ImGui::MenuItem( "Reload" ) )
-					Load( m_assetPackPath, m_scriptPath );
+				if ( ImGui::MenuItem( "Refresh" ) )
+					Refresh();
 
 				ImGui::EndMenu();
 			}
@@ -98,30 +98,30 @@ void WorldPreviewWindow::Run( onyx::IFrameContext& frame_context )
 	ImGui::End();
 }
 
-void WorldPreviewWindow::Load( std::string asset_pack_path, std::string script_path )
+void WorldScriptPreviewWindow::Refresh()
 {
-	m_assetPackPath = asset_pack_path;
-	m_scriptPath = script_path;
+	//m_assetPackPath = asset_pack_path;
+	//m_scriptPath = script_path;
 
-	m_assetPackFile = std::ifstream( m_assetPackPath, std::ios::binary );
-	m_assetPackDecoder = std::make_unique< BjSON::Decoder >( m_assetPackFile );
-	m_assetPackLoader = std::make_unique< onyx::AssetLoader >( m_assetPackDecoder->GetRootObject() );
+	//m_assetPackFile = std::ifstream( m_assetPackPath, std::ios::binary );
+	//m_assetPackDecoder = std::make_unique< BjSON::Decoder >( m_assetPackFile );
+	//m_assetPackLoader = std::make_unique< onyx::AssetManager >( m_assetPackDecoder->GetRootObject() );
 
 	m_clock = onyx::Clock();
 	m_world.ResetEntities();
 
-	if ( std::shared_ptr< onyx::Script > script = LOG_ASSERT( m_assetPackLoader->Load< onyx::Script >( script_path ), "Couldn't load {} from {}", script_path, asset_pack_path ) )
-	{
+	//if ( std::shared_ptr< onyx::Script > script = LOG_ASSERT( m_assetPackLoader->Load< onyx::Script >( script_path ), "Couldn't load {} from {}", script_path, asset_pack_path ) )
+	//{
 		onyx::ScriptContext script_ctx;
 
 		onyx::ecs::CommandBuffer command_buffer( m_world );
 		script_ctx.AddInput( "Cmd", &command_buffer );
-		script_ctx.AddInput( "AssetLoader", m_assetPackLoader.get() );
+		script_ctx.AddInput( "AssetManager", m_script->m_assetManager );
 
-		onyx::ScriptRunner script_runner( script, script_ctx );
+		onyx::ScriptRunner script_runner( m_script, script_ctx );
 		if ( WEAK_ASSERT( script_runner.Run() ) )
 			command_buffer.Execute();
-	}
+	// }
 }
 
 }

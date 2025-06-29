@@ -23,8 +23,8 @@ ONYX_COMMON_SCRIPT_NODES( SCRIPT_NODE_DECL )
 	inputs.Ctx->AddInput( inputs.Name, value ); \
 	return Then; \
 
-SCRIPT_NODE_IMPL( ScriptNode_AddContext_AssetLoader )
-{ __SCRIPT_NODE_ADD_CONTEXT_GENERIC_BODY( && inputs.AssetLoader, inputs.AssetLoader ); }
+SCRIPT_NODE_IMPL( ScriptNode_AddContext_AssetManager )
+{ __SCRIPT_NODE_ADD_CONTEXT_GENERIC_BODY( && inputs.AssetManager, inputs.AssetManager ); }
 
 SCRIPT_NODE_IMPL( ScriptNode_AddContext_Cmd )
 { __SCRIPT_NODE_ADD_CONTEXT_GENERIC_BODY( && inputs.Cmd, inputs.Cmd ); }
@@ -207,17 +207,17 @@ SCRIPT_NODE_IMPL( ScriptNode_RunScript )
 	if ( !context )
 		context = &ctx;
 
-	onyx::AssetLoader* asset_loader = inputs.AssetLoader;
-	if ( !asset_loader )
-		if ( onyx::AssetLoader** al = ctx.GetInput< onyx::AssetLoader* >( "AssetLoader"_name ) )
-			asset_loader = *al;
+	onyx::AssetManager* asset_manager = inputs.AssetManager;
+	if ( !asset_manager )
+		if ( onyx::AssetManager** al = ctx.GetInput< onyx::AssetManager* >( "AssetManager"_name ) )
+			asset_manager = *al;
 
 	outputs.Ctx_Out = context;
 
-	if ( !LOG_ASSERT( asset_loader && inputs.ScriptPath && context ) )
+	if ( !LOG_ASSERT( asset_manager && inputs.ScriptPath && context ) )
 		return Failed;
 
-	std::shared_ptr< Script > script = asset_loader->Load< Script >( inputs.ScriptPath );
+	std::shared_ptr< Script > script = asset_manager->Load< Script >( inputs.ScriptPath );
 	if ( !LOG_ASSERT( script ) )
 		return Failed;
 

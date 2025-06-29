@@ -147,7 +147,7 @@ void ShaderAsset::Save( BjSON::IReadWriteObject& writer, SaveType type )
 	//INFO( "byte code: {}", strstr.str() );
 }
 
-void ShaderAsset::DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context )
+void ShaderAsset::DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context, const IAssetManagerCallbacks& callbacks )
 {
 	switch ( m_loadingState )
 	{

@@ -15,15 +15,15 @@ SCRIPT_NODE_IMPL( ScriptNode_MakeSprite )
 {
 	outputs.Sprite = nullptr;
 
-	onyx::AssetLoader* asset_loader = inputs.AssetLoader;
-	if ( !asset_loader )
-		if ( onyx::AssetLoader** al = ctx.GetInput< onyx::AssetLoader* >( "AssetLoader"_name ) )
-			asset_loader = *al;
+	onyx::AssetManager* asset_manager = inputs.AssetManager;
+	if ( !asset_manager )
+		if ( onyx::AssetManager** al = ctx.GetInput< onyx::AssetManager* >( "AssetManager"_name ) )
+			asset_manager = *al;
 
-	if ( !LOG_ASSERT( asset_loader && inputs.ImageAssetPath ) )
+	if ( !LOG_ASSERT( asset_manager && inputs.ImageAssetPath ) )
 		return Failed;
 
-	std::shared_ptr< TextureAsset > texture = asset_loader->Load< TextureAsset >( inputs.ImageAssetPath );
+	std::shared_ptr< TextureAsset > texture = asset_manager->Load< TextureAsset >( inputs.ImageAssetPath );
 	if ( !LOG_ASSERT( texture ) )
 		return Failed;
 
@@ -37,15 +37,15 @@ SCRIPT_NODE_IMPL( ScriptNode_MakeSpriteAnimator )
 {
 	outputs.SpriteAnimator = nullptr;
 
-	onyx::AssetLoader* asset_loader = inputs.AssetLoader;
-	if ( !asset_loader )
-		if ( onyx::AssetLoader** al = ctx.GetInput< onyx::AssetLoader* >( "AssetLoader"_name ) )
-			asset_loader = *al;
+	onyx::AssetManager* asset_manager = inputs.AssetManager;
+	if ( !asset_manager )
+		if ( onyx::AssetManager** al = ctx.GetInput< onyx::AssetManager* >( "AssetManager"_name ) )
+			asset_manager = *al;
 
-	if ( !LOG_ASSERT( asset_loader && inputs.AssetPath ) )
+	if ( !LOG_ASSERT( asset_manager && inputs.AssetPath ) )
 		return Failed;
 
-	std::shared_ptr< TextureAnimationAsset > animation = asset_loader->Load< TextureAnimationAsset >( inputs.AssetPath );
+	std::shared_ptr< TextureAnimationAsset > animation = asset_manager->Load< TextureAnimationAsset >( inputs.AssetPath );
 	if ( !LOG_ASSERT( animation ) )
 		return Failed;
 

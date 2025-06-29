@@ -11,14 +11,14 @@ void UpdateCollisions( onyx::ecs::Context<> ctx, const ColliderQuery& colliders 
 		collider.collisions.clear();
 	}
 
-	for ( auto first_entity_iter = colliders.begin(); first_entity_iter + 1 != colliders.end(); ++first_entity_iter )
+	for ( u32 first_idx = 0; first_idx + 1 < colliders.Count(); ++first_idx )
 	{
-		auto [first_id, first_transform, first_collider] = first_entity_iter->Break();
+		auto [first_id, first_transform, first_collider] = colliders[ first_idx ].Break();
 		const glm::vec2 first_world_pos = first_transform.GetWorldPosition();
 
-		for ( auto second_entity_iter = first_entity_iter + 1; second_entity_iter != colliders.end(); ++second_entity_iter )
+		for ( u32 second_idx = first_idx + 1; second_idx < colliders.Count(); ++second_idx )
 		{
-			auto [second_id, second_transform, second_collider] = first_entity_iter->Break();
+			auto [second_id, second_transform, second_collider] = colliders[ second_idx ].Break();
 			const glm::vec2 second_world_pos = second_transform.GetWorldPosition();
 
 			const float sqr_dist = glm::distance2( first_world_pos, second_world_pos );

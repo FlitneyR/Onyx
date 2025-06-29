@@ -287,6 +287,9 @@
     <ClInclude Include="Graphics\Camera.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="ECS\Scene.h">
+      <Filter>Header Files\ECS</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Graphics\Shaders\SpriteRenderer.vert">

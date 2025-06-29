@@ -66,7 +66,20 @@ std::shared_ptr< IWindow > SDLWindowManager::CreateWindow( const CreateWindowArg
 	flags |= SDL_WINDOW_FULLSCREEN * args.fullscreen;
 	flags |= SDL_WINDOW_RESIZABLE * args.resizable;
 
-	SDL_Window* window = ASSERT( SDL_CreateWindow( args.title, args.pos.s, args.pos.y, args.size.x, args.size.y, flags ),
+	i32 width = args.size.x;
+	i32 height = args.size.y;
+
+	if ( args.fullscreen )
+	{
+		SDL_Rect display_bounds;
+		if ( WEAK_ASSERT( !SDL_GetDisplayBounds( 0, &display_bounds ), "Couldn't determine the size of the display" ) )
+		{
+			width = display_bounds.w;
+			height = display_bounds.h;
+		}
+	}
+
+	SDL_Window* window = ASSERT( SDL_CreateWindow( args.title, args.pos.s, args.pos.y, width, height, flags ),
 		"Failed to create SDL window: {}", SDL_GetError() );
 
 	if ( LowLevel::GetConfig().enableImGui )

@@ -28,7 +28,7 @@ struct SystemSet
 	template< typename ... Funcs >
 	void AddSubset( Funcs* ... callbacks )
 	{
-		auto subset = std::make_unique< Subset >();
+		auto subset = std::make_unique< Subset >( m_querySet );
 		( [ & ]() { subset->AddSystem( callbacks ); return true; }( ) && ... );
 		m_systems.push_back( std::move( subset ) );
 	}
@@ -47,6 +47,10 @@ struct SystemSet
 private:
 	struct Subset : ISystem< IContext >
 	{
+		Subset( QuerySet& query_set )
+			: m_querySet( query_set )
+		{}
+
 		void Run( IContext& context ) const override
 		{
 			for ( auto& system : m_systems )
@@ -59,6 +63,7 @@ private:
 			m_systems.push_back( std::make_unique< System< IContext, Func > >( m_querySet, callback ) );
 		}
 
+		QuerySet& m_querySet;
 		std::vector< std::unique_ptr< ISystem< IContext > > > m_systems;
 	};
 

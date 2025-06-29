@@ -129,6 +129,9 @@ struct Query : IQuery
 		return &*iter;
 	}
 
+	u32 Count() const { return m_results.size(); }
+	const Result& operator []( u32 index ) const { return m_results[ index ]; }
+
 	std::vector< Result >::const_iterator begin() const { return m_results.cbegin(); }
 	std::vector< Result >::const_iterator end() const { return m_results.cend(); }
 
@@ -141,7 +144,7 @@ struct Query : IQuery
 
 	void OnComponentAddedOrRemoved( size_t component_type_hash ) override
 	{
-		m_needsRerun = ( ( component_type_hash == typeid( typename Components::Type ).hash_code() ) || ... );
+		m_needsRerun |= ( ( component_type_hash == typeid( typename Components::Type ).hash_code() ) || ... );
 	}
 
 	void CollectComponentTypes( std::set< size_t >& component_set ) override

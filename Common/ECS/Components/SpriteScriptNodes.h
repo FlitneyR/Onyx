@@ -4,7 +4,7 @@
 
 // MakeSprite
 #define MakeSprite_Inputs( f )						\
-	f( onyx::AssetLoader*, AssetLoader, = nullptr )	\
+	f( onyx::AssetManager*, AssetManager, = nullptr )	\
 	f( const char*, ImageAssetPath, = nullptr )		\
 
 #define MakeSprite_Extras	\
@@ -18,7 +18,7 @@
 
 // MakeSpriteAnimator
 #define MakeSpriteAnimator_Inputs( f )				\
-	f( onyx::AssetLoader*, AssetLoader, = nullptr )	\
+	f( onyx::AssetManager*, AssetManager, = nullptr )	\
 	f( const char*, AssetPath, = nullptr )			\
 	f( bool, StartPlaying, = true)					\
 

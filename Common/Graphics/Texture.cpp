@@ -105,7 +105,7 @@ void TextureAsset::Save( BjSON::IReadWriteObject& writer, SaveType type )
 	writer.SetLiteral( "Data"_name, image_data.data(), image_data.size() );
 }
 
-void TextureAsset::DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context )
+void TextureAsset::DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context, const IAssetManagerCallbacks& callbacks )
 {
 	switch ( m_loadingState )
 	{
@@ -238,7 +238,7 @@ void TextureAnimationAsset::Load( LoadType type )
 			Frame& frame = m_frames[ idx ];
 			auto frame_reader = frames->GetChild( idx );
 
-			if ( m_assetLoader ) frame.texture = m_assetLoader->Load< TextureAsset >( frame_reader->GetLiteral< std::string >( "TexturePath"_name ) );
+			if ( m_assetManager ) frame.texture = m_assetManager->Load< TextureAsset >( frame_reader->GetLiteral< std::string >( "TexturePath"_name ) );
 			if ( m_assetManager ) frame.texture = m_assetManager->Load< TextureAsset >( frame_reader->GetLiteral< std::string >( "TexturePath"_name ) );
 
 			frame_reader->GetLiteral( "Offset"_name, &frame.offset, sizeof( frame.offset ) );
@@ -266,7 +266,7 @@ void TextureAnimationAsset::Save( BjSON::IReadWriteObject& writer, SaveType type
 	}
 }
 
-void TextureAnimationAsset::DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context )
+void TextureAnimationAsset::DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context, const IAssetManagerCallbacks& callbacks )
 {
 	switch ( m_loadingState )
 	{
@@ -358,8 +358,8 @@ void TextureAnimationEditor::Run( IFrameContext& frame_context )
 					{
 						std::shared_ptr< TextureAsset > new_texture;
 
-						if ( m_animation->m_assetLoader )
-							new_texture = m_animation->m_assetLoader->Load< TextureAsset >( m_selectTexturePath );
+						if ( m_animation->m_assetManager )
+							new_texture = m_animation->m_assetManager->Load< TextureAsset >( m_selectTexturePath );
 
 						if ( m_animation->m_assetManager )
 							new_texture = m_animation->m_assetManager->Load< TextureAsset >( m_selectTexturePath );
@@ -426,8 +426,8 @@ void TextureAnimationEditor::Run( IFrameContext& frame_context )
 				{
 					std::shared_ptr< TextureAsset > new_texture;
 
-					if ( m_animation->m_assetLoader )
-						new_texture = m_animation->m_assetLoader->Load< TextureAsset >( m_selectTexturePath );
+					if ( m_animation->m_assetManager )
+						new_texture = m_animation->m_assetManager->Load< TextureAsset >( m_selectTexturePath );
 
 					if ( m_animation->m_assetManager )
 						new_texture = m_animation->m_assetManager->Load< TextureAsset >( m_selectTexturePath );

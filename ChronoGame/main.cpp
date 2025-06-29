@@ -27,12 +27,12 @@ int main( int argc, const char** argv )
 		return -1;
 
 	BjSON::Decoder core_decoder( core_asset_pack_file );
-	onyx::AssetLoader core_asset_loader( core_decoder.GetRootObject() );
+	onyx::AssetManager core_asset_manager( core_decoder.GetRootObject() );
 
 	INFO( "Initialising Chrono" );
 
 	onyx::LowLevel::Config config;
-	onyx::LowLevel::Init( config, &core_asset_loader );
+	onyx::LowLevel::Init( config, &core_asset_manager );
 
 	onyx::LowLevelInput& input = onyx::LowLevel::GetInput();
 	onyx::IWindowManager& window_manager = onyx::LowLevel::GetWindowManager();
@@ -65,17 +65,17 @@ int main( int argc, const char** argv )
 			return -1;
 
 		BjSON::Decoder chrono_decoder( chrono_asset_pack_file );
-		onyx::AssetLoader chrono_asset_loader( chrono_decoder.GetRootObject() );
+		onyx::AssetManager chrono_asset_manager( chrono_decoder.GetRootObject() );
 
 		INFO( "Starting game" );
 		{
-			std::shared_ptr< onyx::Script > start_game_script = chrono_asset_loader.Load< onyx::Script >( "/start_game" );
+			std::shared_ptr< onyx::Script > start_game_script = chrono_asset_manager.Load< onyx::Script >( "/start_game" );
 			if ( !WEAK_ASSERT( start_game_script && start_game_script->GetLoadingState() == onyx::IAsset::LoadingState::Loaded, "start_game script missing" ) )
 				return -1;
 
 			onyx::ScriptContext start_game_context;
 			start_game_context.AddInput( "Cmd", &cmd );
-			start_game_context.AddInput( "AssetLoader", &chrono_asset_loader );
+			start_game_context.AddInput( "AssetManager", &chrono_asset_manager );
 
 			onyx::ScriptRunner start_game_script_runner( start_game_script, start_game_context );
 			if ( !WEAK_ASSERT( start_game_script_runner.Run(), "start_game script failed" ) )
@@ -86,9 +86,10 @@ int main( int argc, const char** argv )
 
 		INFO( "Opening window" );
 		onyx::IWindowManager::CreateWindowArgs create_window_args;
-		create_window_args.size = { 1920, 1080 };
+		// create_window_args.size = { 1920, 1080 };
 		create_window_args.title = "Chrono";
 		create_window_args.resizable = true;
+		create_window_args.fullscreen = true;
 
 		if ( std::shared_ptr< onyx::IWindow > game_window = WEAK_ASSERT( window_manager.CreateWindow( create_window_args ), "Failed to create game window" ) )
 		{
@@ -122,28 +123,11 @@ int main( int argc, const char** argv )
 
 				if ( onyx::IFrameContext* frame_context = graphics_context.BeginFrame( *game_window ) )
 				{
-					if ( !render_target || render_target->GetSize() != frame_context->GetSize() )
-						render_target = STRONG_ASSERT( graphics_context.CreateRenderTarget( frame_context->GetSize() ), "Failed to create render target" );
+					const glm::uvec2 target_resolution = frame_context->GetSize();
+					if ( !render_target || render_target->GetSize() != target_resolution )
+						render_target = STRONG_ASSERT( graphics_context.CreateRenderTarget( target_resolution ), "Failed to create render target" );
 
 					onyx::SpriteRenderData sprite_render_data;
-
-					//// if there's no camera, just centre on 0,0 and scale one unit to one pixel
-					//sprite_render_data.cameraMatrix = glm::scale( glm::mat3( 1.f ), glm::vec2( 1.f ) / glm::vec2( render_target->GetSize() ) );
-
-					//if ( auto camera_iter = world.GetComponentTable< chrono::Camera >().Iter() )
-					//{
-					//	const chrono::Camera& active_camera = camera_iter.Component();
-
-					//	if ( const onyx::Transform2D* const transform = world.GetComponent< onyx::Transform2D >( camera_iter.ID() ) )
-					//	{
-					//		const glm::vec2 render_area = active_camera.fov * glm::normalize( glm::vec2( render_target->GetSize() ) );
-
-					//		onyx::Transform2D t = *transform;
-					//		t.SetLocalScale( render_area );
-
-					//		sprite_render_data.cameraMatrix = glm::transpose( glm::inverse( t.GetMatrix() ) );
-					//	}
-					//}
 
 					camera.aspectRatio = glm::normalize( glm::vec2( render_target->GetSize() ) );
 					sprite_render_data.cameraMatrix = camera.GetMatrix();

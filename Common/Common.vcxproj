@@ -196,6 +196,7 @@
     <ClInclude Include="ECS\Components\TransformScriptNodesImpl.h" />
     <ClInclude Include="ECS\Entity.h" />
     <ClInclude Include="ECS\Query.h" />
+    <ClInclude Include="ECS\Scene.h" />
     <ClInclude Include="ECS\System.h" />
     <ClInclude Include="ECS\SystemSet.h" />
     <ClInclude Include="ECS\Systems\Rendering2D.h" />

@@ -75,6 +75,9 @@
     <ClInclude Include="Components\Team.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
+    <ClInclude Include="Components\health.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ScriptNodes.cpp">
