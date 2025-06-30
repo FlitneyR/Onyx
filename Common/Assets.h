@@ -21,6 +21,8 @@ struct IAsset
 		Count
 	};
 
+	#define RETURN_LOAD_ERRORED() { m_loadingState = LoadingState::Errored; return; }
+
 	enum struct LoadType
 	{
 		// load everything we need for a game

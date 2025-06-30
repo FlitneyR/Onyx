@@ -7,32 +7,90 @@
 namespace onyx::ecs
 {
 
+struct IComponentReflector
+{
+	IComponentReflector( const char* const name ) : m_name( name ) {}
+	const char* const m_name;
+
+	virtual void DeserialiseComponent( const BjSON::IReadOnlyObject& reader, World& world, EntityID entity ) const = 0;
+	virtual void SerialiseComponent( BjSON::IReadWriteObject& writer, World::EntityIterator& entity ) const = 0;
+	virtual void DoEditorUI( World& world, EntityID entity ) const = 0;
+	virtual void SerialiseDiff( BjSON::IReadWriteObject& writer, World& world, EntityID entity, World& src_world, EntityID src_entity ) const = 0;
+};
+
+template< typename Component >
+struct ComponentReflector;
+
+struct ComponentReflectorTable
+{
+	static ComponentReflectorTable s_singleton;
+
+	const IComponentReflector* GetReflector( size_t component_type_hash ) const;
+	const IComponentReflector* GetReflector( BjSON::NameHash component_name_hash ) const;
+	void RegisterReflector( const IComponentReflector& reflector, BjSON::NameHash component_name_hash, size_t component_type_hash );
+
+	void SerialiseDiffs( BjSON::IReadWriteObject& writer, World& world, EntityID entity, World& src_world, EntityID src_entity );
+
+private:
+	ComponentReflectorTable() = default;
+
+	std::vector< const IComponentReflector& > m_reflectors;
+	std::unordered_map< size_t, const IComponentReflector& > m_typeHashLookup;
+	std::unordered_map< BjSON::NameHash, const IComponentReflector& > m_typeNameLookup;
+};
+
+#define COMPONENT_REFLECTOR_FRIEND( Component )				friend struct onyx::ecs::ComponentReflector< Component >
+#define COMPONENT_REFLECTOR( Component )					template<> struct onyx::ecs::ComponentReflector< Component > : onyx::ecs::IComponentReflector
+#define DECLARE_COMPONENT_REFLECTOR_SINGLETON( Component )	ComponentReflector( ComponentReflectorTable& table ); static ComponentReflector s_singleton
+#define DESERIALISE_COMPONENT()								void DeserialiseComponent( const BjSON::IReadOnlyObject& reader, World& world, EntityID entity ) const override
+#define SERIALISE_COMPONENT()								void SerialiseComponent( BjSON::IReadWriteObject& writer, World::EntityIterator& entity ) const override
+#define DO_COMPONENT_EDITOR_UI()							void DoEditorUI( World& world, EntityID entity ) const override
+#define SERIALISE_COMPONENT_DIFF()							void SerialiseDiff( BjSON::IReadWriteObject& writer, World& world, EntityID entity, World& src_world, EntityID src_entity ) const override
+#define REGISTER_COMPONENT_REFLECTOR( Component )\
+	onyx::ecs::ComponentReflector< Component >::ComponentReflector( ComponentReflectorTable& table )\
+		: IComponentReflector( #Component ) \
+	{ table.RegisterReflector( s_singleton, #Component##_name, typeid( Component ).hash_code() ); }\
+	onyx::ecs::ComponentReflector< Component > onyx::ecs::ComponentReflector< Component >::s_singleton{ ComponentReflectorTable::s_singleton }
+
+//#define DEFAULT_DESERIALISE_PROPERTY( MemberName, member ) DefaultDeserialiseProperty( reader, comp.member );
+//#define DEFAULT_DESERIALISE( Component, xproperties ) \
+//	DESERIALISE_COMPONENT()\
+//	{\
+//		Component* _comp = world.GetComponent< Component >( entity );\
+//		Component& comp = _comp ? *_comp : world.AddComponent< Transform2D >( entity, {} );\
+//		xproperties( DEFAULT_DESERIALISE_PROPERTY )\
+//	}\
+
 struct Scene : IAsset
 {
 	// copy the entities in this scene to the destination world, and return a map from entity IDs in this scene, to the ids those entities have in the world
-	std::vector< std::pair< EntityID, EntityID > > CopyToWorld( World& world ) const;
+	void CopyToWorld( World& world, std::vector< std::pair< EntityID, EntityID > >& entity_map ) const;
 
 	// IAsset
 	void Load( LoadType type ) override;
 	void Save( BjSON::IReadWriteObject& writer, SaveType type ) override;
-	void DoAssetManagerButton(
-		const char* name, const char* path, f32 width,
-		std::shared_ptr< IAsset > asset, IFrameContext& frame_context
-	) override;
+	void DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context ) override;
 
 	World m_world;
 };
 
 struct SceneEditor : editor::IWindow
 {
+	std::shared_ptr< Scene > m_scene;
+
+	inline static const char* const s_name = "Scene Editor";
+	const char* GetName() const override { return s_name; }
+	void Run( IFrameContext& frame_context ) override;
+	std::string GetWindowTitle() const override;
 };
 
 // scene instance component
 // added to the root entity after copying a scene to an ecs world
 struct SceneInstance
 {
-	std::shared_ptr< Scene > m_scene;
-	EntityID m_rootEntity;
+	std::shared_ptr< Scene > m_scene = nullptr;
+	EntityID m_rootEntity = NoEntity;
+	EntityID m_sceneEntityId = NoEntity;
 };
 
 }
@@ -159,5 +217,15 @@ When editing a scene:
 		- Allow the user to Add or Remove any component
 	- If the currently selected entity is part of a scene instance
 		- Allow the user to Add or Remove any component that isn't part of the entity in the source scene
+
+Data types:
+	- Component function table
+		- Needs to store functions for
+			- Deserialising a component
+			- Serialising a component
+			- Displaying editor ui for a component
+			- Serialising a diff of two components
+		- Need to be able to look up these functions by
+			- BjSON::NameHash and typeid( ... ).hash_code()
 
 */

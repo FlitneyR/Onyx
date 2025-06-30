@@ -52,6 +52,8 @@ public:
 	glm::vec2 WorldToLocal( glm::vec2 local ) const { return m_inverseLocale * glm::vec3( local, 1.f ); }
 
 	const glm::mat3& GetMatrix() const { return m_matrix; }
+
+	COMPONENT_REFLECTOR_FRIEND( Transform2D );
 };
 
 struct AttachedTo

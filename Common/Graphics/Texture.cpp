@@ -39,16 +39,10 @@ void TextureAsset::Load( LoadType type )
 
 	const BjSON::IReadOnlyObject* const reader = GetReader();
 	if ( !WEAK_ASSERT( reader ) )
-	{
-		m_loadingState = LoadingState::Errored;
-		return;
-	}
+		RETURN_LOAD_ERRORED();
 
 	if ( u32 asset_type; !WEAK_ASSERT( reader->GetLiteral( "__assetType"_name, asset_type ) == sizeof( asset_type ) && asset_type == "Texture"_name ) )
-	{
-		m_loadingState = LoadingState::Errored;
-		return;
-	}
+		RETURN_LOAD_ERRORED();
 
 	const std::string filter_mode = reader->GetLiteral< std::string >( "FilterMode"_name );
 	const std::string compression_mode = reader->GetLiteral< std::string >( "CompressionMode"_name );
@@ -68,10 +62,7 @@ void TextureAsset::Load( LoadType type )
 	int width, height, channels_in_file;
 	byte* const pixels = stbi_load_from_memory( data.data(), data.size(), &width, &height, &channels_in_file, 4 );
 	if ( !WEAK_ASSERT( pixels, "Failed to load image data" ) )
-	{
-		m_loadingState = LoadingState::Errored;
-		return;
-	}
+		RETURN_LOAD_ERRORED();
 
 	Init( width, height, reinterpret_cast< const Pixel* >( pixels ) );
 	stbi_image_free( pixels );
@@ -222,10 +213,7 @@ void TextureAnimationAsset::Load( LoadType type )
 
 	const BjSON::IReadOnlyObject* const reader = GetReader();
 	if ( !reader || reader->GetLiteral< u32 >( "__assetType"_name ) != "TextureAnimation"_name )
-	{
-		m_loadingState = LoadingState::Errored;
-		return;
-	}
+		RETURN_LOAD_ERRORED();
 
 	reader->GetLiteral( "Rate"_name, m_rate );
 

@@ -102,16 +102,10 @@ void ShaderAsset::Load( LoadType type )
 
 	const BjSON::IReadOnlyObject* reader = GetReader();
 	if ( !WEAK_ASSERT( reader ) )
-	{
-		m_loadingState = LoadingState::Errored;
-		return;
-	}
+		RETURN_LOAD_ERRORED();
 
 	if ( !WEAK_ASSERT( reader->GetLiteral< u32 >( "__assetType"_name ) == "Shader"_name ) )
-	{
-		m_loadingState = LoadingState::Errored;
-		return;
-	}
+		RETURN_LOAD_ERRORED();
 
 	if ( type == LoadType::Editor )
 	{

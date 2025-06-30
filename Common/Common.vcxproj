@@ -162,6 +162,7 @@
     <ClCompile Include="BjSON\BjSON.cpp" />
     <ClCompile Include="ECS\Components\Transform.cpp" />
     <ClCompile Include="ECS\Query.cpp" />
+    <ClCompile Include="ECS\Scene.cpp" />
     <ClCompile Include="ECS\Systems\Rendering2D.cpp" />
     <ClCompile Include="ECS\Systems\Transform.cpp" />
     <ClCompile Include="External\imnodes\imnodes.cpp" />

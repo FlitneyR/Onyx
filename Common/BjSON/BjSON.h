@@ -54,6 +54,8 @@ struct IReadOnlyObject
 	virtual u32 GetLiteral( NameHash name, void* dest = nullptr, u32 dest_size = 0 ) const = 0;
 	virtual std::shared_ptr< const IReadOnlyObject > GetChild( NameHash name ) const = 0;
 	virtual std::shared_ptr< const IReadOnlyObjectArray > GetArray( NameHash name ) const = 0;
+	virtual u32 GetMemberCount() const = 0;
+	virtual NameHash GetMemberName( u32 index ) const = 0;
 
 	template< typename T >
 	u32 GetLiteral( NameHash name, T* vals_out, u32 val_count )

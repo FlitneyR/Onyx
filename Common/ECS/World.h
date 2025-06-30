@@ -40,9 +40,9 @@ struct World
 	}
 
 	template< typename Component >
-	void AddComponent( EntityID entity, const Component& component )
+	Component& AddComponent( EntityID entity, const Component& component )
 	{
-		GetComponentTable< Component >().AddComponent( entity, component );
+		return GetComponentTable< Component >().AddComponent( entity, component );
 	}
 
 	template< typename Component >
@@ -68,6 +68,7 @@ struct World
 			virtual EntityID ID() const = 0;
 			virtual EntityID NextID() const = 0;
 			virtual operator bool() const = 0;
+			virtual void CopyToWorld( World& world, EntityID entity ) const = 0;
 
 			void Increment() { ++m_currentPairIndex; }
 
@@ -160,32 +161,12 @@ struct World
 		static bool PairEntityIDComparator( const Pair& lhs, const EntityID& entity ) { return lhs.first < entity; }
 	};
 
-	struct BaseEntityIterator
+	struct EntityIterator
 	{
-		EntityID ID() const { return m_currentEntity; }
-
-		template< typename Component >
-		Component* Get() const
-		{
-			auto _iter = m_iterators.find( typeid( Component ).hash_code() );
-			if ( _iter == m_iterators.end() )
-				return nullptr;
-
-			auto& iter = *static_cast<ComponentTable< Component >::Iterator*>( _iter->second.get() );
-			if ( !iter || iter.ID() != ID() )
-				return nullptr;
-
-			return &iter.Component();
-		}
-
-	protected:
 		u32 m_currentEntity = ~0;
 		std::map< size_t, std::unique_ptr< IComponentTable::IIterator > > m_iterators;
-	};
 
-	struct EntityIterator : BaseEntityIterator
-	{
-		EntityIterator( World& world, const std::set< size_t >* relevant_components )
+		EntityIterator( const World& world, const std::set< size_t >* relevant_components )
 		{
 			for ( auto& [hash, table] : world.m_componentTables )
 			{
@@ -227,6 +208,32 @@ struct World
 
 			return *this;
 		}
+
+		EntityID ID() const { return m_currentEntity; }
+
+		template< typename Component >
+		Component* Get() const
+		{
+			auto _iter = m_iterators.find( typeid( Component ).hash_code() );
+			if ( _iter == m_iterators.end() )
+				return nullptr;
+
+			auto& iter = *static_cast<ComponentTable< Component >::Iterator*>( _iter->second.get() );
+			if ( !iter || iter.ID() != ID() )
+				return nullptr;
+
+			return &iter.Component();
+		}
+
+		EntityID CopyToWorld( World& world ) const
+		{
+			const EntityID entity = world.AddEntity();
+
+			for ( const auto& [ type, comp ] : m_iterators )
+				comp->CopyToWorld( world, entity );
+
+			return entity;
+		}
 	};
 
 	struct QueryManager
@@ -255,12 +262,14 @@ struct World
 
 	QueryManager m_queryManager;
 
-	EntityIterator Iter( const std::set< size_t >* relevant_components = nullptr )
+	EntityIterator Iter( const std::set< size_t >* relevant_components = nullptr ) const
 	{ return EntityIterator( *this, relevant_components ); }
 
 private:
 	std::map< size_t, std::unique_ptr< IComponentTable > > m_componentTables;
 	EntityID m_nextEntityID = 1;
+
+	friend struct Scene;
 
 	IComponentTable* GetComponentTableByHash( size_t component_type_hash )
 	{

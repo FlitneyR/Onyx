@@ -3,6 +3,7 @@
 // for making new assets of these types
 #include "Common/Graphics/Texture.h"
 #include "Common/Graphics/Shader.h"
+#include "Common/ECS/Scene.h"
 
 #include "imgui_stdlib.h"
 
@@ -91,9 +92,10 @@ AssetManager::AssetManager( const BjSON::IReadOnlyObject& root_node, Flags flags
 			case "Texture"_name: asset = New< TextureAsset >( path ).get(); break;
 			case "TextureAnimation"_name: asset = New< TextureAnimationAsset >( path ).get(); break;
 			case "Shader"_name: asset = New< ShaderAsset >( path ).get(); break;
+			case "Scene"_name: asset = New< ecs::Scene >( path ).get(); break;
 			}
 
-			if ( asset )
+			if ( WEAK_ASSERT( asset ) )
 			{
 				asset->SetReader( reader );
 				asset->m_assetManager = this;
