@@ -1,15 +1,12 @@
 #include "Physics.h"
 
-namespace chrono
+namespace chrono::Physics
 {
 
-void UpdateCollisions( onyx::ecs::Context<> ctx, const ColliderQuery& colliders )
+void UpdateCollisions( onyx::ecs::Context< const onyx::Tick > ctx, const ColliderQuery& colliders )
 {
 	for ( auto& entity : colliders )
-	{
-		auto [id, transform, collider] = entity.Break();
-		collider.collisions.clear();
-	}
+		entity.Get< Collider& >().collisions.clear();
 
 	for ( u32 first_idx = 0; first_idx + 1 < colliders.Count(); ++first_idx )
 	{
@@ -45,7 +42,7 @@ void UpdateCollisions( onyx::ecs::Context<> ctx, const ColliderQuery& colliders 
 
 void UpdatePhysicsBodies( onyx::ecs::Context< const onyx::Tick > ctx, const PhysicsBodyQuery& bodies )
 {
-	auto [tick] = ctx.Break();
+	const onyx::Tick& tick = ctx.Get< const onyx::Tick >();
 
 	for ( auto& entity : bodies )
 	{
@@ -66,6 +63,31 @@ void UpdatePhysicsBodies( onyx::ecs::Context< const onyx::Tick > ctx, const Phys
 
 		transform.SetLocalPosition( position );
 		transform.SetLocalRotation( rotation );
+	}
+}
+
+void UpdateDamageOnCollision( UpdateDamageOnCollision_Context ctx, const DamageOnCollisionEntities& damagers )
+{
+	auto [world, cmd, asset_manager] = ctx.Break();
+
+	for ( const auto& damager : damagers )
+	{
+		auto [damager_id, damager_collider, damager_damage, damager_health, damager_team] = damager.Break();
+
+		for ( const CollisionEvent& collision : damager_collider.collisions )
+		{
+			WEAK_ASSERT_ONCE( damager_id != collision.otherEntity );
+
+			Core::DamageEntity( world, cmd, asset_manager, Core::DamageParams()
+				.SetSource( damager_id )
+				.SetTarget( collision.otherEntity )
+				.SetAmount( damager_damage.otherDamage ) );
+
+			Core::DamageEntity( world, cmd, asset_manager, Core::DamageParams()
+				.SetSource( collision.otherEntity )
+				.SetTarget( damager_id )
+				.SetAmount( damager_damage.selfDamage ) );
+		}
 	}
 }
 

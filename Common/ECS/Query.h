@@ -21,6 +21,9 @@ protected:
 	bool m_needsRerun = true;
 };
 
+template< typename Arg > struct ComponentType;
+template< typename T > using ComponentTypeT = typename ComponentType< T >::Type;
+
 template< typename T >
 struct Read
 {
@@ -65,6 +68,11 @@ struct WriteOptional
 	static Arg Cast( Ptr ptr ) { return ptr; }
 };
 
+template< typename T > struct ComponentType< const T& > { using Type = Read< T >; };
+template< typename T > struct ComponentType<       T& > { using Type = Write< T >; };
+template< typename T > struct ComponentType< const T* > { using Type = ReadOptional< T >; };
+template< typename T > struct ComponentType<       T* > { using Type = WriteOptional< T >; };
+
 template< typename ... Components >
 struct Context
 {
@@ -74,14 +82,29 @@ struct Context
 
 	template< typename OtherContext >
 	Context( OtherContext& other_context )
-		: m_components( std::get< std::remove_const_t< Components >& >( other_context.m_components ) ... )
+		: m_components( other_context.template Get< Components >() ... )
 	{}
 
-	std::tuple< Components& ... > Break() { return m_components; }
+	template< typename T >
+	T& Get() const
+	{
+		static_assert( s_hasComponent< T > || s_hasComponent< std::remove_const_t< T > >, "Missing context component" );
+		return std::get< ChooseTypeT< s_hasComponent< std::remove_const_t< T > >, std::remove_const_t< T >&, T& > >( m_components );
+	}
+
+	std::tuple< Components& ... > Break() const { return m_components; }
 
 private:
 	template< typename ... OtherComponents >
 	friend struct Context;
+
+	template< typename T > static constexpr bool s_hasComponent = ( std::is_same_v< T, Components > || ... );
+
+	template< bool b, typename T1, typename T2 > struct ChooseType;
+	template< typename T1, typename T2 > struct ChooseType< true, T1, T2 > { using Type = T1; };
+	template< typename T1, typename T2 > struct ChooseType< false, T1, T2 > { using Type = T2; };
+
+	template< bool b, typename T1, typename T2 > using ChooseTypeT = ChooseType< b, T1, T2 >::Type;
 
 	std::tuple< Components& ... > m_components;
 };
@@ -99,6 +122,14 @@ struct Query : IQuery
 		{}
 
 		EntityID ID() const { return m_entity; }
+
+		template< typename T >
+		T Get() const
+		{
+			using Component = ComponentTypeT< T >;
+			static_assert( ( []() { return std::is_same_v< Component, Components >; }( ) || ... ), "Missing entity component" );
+			return Component::Cast( std::get< typename Component::Ptr >( m_componentPtrs ) );
+		}
 
 		std::tuple< const EntityID&, typename Components::Arg ... > Break() const
 		{

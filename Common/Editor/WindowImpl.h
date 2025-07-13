@@ -5,7 +5,7 @@
 namespace onyx::editor
 {
 
-::std::vector< ::std::unique_ptr< IWindow > > s_windows;
+std::vector< std::unique_ptr< IWindow > > s_windows;
 
 struct ImGuiDemoWindow : IWindow
 {
@@ -54,6 +54,11 @@ void DoWindows( IFrameContext& frame_context )
 		s_windows[ window_index ]->Run( frame_context );
 
 	std::erase_if( s_windows, []( std::unique_ptr< IWindow >& window ) { return !window->m_open; } );
+}
+
+void CloseAllWindows()
+{
+	s_windows.clear();
 }
 
 }

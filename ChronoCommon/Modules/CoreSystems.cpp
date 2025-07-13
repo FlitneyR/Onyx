@@ -1,6 +1,6 @@
-#include "Camera.h"
+#include "Core.h"
 
-namespace chrono
+namespace chrono::Core
 {
 
 void UpdateCamera( onyx::ecs::Context< const onyx::Tick, onyx::Camera2D > ctx, const UpdateCamera_CameraFocusQuery& focii, const UpdateCamera_CameraQuery& cameras )
@@ -9,7 +9,7 @@ void UpdateCamera( onyx::ecs::Context< const onyx::Tick, onyx::Camera2D > ctx, c
 
 	glm::vec2 focus_mean = {};
 	f32 focus_count = 0.f;
-	
+
 	for ( auto& entity : focii )
 	{
 		auto [id, transform, focus] = entity.Break();
@@ -54,6 +54,45 @@ void UpdateCamera( onyx::ecs::Context< const onyx::Tick, onyx::Camera2D > ctx, c
 			ctx_camera.fov = camera.fov;
 		}
 	}
+}
+
+void HandleEntityDeath( const onyx::ecs::World& world, onyx::ecs::CommandBuffer& cmd, onyx::AssetManager& asset_manager, onyx::ecs::EntityID entity )
+{
+	if ( const OnDeath* const target_on_death = world.GetComponent< OnDeath >( entity ) )
+	{
+		if ( target_on_death->spawnScene && target_on_death->spawnScene->GetLoadingState() == onyx::LoadingState::Loaded )
+		{
+			glm::mat3 transform( 1.f );
+
+			if ( const onyx::Core::Transform2D* target_transform = world.GetComponent< onyx::Core::Transform2D >( entity ) )
+				transform = target_transform->GetMatrix();
+
+			cmd.CopySceneToWorld( target_on_death->spawnScene,
+				[ transform ]
+				( onyx::ecs::World& world, const onyx::ecs::IDMap& entities )
+				{
+					onyx::Core::PostCopyUpdateRootTransforms2D( world, entities, transform );
+				}
+			);
+		}
+	}
+
+	cmd.RemoveEntity( entity );
+}
+
+void DamageEntity( const onyx::ecs::World& world, onyx::ecs::CommandBuffer& cmd, onyx::AssetManager& asset_manager, const DamageParams& params )
+{
+	if ( params.amount == 0.f )
+		return;
+
+	if ( Team::AreFriends( world.GetComponent< Team >( params.source ), world.GetComponent< Team >( params.target ) ) )
+		return;
+
+	if ( Health* const target_health = world.GetComponent< Health >( params.target ) )
+		if ( ( target_health->amount -= params.amount ) > 0.f )
+			return;
+
+	HandleEntityDeath( world, cmd, asset_manager, params.target );
 }
 
 }

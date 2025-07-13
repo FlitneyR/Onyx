@@ -2,6 +2,8 @@
 
 #include "Common/LowLevel/LowLevelInterface.h"
 
+#include "Common/ECS/ComponentReflector.h"
+
 #include "stb_image.h"
 #include "stb_image_write.h"
 
@@ -9,6 +11,102 @@
 
 namespace onyx
 {
+
+DEFINE_DEFAULT_DESERIALISE_PROPERTY( std::shared_ptr< TextureAsset > )
+{ std::string path; reader.GetLiteral( name, path ); value = asset_manager.Load< TextureAsset >( path ); }
+
+DEFINE_DEFAULT_PROPERTY_DIFF_HINT( std::shared_ptr< TextureAsset > )
+{ ImGui::SetTooltip( !value ? "No Texture" : value->m_path.c_str() ); }
+
+DEFINE_DEFAULT_PROPERTY_EDITOR_UI( std::shared_ptr< TextureAsset > )
+{
+	ImGuiScopedID scoped_id( name );
+
+	ImGui::Text( name );
+	if ( value ? ImGui::ImageButton( value->GetGraphicsResource()->GetImTextureID(), { 100, 100 } ) : ImGui::Button( "Select Texture" ) )
+		ImGui::OpenPopup( "Select Texture" );
+
+	bool was_edited = false;
+	if ( ImGui::BeginPopup( "Select Texture" ) )
+	{
+		static std::string new_texture_path;
+		ImGui::InputText( "Path", &new_texture_path );
+
+		if ( ImGui::Button( "Cancel" ) )
+			ImGui::CloseCurrentPopup();
+
+		ImGui::SameLine();
+		if ( ImGui::Button( "Ok" ) )
+		{
+			if ( new_texture_path.empty() )
+			{
+				was_edited = true;
+				value = nullptr;
+			}
+			else if ( auto texture = asset_manager.Load< TextureAsset >( new_texture_path ) )
+			{
+				was_edited = true;
+				value = texture;
+				ImGui::CloseCurrentPopup();
+			}
+		}
+
+		ImGui::EndPopup();
+	}
+
+	return was_edited;
+}
+
+DEFINE_DEFAULT_SERIALISE_PROPERTY( std::shared_ptr< TextureAsset > )
+{ writer.SetLiteral( name, !value ? "" : value->m_path ); }
+
+DEFINE_DEFAULT_DESERIALISE_PROPERTY( std::shared_ptr< TextureAnimationAsset > )
+{ std::string path; reader.GetLiteral( name, path ); if ( !path.empty() ) value = asset_manager.Load< TextureAnimationAsset >( path ); }
+
+DEFINE_DEFAULT_PROPERTY_DIFF_HINT( std::shared_ptr< TextureAnimationAsset > )
+{ ImGui::SetTooltip( !value ? "No Texture" : value->m_path.c_str() ); }
+
+DEFINE_DEFAULT_PROPERTY_EDITOR_UI( std::shared_ptr< TextureAnimationAsset > )
+{
+	ImGuiScopedID scoped_id( name );
+
+	if ( ImGui::Button( std::format( "{} : {}", name, !value ? "No Animation" : value->m_path ).c_str() ) )
+		ImGui::OpenPopup( "Select Texture" );
+
+	bool was_edited = false;
+
+	if ( ImGui::BeginPopup( "Select Texture" ) )
+	{
+		static std::string new_path;
+		ImGui::InputText( "Path", &new_path );
+
+		if ( ImGui::Button( "Cancel" ) )
+			ImGui::CloseCurrentPopup();
+
+		ImGui::SameLine();
+		if ( ImGui::Button( "Ok" ) )
+		{
+			if ( new_path.empty() )
+			{
+				was_edited = true;
+				value = nullptr;
+			}
+			else if ( auto animation = asset_manager.Load< TextureAnimationAsset >( new_path ) )
+			{
+				was_edited = true;
+				value = animation;
+				ImGui::CloseCurrentPopup();
+			}
+		}
+
+		ImGui::EndPopup();
+	}
+
+	return was_edited;
+}
+
+DEFINE_DEFAULT_SERIALISE_PROPERTY( std::shared_ptr< TextureAnimationAsset > )
+{ writer.SetLiteral( name, !value ? "" : value->m_path ); }
 
 void TextureAsset::Init( u32 width, u32 height, const Pixel* pixels )
 {
@@ -41,7 +139,7 @@ void TextureAsset::Load( LoadType type )
 	if ( !WEAK_ASSERT( reader ) )
 		RETURN_LOAD_ERRORED();
 
-	if ( u32 asset_type; !WEAK_ASSERT( reader->GetLiteral( "__assetType"_name, asset_type ) == sizeof( asset_type ) && asset_type == "Texture"_name ) )
+	if ( u32 asset_type; !WEAK_ASSERT( reader->GetLiteral( "__assetType"_name, asset_type ) && asset_type == "Texture"_name ) )
 		RETURN_LOAD_ERRORED();
 
 	const std::string filter_mode = reader->GetLiteral< std::string >( "FilterMode"_name );
@@ -123,7 +221,7 @@ void TextureAsset::DoAssetManagerButton( const char* name, const char* path, f32
 			Load( IAsset::LoadType::Editor );
 
 		TexturePreviewWindow* const window = editor::AddWindow< TexturePreviewWindow >();
-		window->m_texture = std::static_pointer_cast< TextureAsset >( asset );
+		window->texture = std::static_pointer_cast< TextureAsset >( asset );
 	}
 
 	if ( auto resource = GetGraphicsResource() )
@@ -151,9 +249,9 @@ void TexturePreviewWindow::Run( IFrameContext& frame_context )
 		{
 			if ( ImGui::BeginMenu( "File" ) )
 			{
-				if ( ImGui::MenuItem( "Import", nullptr, nullptr, m_texture != nullptr ) )
+				if ( ImGui::MenuItem( "Import", nullptr, nullptr, texture != nullptr ) )
 					if ( const std::string file_path = LowLevel::GetWindowManager().DoOpenFileDialog(); !file_path.empty() )
-						m_texture->Import( file_path.c_str() );
+						texture->Import( file_path.c_str() );
 
 				ImGui::EndMenu();
 			}
@@ -162,39 +260,39 @@ void TexturePreviewWindow::Run( IFrameContext& frame_context )
 
 			if ( ImGui::BeginMenu( "Edit" ) )
 			{
-				i32 filter_mode = (i32)m_texture->m_filterMode;
-				i32 compression_mode = (i32)m_texture->m_compressionMode;
+				i32 filter_mode = (i32)texture->m_filterMode;
+				i32 compression_mode = (i32)texture->m_compressionMode;
 
 				is_resource_out_of_date |= ImGui::Combo( "Filter", &filter_mode, s_ImageFilterModeNames, _countof( s_ImageFilterModeNames ) );
 				is_resource_out_of_date |= ImGui::Combo( "Compression", &compression_mode, s_ImageCompressionModeNames, _countof( s_ImageCompressionModeNames ) );
 
-				m_texture->m_filterMode = ImageFilterMode( filter_mode );
-				m_texture->m_compressionMode = ImageCompressionMode( compression_mode );
+				texture->m_filterMode = ImageFilterMode( filter_mode );
+				texture->m_compressionMode = ImageCompressionMode( compression_mode );
 
 				ImGui::EndMenu();
 			}
 
 			if ( is_resource_out_of_date )
-				m_texture->ResetResource();
+				texture->ResetResource();
 
 			ImGui::EndMenuBar();
 		}
 
-		if ( m_texture )
+		if ( texture )
 		{
 			const ImVec2 window_size = ImGui::GetWindowContentRegionMax();
-			const glm::uvec2 texture_size = m_texture->GetDimensions();
+			const glm::uvec2 texture_size = texture->GetDimensions();
 
 			const f32 width_scale = f32( window_size.x ) / f32( texture_size.x );
 			const f32 height_scale = f32( window_size.y ) / f32( texture_size.y );
 
 			const f32 scale = std::min( width_scale, height_scale ) * 0.9f;
 
-			frame_context.RegisterUsedResource( m_texture->GetGraphicsResource() );
+			frame_context.RegisterUsedResource( texture->GetGraphicsResource() );
 
 			ImGui::Image(
-				m_texture->GetGraphicsResource()->GetImTextureID(),
-				{ scale * f32( m_texture->GetDimensions().x ), scale * f32( m_texture->GetDimensions().y ) }
+				texture->GetGraphicsResource()->GetImTextureID(),
+				{ scale * f32( texture->GetDimensions().x ), scale * f32( texture->GetDimensions().y ) }
 			);
 		}
 	}
@@ -204,7 +302,7 @@ void TexturePreviewWindow::Run( IFrameContext& frame_context )
 
 std::string TexturePreviewWindow::GetWindowTitle() const
 {
-	return std::format( "Texture Preview: {}###{}", m_texture ? m_texture->m_path : "", (u64)this );
+	return std::format( "Texture Preview: {}###{}", texture ? texture->m_path : "", (u64)this );
 }
 
 void TextureAnimationAsset::Load( LoadType type )
@@ -226,7 +324,6 @@ void TextureAnimationAsset::Load( LoadType type )
 			Frame& frame = m_frames[ idx ];
 			auto frame_reader = frames->GetChild( idx );
 
-			if ( m_assetManager ) frame.texture = m_assetManager->Load< TextureAsset >( frame_reader->GetLiteral< std::string >( "TexturePath"_name ) );
 			if ( m_assetManager ) frame.texture = m_assetManager->Load< TextureAsset >( frame_reader->GetLiteral< std::string >( "TexturePath"_name ) );
 
 			frame_reader->GetLiteral( "Offset"_name, &frame.offset, sizeof( frame.offset ) );
@@ -281,7 +378,7 @@ void TextureAnimationAsset::DoAssetManagerButton( const char* name, const char* 
 			Load( IAsset::LoadType::Editor );
 
 		TextureAnimationEditor* const window = editor::AddWindow< TextureAnimationEditor >();
-		window->m_animation = std::static_pointer_cast< TextureAnimationAsset >( asset );
+		window->animation = std::static_pointer_cast< TextureAnimationAsset >( asset );
 	}
 
 	ImGui::PopStyleColor( 3 );
@@ -302,8 +399,8 @@ void TextureAnimationEditor::Run( IFrameContext& frame_context )
 
 			if ( ImGui::BeginMenu( "Edit" ) )
 			{
-				if ( m_animation )
-					ImGui::DragFloat( "Default Rate", &m_animation->m_rate, 1.f );
+				if ( animation )
+					ImGui::DragFloat( "Default Rate", &animation->m_rate, 1.f );
 
 				ImGui::EndMenu();
 			}
@@ -311,15 +408,15 @@ void TextureAnimationEditor::Run( IFrameContext& frame_context )
 			ImGui::EndMenuBar();
 		}
 
-		if ( m_animation )
+		if ( animation )
 		{
 			u32 frame_to_remove = ~0u;
 			u32 frame_to_copy = ~0u;
 			std::pair< u32, u32 > swap_frames = {};
 
-			for ( u32 idx = 0; idx < m_animation->m_frames.size(); ++idx )
+			for ( u32 idx = 0; idx < animation->m_frames.size(); ++idx )
 			{
-				auto& frame = m_animation->m_frames[ idx ];
+				auto& frame = animation->m_frames[ idx ];
 
 				ImGui::PushID( idx );
 
@@ -346,11 +443,11 @@ void TextureAnimationEditor::Run( IFrameContext& frame_context )
 					{
 						std::shared_ptr< TextureAsset > new_texture;
 
-						if ( m_animation->m_assetManager )
-							new_texture = m_animation->m_assetManager->Load< TextureAsset >( m_selectTexturePath );
+						if ( animation->m_assetManager )
+							new_texture = animation->m_assetManager->Load< TextureAsset >( m_selectTexturePath );
 
-						if ( m_animation->m_assetManager )
-							new_texture = m_animation->m_assetManager->Load< TextureAsset >( m_selectTexturePath );
+						if ( animation->m_assetManager )
+							new_texture = animation->m_assetManager->Load< TextureAsset >( m_selectTexturePath );
 
 						if ( new_texture )
 						{
@@ -394,14 +491,14 @@ void TextureAnimationEditor::Run( IFrameContext& frame_context )
 				ImGui::PopID();
 			}
 
-			if ( frame_to_remove < m_animation->m_frames.size() )
-				m_animation->m_frames.erase( m_animation->m_frames.begin() + frame_to_remove );
+			if ( frame_to_remove < animation->m_frames.size() )
+				animation->m_frames.erase( animation->m_frames.begin() + frame_to_remove );
 
-			if ( frame_to_copy < m_animation->m_frames.size() )
-				m_animation->m_frames.insert( m_animation->m_frames.begin() + frame_to_copy, m_animation->m_frames[ frame_to_copy ] );
+			if ( frame_to_copy < animation->m_frames.size() )
+				animation->m_frames.insert( animation->m_frames.begin() + frame_to_copy, animation->m_frames[ frame_to_copy ] );
 
-			if ( swap_frames.first < m_animation->m_frames.size() && swap_frames.second < m_animation->m_frames.size() )
-				std::swap( m_animation->m_frames[ swap_frames.first ], m_animation->m_frames[ swap_frames.second ] );
+			if ( swap_frames.first < animation->m_frames.size() && swap_frames.second < animation->m_frames.size() )
+				std::swap( animation->m_frames[ swap_frames.first ], animation->m_frames[ swap_frames.second ] );
 
 			if ( ImGui::Button( "[+] " ) )
 				ImGui::OpenPopup( "Select Texture" );
@@ -414,15 +511,15 @@ void TextureAnimationEditor::Run( IFrameContext& frame_context )
 				{
 					std::shared_ptr< TextureAsset > new_texture;
 
-					if ( m_animation->m_assetManager )
-						new_texture = m_animation->m_assetManager->Load< TextureAsset >( m_selectTexturePath );
+					if ( animation->m_assetManager )
+						new_texture = animation->m_assetManager->Load< TextureAsset >( m_selectTexturePath );
 
-					if ( m_animation->m_assetManager )
-						new_texture = m_animation->m_assetManager->Load< TextureAsset >( m_selectTexturePath );
+					if ( animation->m_assetManager )
+						new_texture = animation->m_assetManager->Load< TextureAsset >( m_selectTexturePath );
 
 					if ( new_texture )
 					{
-						m_animation->m_frames.push_back( TextureAnimationAsset::Frame { new_texture } );
+						animation->m_frames.push_back( TextureAnimationAsset::Frame { new_texture } );
 
 						ImGui::CloseCurrentPopup();
 					}
@@ -443,7 +540,7 @@ void TextureAnimationEditor::Run( IFrameContext& frame_context )
 
 std::string TextureAnimationEditor::GetWindowTitle() const
 {
-	return std::format( "Texture Animation Preview: {}###{}", m_animation ? m_animation->m_path : "", (u64)this );
+	return std::format( "Texture Animation Preview: {}###{}", animation ? animation->m_path : "", (u64)this );
 }
 
 }

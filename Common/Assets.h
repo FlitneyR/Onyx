@@ -10,17 +10,17 @@ namespace onyx
 
 struct AssetManager;
 
+enum struct LoadingState
+{
+	Unloaded = 0,
+	Loading,
+	Loaded,
+	Errored,
+	Count
+};
+
 struct IAsset
 {
-	enum struct LoadingState
-	{
-		Unloaded = 0,
-		Loading,
-		Loaded,
-		Errored,
-		Count
-	};
-
 	#define RETURN_LOAD_ERRORED() { m_loadingState = LoadingState::Errored; return; }
 
 	enum struct LoadType
@@ -77,6 +77,8 @@ struct CachedBjSONReader
 
 	void ReadRecursive( const BjSON::IReadOnlyObject& node, const std::string& partial_path = "" );
 
+	void Forget( const std::string& asset_path );
+
 private:
 	friend struct AssetManager;
 	friend struct AssetManagerWindow;
@@ -99,13 +101,20 @@ struct AssetManager
 	};
 
 	AssetManager( const BjSON::IReadOnlyObject& root_node, Flags flags = None );
+	~AssetManager()
+	{
+		INFO( "Destroying asset manager" );
+
+		for ( auto& [path, weak_ref] : m_weakAssetReferences )
+			WEAK_ASSERT( weak_ref.expired(), "{} still has {} strong references when its asset manager is being destroyed", path, weak_ref.use_count() );
+	}
 	
 private:
 	friend struct AssetManagerWindow;
 
 	CachedBjSONReader m_reader;
 
-	// every asset is gets a weak reference stored
+	// every asset gets a weak reference stored
 	std::unordered_map< std::string, std::weak_ptr< IAsset > > m_weakAssetReferences;
 
 	// some assets also get a strong reference
@@ -120,8 +129,7 @@ public:
 	std::shared_ptr< Asset > New( std::string path_to_asset, bool hold_reference = true )
 	{
 		const bool asset_exists = m_weakAssetReferences.find( path_to_asset ) != m_weakAssetReferences.end();
-		if ( !LOG_ASSERT( !asset_exists, "An asset already exists at {}", path_to_asset ) )
-			return nullptr;
+		!LOG_ASSERT( !asset_exists, "An asset already exists at {}", path_to_asset );
 
 		std::shared_ptr< Asset > asset = std::make_shared< Asset >();
 		asset->m_assetManager = this;
@@ -144,10 +152,16 @@ public:
 
 		auto weak_ref_iter = m_weakAssetReferences.find( path_to_asset );
 		if ( weak_ref_iter != m_weakAssetReferences.end() )
+		{
 			if ( std::shared_ptr< IAsset > iasset = weak_ref_iter->second.lock() )
-				if ( std::shared_ptr< Asset > asset = WEAK_ASSERT( std::dynamic_pointer_cast< Asset >( iasset ),
+			{
+				if ( std::shared_ptr< Asset > asset = WEAK_ASSERT( std::dynamic_pointer_cast<Asset>( iasset ),
 					"An asset exists at {} but it isn't a {}", path_to_asset, typeid( Asset ).name() ) )
 					return asset;
+				else
+					return nullptr;
+			}
+		}
 
 		#ifndef NDEBUG
 		auto strong_ref_iter = m_strongAssetReferences.find( path_to_asset );
@@ -164,6 +178,8 @@ public:
 
 			if ( hold_reference )
 				m_strongAssetReferences.insert( { path_to_asset, asset } );
+
+			m_weakAssetReferences.insert( { path_to_asset, asset } );
 
 			return asset;
 		}

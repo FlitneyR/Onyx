@@ -1,11 +1,5 @@
-#include "Common/LowLevel/LowLevelInput.h"
 #include "Common/Assets.h"
-#include "Common/Graphics/Texture.h"
-
-namespace chrono
-{
-
-}
+#include "Common/LowLevel/LowLevelInput.h"
 
 // add your window here
 // columns are: 

@@ -14,6 +14,9 @@ namespace onyx::ecs
 // forward declaration from "Common/ECS/Query.h"
 struct IQuery;
 
+// forward declaration from "Common/ECS/Scene.h"
+struct Scene;
+
 struct World
 {
 	template< typename ... Components >
@@ -45,6 +48,12 @@ struct World
 		return GetComponentTable< Component >().AddComponent( entity, component );
 	}
 
+	template< typename ... Components >
+	void AddComponents( EntityID entity, const Components& ... components )
+	{
+		( [ & ]() { AddComponent( entity, components ); return true; }( ) && ... );
+	}
+
 	template< typename Component >
 	void RemoveComponent( EntityID entity )
 	{
@@ -52,7 +61,7 @@ struct World
 	}
 
 	template< typename Component >
-	Component* GetComponent( EntityID entity )
+	Component* GetComponent( EntityID entity ) const
 	{
 		return GetComponentTable< Component >().GetComponent( entity );
 	}
@@ -97,7 +106,7 @@ struct World
 				iter->second = component;
 			}
 
-			return &iter->second;
+			return iter->second;
 		}
 
 		Component* GetComponent( EntityID entity )
@@ -112,7 +121,7 @@ struct World
 		void RemoveComponent( EntityID entity ) override
 		{
 			auto iter = std::lower_bound( m_components.begin(), m_components.end(), entity, PairEntityIDComparator );
-			if ( iter != m_components.end() )
+			if ( iter != m_components.end() && iter->first == entity )
 			{
 				m_components.erase( iter );
 				m_hasChanged = true;
@@ -143,6 +152,11 @@ struct World
 				return m_table.m_components[ next_index ].first;
 			}
 
+			void CopyToWorld( World& world, EntityID entity ) const override
+			{
+				world.AddComponent( entity, Component() );
+			}
+
 			Component& Component() const { return m_table.m_components[ m_currentPairIndex ].second; }
 
 		private:
@@ -163,7 +177,7 @@ struct World
 
 	struct EntityIterator
 	{
-		u32 m_currentEntity = ~0;
+		EntityID m_currentEntity = ~0;
 		std::map< size_t, std::unique_ptr< IComponentTable::IIterator > > m_iterators;
 
 		EntityIterator( const World& world, const std::set< size_t >* relevant_components )
@@ -176,7 +190,7 @@ struct World
 				auto iter = table->GenericIter();
 
 				if ( EntityID entity = iter->ID() )
-					m_currentEntity = std::min( m_currentEntity, entity );
+					m_currentEntity = std::min< u32 >( m_currentEntity, entity );
 
 				m_iterators.insert( { hash, std::move( iter ) } );
 			}
@@ -199,7 +213,7 @@ struct World
 			m_currentEntity = ~0;
 			for ( const auto& [hash, iterator] : m_iterators )
 				if ( const EntityID entity = iterator->NextID() )
-					m_currentEntity = std::min( entity, m_currentEntity );
+					m_currentEntity = std::min< u32 >( entity, m_currentEntity );
 
 			// progress iterators for each component to at least that entity
 			for ( auto& [hash, iterator] : m_iterators )
@@ -230,7 +244,8 @@ struct World
 			const EntityID entity = world.AddEntity();
 
 			for ( const auto& [ type, comp ] : m_iterators )
-				comp->CopyToWorld( world, entity );
+				if ( comp->ID() == ID() )
+					comp->CopyToWorld( world, entity );
 
 			return entity;
 		}
@@ -267,7 +282,7 @@ struct World
 
 private:
 	std::map< size_t, std::unique_ptr< IComponentTable > > m_componentTables;
-	EntityID m_nextEntityID = 1;
+	EntityID m_nextEntityID { 1 };
 
 	friend struct Scene;
 
@@ -277,10 +292,8 @@ private:
 		return iter == m_componentTables.end() ? nullptr : iter->second.get();
 	}
 
-public:
-
 	template< typename Component >
-	ComponentTable< Component >& GetComponentTable()
+	ComponentTable< Component >& GetComponentTableInternal()
 	{
 		const size_t component_type_hash = typeid( Component ).hash_code();
 
@@ -291,16 +304,12 @@ public:
 		return *static_cast<ComponentTable< Component >*>( iter->second.get() );
 	}
 
+public:
+
 	template< typename Component >
-	const ComponentTable< Component >& GetComponentTable() const
+	ComponentTable< Component >& GetComponentTable() const
 	{
-		const size_t component_type_hash = typeid( Component ).hash_code();
-
-		auto iter = m_componentTables.find( component_type_hash );
-		if ( iter == m_componentTables.end() )
-			iter = m_componentTables.insert( { component_type_hash, std::make_unique< ComponentTable< Component > >() } ).first;
-
-		return *static_cast<ComponentTable< Component >*>( iter->second.get() );
+		return const_cast< World* >( this )->GetComponentTableInternal< Component >();
 	}
 };
 

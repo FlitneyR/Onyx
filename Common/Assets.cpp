@@ -41,6 +41,11 @@ void CachedBjSONReader::ReadRecursive( const BjSON::IReadOnlyObject& node, const
 	}
 }
 
+void CachedBjSONReader::Forget( const std::string& path )
+{
+	m_readers.erase( path );
+}
+
 std::shared_ptr< const BjSON::IReadOnlyObject > CachedBjSONReader::GetReader( const std::string& asset_path )
 {
 	auto iter = m_readers.find( asset_path );
@@ -153,7 +158,7 @@ void AssetManager::Save( BjSON::IReadWriteObject& root_node )
 
 	for ( auto& [ path, asset ] : m_strongAssetReferences )
 	{
-		if ( asset->GetLoadingState() != IAsset::LoadingState::Loaded )
+		if ( asset->GetLoadingState() != LoadingState::Loaded )
 		{
 			asset->m_assetManager = this;
 			asset->m_path = path;
@@ -231,9 +236,9 @@ void AssetManagerWindow::Run( IFrameContext& frame_context )
 
 					if ( !asset_pack_path.empty() )
 					{
-						std::ofstream ofile( asset_pack_path, std::ios::binary | std::ios::trunc );
 						BjSON::Encoder encoder;
 						m_assetManager->Save( encoder.GetRootObject() );
+						std::ofstream ofile( asset_pack_path, std::ios::binary | std::ios::trunc );
 						encoder.WriteTo( ofile );
 					}
 				}
@@ -310,6 +315,14 @@ void AssetManagerWindow::Run( IFrameContext& frame_context )
 						ImGui::CloseCurrentPopup();
 					}
 
+					if ( ImGui::Selectable( "Scene" ) )
+					{
+						m_assetManager->New< ecs::Scene >( m_currentFolder + std::string( m_newAssetPath ) );
+
+						std::memset( m_newAssetPath, 0, sizeof( m_newAssetPath ) );
+						ImGui::CloseCurrentPopup();
+					}
+
 					ImGui::EndCombo();
 				}
 
@@ -361,48 +374,50 @@ void AssetManagerWindow::Run( IFrameContext& frame_context )
 					const std::string complete_path = m_currentFolder + name;
 
 					ImGui::TableNextColumn();
-					ImGui::PushID( name.c_str() );
-					
-					const bool should_delete = ImGui::Button( "[-]" );
-					std::string new_name;
-
-					ImGui::SameLine();
-					if ( ImGui::Button( "Rename" ) )
 					{
-						new_name = asset->m_path;
-						ImGui::OpenPopup( "Rename" );
-					}
+						ImGuiScopedID scoped_id( name.c_str() );
 
-					ImGui::SameLine();
-					if ( ImGui::Button( "Copy Path" ) )
-						ImGui::SetClipboardText( complete_path.c_str() );
-
-					if ( ImGui::BeginPopup( "Rename" ) )
-					{
-						ImGui::InputText( "Name", &new_name );
-						
-						if ( ImGui::Button( "Cancel" ) )
-							ImGui::CloseCurrentPopup();
+						const bool should_delete = ImGui::Button( "[-]" );
+						std::string new_name;
 
 						ImGui::SameLine();
-						if ( ImGui::Button( "Ok" ) )
+						if ( ImGui::Button( "Rename" ) )
 						{
-							m_assetManager->m_strongAssetReferences.erase( complete_path );
-							m_assetManager->m_strongAssetReferences.insert( { new_name, asset } );
+							new_name = asset->m_path;
+							ImGui::OpenPopup( "Rename" );
 						}
 
-						ImGui::EndPopup();
+						ImGui::SameLine();
+						if ( ImGui::Button( "Copy Path" ) )
+							ImGui::SetClipboardText( complete_path.c_str() );
+
+						if ( ImGui::BeginPopup( "Rename" ) )
+						{
+							ImGui::InputText( "Name", &new_name );
+
+							if ( ImGui::Button( "Cancel" ) )
+								ImGui::CloseCurrentPopup();
+
+							ImGui::SameLine();
+							if ( ImGui::Button( "Ok" ) )
+							{
+								m_assetManager->m_strongAssetReferences.erase( complete_path );
+								m_assetManager->m_strongAssetReferences.insert( { new_name, asset } );
+							}
+
+							ImGui::EndPopup();
+						}
+
+						if ( should_delete )
+						{
+							m_assetManager->m_strongAssetReferences.erase( complete_path );
+							m_assetManager->m_weakAssetReferences.erase( complete_path );
+							m_assetManager->m_reader.Forget( complete_path );
+							break;
+						}
+
+						asset->DoAssetManagerButton( name.c_str(), complete_path.c_str(), ImGui::GetColumnWidth(), asset, frame_context );
 					}
-
-					if ( should_delete )
-					{
-						m_assetManager->m_strongAssetReferences.erase( complete_path );
-						break;
-					}
-
-					asset->DoAssetManagerButton( name.c_str(), complete_path.c_str(), ImGui::GetColumnWidth(), asset, frame_context );
-
-					ImGui::PopID();
 
 					if ( !( column = ( column + 1 ) % m_numIconsPerRow ) )
 						ImGui::TableNextRow();

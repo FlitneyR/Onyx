@@ -18,7 +18,7 @@ struct SharedResourceDeleter : DeleteQueue::IDeleter
 
 	SharedResourceDeleter( std::shared_ptr< IGraphicsResource > resource ) : m_resource( resource ) {}
 
-	void Execute() {}
+	void Execute() { m_resource.reset(); }
 };
 
 }

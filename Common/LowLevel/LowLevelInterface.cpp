@@ -74,9 +74,9 @@ void CleanUp()
 {
 	ASSERT( s_isReady );
 
+	delete s_windowManager;
 	delete s_graphicsContext;
 	delete s_lowLevelInput;
-	delete s_windowManager;
 
 	s_isReady = false;
 }

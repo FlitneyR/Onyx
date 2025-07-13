@@ -97,6 +97,7 @@ struct ReadOnlyObject : IReadOnlyObject
 	std::shared_ptr< const IReadOnlyObjectArray > GetArray( NameHash name ) const override;
 	u32 GetMemberCount() const override { return m_header.size(); }
 	NameHash GetMemberName( u32 index ) const override { return m_header[ index ].name; }
+	bool HasMember( NameHash name ) const override { return GetMemberReference( name ) != nullptr; }
 };
 
 struct ReadOnlyObjectArray : IReadOnlyObjectArray

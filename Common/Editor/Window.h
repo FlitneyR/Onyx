@@ -30,5 +30,6 @@ Window* AddWindow( Args ... args )
 
 void DoWindowsMenu();
 void DoWindows( IFrameContext& frame_context );
+void CloseAllWindows();
 
 }

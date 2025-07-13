@@ -56,6 +56,7 @@ struct IReadOnlyObject
 	virtual std::shared_ptr< const IReadOnlyObjectArray > GetArray( NameHash name ) const = 0;
 	virtual u32 GetMemberCount() const = 0;
 	virtual NameHash GetMemberName( u32 index ) const = 0;
+	virtual bool HasMember( NameHash name ) const = 0;
 
 	template< typename T >
 	u32 GetLiteral( NameHash name, T* vals_out, u32 val_count )
@@ -64,28 +65,37 @@ struct IReadOnlyObject
 	}
 
 	template< typename T >
-	u32 GetLiteral( NameHash name, T& val_out ) const
+	bool GetLiteral( NameHash name, T& val_out ) const
 	{
-		return GetLiteral( name, &val_out, sizeof( T ) );
+		if ( !HasMember( name ) )
+			return false;
+
+		T temp;
+		if ( !WEAK_ASSERT( GetLiteral( name, &temp, sizeof( T ) ) == sizeof( T ) ) )
+			return false;
+		
+		val_out = temp;
+		return true;
 	}
 
 	template< typename T >
 	T GetLiteral( NameHash name ) const
 	{
 		T result {};
-		BjSON_ASSERT( GetLiteral( name, result ) == sizeof( T ) );
+		BjSON_ASSERT( GetLiteral( name, result ) );
 		return result;
 	}
 
 	template<>
-	u32 GetLiteral< std::string >( NameHash name, std::string& result ) const
+	bool GetLiteral< std::string >( NameHash name, std::string& result ) const
 	{
+		if ( !HasMember( name ) ) return false;
 		const u32 size = GetLiteral( name );
 		result.clear();
 		result.resize( size );
 		GetLiteral( name, (char*)result.c_str(), size );
 		result.resize( strlen( result.c_str() ) );
-		return size;
+		return true;
 	}
 
 	template<>

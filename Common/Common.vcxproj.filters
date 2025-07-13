@@ -55,20 +55,14 @@
     <Filter Include="Source Files\Graphics">
       <UniqueIdentifier>{ccc1854a-33ac-40d9-ae4e-ce740708639f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\ECS\Components">
-      <UniqueIdentifier>{1faa9e8b-6f63-4ed1-968a-4151424ddcc0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\ECS\Components">
-      <UniqueIdentifier>{3c6c02be-6445-4d47-8407-2cd69085c60c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\ECS\Systems">
-      <UniqueIdentifier>{d2eff8dc-c5a9-4fab-b809-360d3a629fcf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\ECS\Systems">
-      <UniqueIdentifier>{14e4cd90-796f-4720-b492-2dd505e7149d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resource Files\Shaders">
       <UniqueIdentifier>{71f7cd25-db0c-423d-bbd1-43aef786a861}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ECS\Modules">
+      <UniqueIdentifier>{5723e3da-7001-450c-8908-e8c752aae354}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ECS\Modules">
+      <UniqueIdentifier>{da18949e-a3d2-430e-80dd-b3203835cbad}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -111,17 +105,11 @@
     <ClCompile Include="External\imnodes\imnodes.cpp">
       <Filter>Source Files\External\imnodes</Filter>
     </ClCompile>
-    <ClCompile Include="ECS\Systems\Rendering2D.cpp">
-      <Filter>Source Files\ECS\Systems</Filter>
-    </ClCompile>
     <ClCompile Include="External\stb_impl.cpp">
       <Filter>Source Files\External</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\Shader.cpp">
       <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="ECS\Systems\Transform.cpp">
-      <Filter>Source Files\ECS\Systems</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\Texture.cpp">
       <Filter>Source Files\Graphics</Filter>
@@ -129,11 +117,23 @@
     <ClCompile Include="Graphics\Camera.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="ECS\Components\Transform.cpp">
-      <Filter>Source Files\ECS\Components</Filter>
-    </ClCompile>
     <ClCompile Include="ECS\Scene.cpp">
       <Filter>Source Files\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="ECS\Modules\CoreReflectors.cpp">
+      <Filter>Source Files\ECS\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ECS\Modules\CoreSystems.cpp">
+      <Filter>Source Files\ECS\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ECS\Modules\Graphics2DReflectors.cpp">
+      <Filter>Source Files\ECS\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ECS\Modules\Graphics2DSystems.cpp">
+      <Filter>Source Files\ECS\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -224,15 +224,6 @@
     <ClInclude Include="ECS\SystemContexts.h">
       <Filter>Header Files\ECS</Filter>
     </ClInclude>
-    <ClInclude Include="ECS\Components\Sprite.h">
-      <Filter>Header Files\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="ECS\Components\Transform.h">
-      <Filter>Header Files\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="ECS\Systems\Rendering2D.h">
-      <Filter>Header Files\ECS\Systems</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\SpriteRenderer.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
@@ -245,9 +236,6 @@
     <ClInclude Include="ECS\Entity.h">
       <Filter>Header Files\ECS</Filter>
     </ClInclude>
-    <ClInclude Include="ECS\Systems\Transform.h">
-      <Filter>Header Files\ECS\Systems</Filter>
-    </ClInclude>
     <ClInclude Include="Clock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -256,6 +244,18 @@
     </ClInclude>
     <ClInclude Include="ECS\Scene.h">
       <Filter>Header Files\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\ComponentReflector.h">
+      <Filter>Header Files\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\Modules\Core.h">
+      <Filter>Header Files\ECS\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\Modules\Graphics2D.h">
+      <Filter>Header Files\ECS\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

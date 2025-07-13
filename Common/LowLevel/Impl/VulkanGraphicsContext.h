@@ -147,6 +147,11 @@ private:
 		vk::ImageView m_imageView;
 		ImTextureID m_imTextureId = nullptr;
 
+		~TextureResource()
+		{
+			INFO( "Deleting texture resource" );
+		}
+
 		ImTextureID GetImTextureID() override;
 	};
 
@@ -164,14 +169,22 @@ private:
 	struct SpriteRenderer final : ISpriteRenderer
 	{
 		static constexpr u32 c_maxTextures = 1'000;
-
-		DeleteQueue m_deleteQueue;
 		
 		struct PerFrameData final : IGraphicsResource
 		{
 			vk::Buffer transformBuffer;
 			vma::Allocation transformBufferAllocation;
 			vk::DescriptorSet descriptorSet;
+
+			PerFrameData()
+			{
+				INFO( "Created a new PerFrameData set" );
+			}
+
+			~PerFrameData()
+			{
+				INFO( "Destroyed a PerFrameData set" );
+			}
 		};
 
 		static std::shared_ptr< PerFrameData > CreatePerFrameData(

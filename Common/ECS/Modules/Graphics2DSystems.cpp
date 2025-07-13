@@ -1,6 +1,6 @@
-#include "Rendering2D.h"
+#include "Graphics2D.h"
 
-namespace onyx
+namespace onyx::Graphics2D
 {
 
 void CollectSprites( ecs::Context< SpriteRenderData > ctx, const CollectSpritesQuery& entities )
@@ -11,14 +11,16 @@ void CollectSprites( ecs::Context< SpriteRenderData > ctx, const CollectSpritesQ
 	{
 		const auto& [ id, transform, sprite ] = entity.Break();
 
-		if ( !sprite.m_texture.get() )
+		auto texture = sprite.GetTextureResource();
+
+		if ( !texture.get() )
 			continue;
 
-		const auto& [ iter, is_new ] = render_data.textureIndices.insert( { sprite.m_texture.get(), render_data.textures.size() } );
+		const auto& [ iter, is_new ] = render_data.textureIndices.insert( { texture.get(), render_data.textures.size() } );
 		const auto& [ _, texture_index ] = *iter;
 
 		if ( is_new )
-			render_data.textures.push_back( sprite.m_texture );
+			render_data.textures.push_back( texture );
 
 		render_data.spriteInstances[ sprite.layer ].push_back( {
 			transform.GetMatrix(),
@@ -37,17 +39,17 @@ void UpdateAnimatedSprites( ecs::Context< const Tick > ctx, const UpdateAnimated
 	{
 		auto [id, animator, sprite] = entity.Break();
 
-		TextureAnimationAsset* animation = animator.m_animation.get();
+		TextureAnimationAsset* animation = animator.animation.get();
 		if ( !animation )
 			continue;
 
-		animator.m_currentFrame = std::fmodf( animator.m_currentFrame + tick.deltaTime * animator.m_playRate, (f32)animation->m_frames.size() );
+		animator.currentFrame = std::fmodf( animator.currentFrame + tick.deltaTime * animator.playRate, (f32)animation->m_frames.size() );
 
-		TextureAnimationAsset::Frame& frame = animation->m_frames[ animator.m_currentFrame ];
+		TextureAnimationAsset::Frame& frame = animation->m_frames[ animator.currentFrame ];
 		if ( !frame.texture )
 			continue;
 
-		sprite.m_texture = frame.texture->GetGraphicsResource();
+		sprite.SetTexture( frame.texture );
 		sprite.offset = frame.offset / frame.denom;
 		sprite.extent = frame.extent / frame.denom;
 	}
