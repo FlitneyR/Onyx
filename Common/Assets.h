@@ -23,6 +23,8 @@ struct IAsset
 {
 	#define RETURN_LOAD_ERRORED() { m_loadingState = LoadingState::Errored; return; }
 
+	virtual ~IAsset() = default;
+
 	enum struct LoadType
 	{
 		// load everything we need for a game
@@ -101,9 +103,10 @@ struct AssetManager
 	};
 
 	AssetManager( const BjSON::IReadOnlyObject& root_node, Flags flags = None );
+
 	~AssetManager()
 	{
-		INFO( "Destroying asset manager" );
+		m_strongAssetReferences.clear();
 
 		for ( auto& [path, weak_ref] : m_weakAssetReferences )
 			WEAK_ASSERT( weak_ref.expired(), "{} still has {} strong references when its asset manager is being destroyed", path, weak_ref.use_count() );
@@ -129,7 +132,7 @@ public:
 	std::shared_ptr< Asset > New( std::string path_to_asset, bool hold_reference = true )
 	{
 		const bool asset_exists = m_weakAssetReferences.find( path_to_asset ) != m_weakAssetReferences.end();
-		!LOG_ASSERT( !asset_exists, "An asset already exists at {}", path_to_asset );
+		LOG_ASSERT( !asset_exists, "An asset already exists at {}", path_to_asset );
 
 		std::shared_ptr< Asset > asset = std::make_shared< Asset >();
 		asset->m_assetManager = this;

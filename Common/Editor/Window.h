@@ -8,6 +8,8 @@ namespace onyx::editor
 
 struct IWindow
 {
+	virtual ~IWindow() = default;
+
 	// override this with the name of your window class
 	inline static const char* const s_name = "Unnamed Window";
 	virtual const char* GetName() const { return s_name; }

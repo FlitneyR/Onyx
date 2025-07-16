@@ -42,6 +42,7 @@ COMPONENT_REFLECTOR( SpriteAnimator )
 	#define xproperties( f )\
 		f( SpriteAnimator, std::shared_ptr< TextureAnimationAsset >, animation, "Animation" )\
 		f( SpriteAnimator, f32, playRate, "Play Rate" )\
+		f( SpriteAnimator, bool, loop, "Loop" )\
 
 	DEFAULT_REFLECTOR( SpriteAnimator, xproperties )
 

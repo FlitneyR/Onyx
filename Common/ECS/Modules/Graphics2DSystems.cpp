@@ -16,7 +16,7 @@ void CollectSprites( ecs::Context< SpriteRenderData > ctx, const CollectSpritesQ
 		if ( !texture.get() )
 			continue;
 
-		const auto& [ iter, is_new ] = render_data.textureIndices.insert( { texture.get(), render_data.textures.size() } );
+		const auto& [ iter, is_new ] = render_data.textureIndices.insert( { texture.get(), (u32)render_data.textures.size() } );
 		const auto& [ _, texture_index ] = *iter;
 
 		if ( is_new )
@@ -43,9 +43,13 @@ void UpdateAnimatedSprites( ecs::Context< const Tick > ctx, const UpdateAnimated
 		if ( !animation )
 			continue;
 
-		animator.currentFrame = std::fmodf( animator.currentFrame + tick.deltaTime * animator.playRate, (f32)animation->m_frames.size() );
+		animator.currentFrame += tick.deltaTime * animator.playRate;
 
-		TextureAnimationAsset::Frame& frame = animation->m_frames[ animator.currentFrame ];
+		animator.currentFrame = animator.loop
+			? std::fmodf( animator.currentFrame, (f32)animation->m_frames.size() )
+			: std::fminf( animator.currentFrame, (f32)animation->m_frames.size() - 1 );
+
+		TextureAnimationAsset::Frame& frame = animation->m_frames[ (u32)animator.currentFrame ];
 		if ( !frame.texture )
 			continue;
 

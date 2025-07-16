@@ -155,10 +155,10 @@ void TextureAsset::Load( LoadType type )
 	std::vector< byte > data;
 	data.resize( data_size );
 
-	reader->GetLiteral( "Data"_name, &data[ 0 ], data.size() );
+	reader->GetLiteral( "Data"_name, &data[ 0 ], (u32)data.size() );
 
 	int width, height, channels_in_file;
-	byte* const pixels = stbi_load_from_memory( data.data(), data.size(), &width, &height, &channels_in_file, 4 );
+	byte* const pixels = stbi_load_from_memory( data.data(), (i32)data.size(), &width, &height, &channels_in_file, 4 );
 	if ( !WEAK_ASSERT( pixels, "Failed to load image data" ) )
 		RETURN_LOAD_ERRORED();
 
@@ -177,8 +177,8 @@ static void BufferWriteFunc( void* context, void* data, i32 size )
 void TextureAsset::Save( BjSON::IReadWriteObject& writer, SaveType type )
 {
 	writer.SetLiteral( "__assetType"_name, "Texture"_name );
-	writer.SetLiteral( "FilterMode"_name, s_ImageFilterModeNames[ u32(m_filterMode) ], strlen( s_ImageFilterModeNames[ u32( m_filterMode ) ] ) );
-	writer.SetLiteral( "CompressionMode"_name, s_ImageCompressionModeNames[ u32( m_compressionMode ) ], strlen( s_ImageCompressionModeNames[ u32( m_compressionMode ) ] ) );
+	writer.SetLiteral( "FilterMode"_name, s_ImageFilterModeNames[ u32(m_filterMode) ], (u32)strlen( s_ImageFilterModeNames[ u32( m_filterMode ) ] ) );
+	writer.SetLiteral( "CompressionMode"_name, s_ImageCompressionModeNames[ u32( m_compressionMode ) ], (u32)strlen( s_ImageCompressionModeNames[ u32( m_compressionMode ) ] ) );
 
 	std::vector< byte > image_data;
 
@@ -191,7 +191,7 @@ void TextureAsset::Save( BjSON::IReadWriteObject& writer, SaveType type )
 
 	WEAK_ASSERT( save_result != 0, "Failed to save image" );
 
-	writer.SetLiteral( "Data"_name, image_data.data(), image_data.size() );
+	writer.SetLiteral( "Data"_name, image_data.data(), (u32)image_data.size() );
 }
 
 void TextureAsset::DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context )

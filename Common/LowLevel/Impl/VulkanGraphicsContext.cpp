@@ -464,7 +464,7 @@ std::shared_ptr< ITextureResource > VulkanGraphicsContext::CreateTextureResource
 	std::shared_ptr< TextureResource > texture = std::make_shared< TextureResource >();
 
 	const glm::uvec2 dimensions = asset.GetDimensions();
-	const u32 required_mip_levels = std::max< u32 >( std::ceil( std::log2( std::max( dimensions.x, dimensions.y ) ) ), 1 );
+	const u32 required_mip_levels = std::max< u32 >( (u32)std::ceil( std::log2( std::max( dimensions.x, dimensions.y ) ) ), 1 );
 	const vk::Filter filter = asset.m_filterMode == ImageFilterMode::Pixel ? vk::Filter::eNearest : vk::Filter::eLinear;
 
 	// create resources
@@ -1264,7 +1264,7 @@ void VulkanGraphicsContext::SpriteRenderer::Render( IFrameContext& frame_context
 		all_sprites.insert( all_sprites.end(), layer.begin(), layer.end() );
 
 	// stop here if there's nothing to render
-	const u32 required_transform_buffer_size = all_sprites.size() * sizeof( all_sprites[ 0 ] );
+	const u32 required_transform_buffer_size = u32( all_sprites.size() * sizeof( all_sprites[ 0 ] ) );
 	if ( required_transform_buffer_size == 0 )
 		return;
 
@@ -1294,7 +1294,7 @@ void VulkanGraphicsContext::SpriteRenderer::Render( IFrameContext& frame_context
 
 	for ( u32 idx = 0; idx < c_maxTextures; ++idx )
 	{
-		TextureResource& texture = static_cast< TextureResource& >( *data.textures[ std::min< u32 >( idx, data.textures.size() - 1 ) ] );
+		TextureResource& texture = static_cast< TextureResource& >( *data.textures[ std::min( idx, (u32)data.textures.size() - 1 ) ] );
 
 		image_infos.push_back( vk::DescriptorImageInfo()
 			.setSampler( texture.m_sampler )
@@ -1347,8 +1347,8 @@ void VulkanGraphicsContext::SpriteRenderer::Render( IFrameContext& frame_context
 	frame.m_cmd.pushConstants< glm::mat3x4 >( ctx.m_spriteRenderingResources->pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, data.cameraMatrix );
 	
 	frame.m_cmd.setScissor( 0, rt_rect );
-	frame.m_cmd.setViewport( 0, vk::Viewport( 0, 0, render_target->GetSize().x, render_target->GetSize().y, 0.f, 1.f ) );
-	frame.m_cmd.draw( 4, all_sprites.size(), 0, 0 );
+	frame.m_cmd.setViewport( 0, vk::Viewport( 0, 0, (f32)render_target->GetSize().x, (f32)render_target->GetSize().y, 0.f, 1.f ) );
+	frame.m_cmd.draw( 4, (u32)all_sprites.size(), 0, 0 );
 
 	frame.m_cmd.endRendering();
 }

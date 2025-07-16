@@ -68,12 +68,14 @@ struct World
 
 	struct IComponentTable
 	{
-		virtual ~IComponentTable() {}
+		virtual ~IComponentTable() = default;
 
 		virtual void RemoveComponent( EntityID entity ) = 0;
 
 		struct IIterator
 		{
+			virtual ~IIterator() = default;
+
 			virtual EntityID ID() const = 0;
 			virtual EntityID NextID() const = 0;
 			virtual operator bool() const = 0;
@@ -210,10 +212,16 @@ struct World
 			// find the next entity id for any component
 			//EntityID next_entity = ~0;
 
-			m_currentEntity = ~0;
+			EntityID next_entity = ~0;
 			for ( const auto& [hash, iterator] : m_iterators )
-				if ( const EntityID entity = iterator->NextID() )
-					m_currentEntity = std::min< u32 >( entity, m_currentEntity );
+			{
+				if ( const EntityID curr_id = iterator->ID(); curr_id > m_currentEntity )
+					next_entity = std::min< u32 >( curr_id, next_entity );
+				else if ( const EntityID next_id = iterator->NextID() )
+					next_entity = std::min< u32 >( next_id, next_entity );
+			}
+
+			m_currentEntity = next_entity;
 
 			// progress iterators for each component to at least that entity
 			for ( auto& [hash, iterator] : m_iterators )

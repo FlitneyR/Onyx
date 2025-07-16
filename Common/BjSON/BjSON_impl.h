@@ -95,7 +95,7 @@ struct ReadOnlyObject : IReadOnlyObject
 	u32 GetLiteral( NameHash name, void* dest, u32 dest_size ) const override;
 	std::shared_ptr< const IReadOnlyObject > GetChild( NameHash name ) const override;
 	std::shared_ptr< const IReadOnlyObjectArray > GetArray( NameHash name ) const override;
-	u32 GetMemberCount() const override { return m_header.size(); }
+	u32 GetMemberCount() const override { return (u32)m_header.size(); }
 	NameHash GetMemberName( u32 index ) const override { return m_header[ index ].name; }
 	bool HasMember( NameHash name ) const override { return GetMemberReference( name ) != nullptr; }
 };
@@ -108,7 +108,7 @@ struct ReadOnlyObjectArray : IReadOnlyObjectArray
 
 	ReadOnlyObjectArray( Reader& reader, u32 base_address = 0 );
 
-	u32 Count() const override { return m_header.size(); }
+	u32 Count() const override { return (u32)m_header.size(); }
 	std::shared_ptr< const IReadOnlyObject > GetChild( u32 index ) const override;
 };
 
@@ -201,7 +201,7 @@ struct ReadWriteObjectArray : IReadWriteObjectArray, IEncoderNode
 	std::vector< std::unique_ptr< ReadWriteObject > > m_children;
 
 	// IReadWriteObjectArray
-	u32 Count() const override { return m_children.size(); }
+	u32 Count() const override { return (u32)m_children.size(); }
 	IReadWriteObject& AddChild() override { m_children.push_back( std::make_unique< ReadWriteObject >() ); return *m_children.back(); }
 	IReadWriteObject* GetChild( u32 index ) const override { return index >= Count() ? nullptr : m_children[ index ].get(); }
 

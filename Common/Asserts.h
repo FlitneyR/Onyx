@@ -3,7 +3,7 @@
 #include "log.h"
 
 #define ASSERT_INTERNAL( failure, fail_expr, condition, ... ) \
-	[&]( const char* const function_name ) \
+	[ &, function_name = __FUNCTION__ ]() \
 	{ \
 		auto __result__ = condition; \
 		static bool __has_failed_once__ = false; \
@@ -15,7 +15,7 @@
 			fail_expr \
 		} \
 		return __result__; \
-	} ( __FUNCTION__ )
+	} ()
 
 #define STRONG_ASSERT( condition, ... ) ASSERT_INTERNAL( !__result__, __debugbreak(); exit(-1);, condition __VA_OPT__( , __VA_ARGS__ ) )
 #define WEAK_ASSERT( condition, ... ) ASSERT_INTERNAL( !__result__, __debugbreak();, condition __VA_OPT__( , __VA_ARGS__ ) )

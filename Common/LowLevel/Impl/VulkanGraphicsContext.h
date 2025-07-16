@@ -147,11 +147,6 @@ private:
 		vk::ImageView m_imageView;
 		ImTextureID m_imTextureId = nullptr;
 
-		~TextureResource()
-		{
-			INFO( "Deleting texture resource" );
-		}
-
 		ImTextureID GetImTextureID() override;
 	};
 
@@ -175,16 +170,6 @@ private:
 			vk::Buffer transformBuffer;
 			vma::Allocation transformBufferAllocation;
 			vk::DescriptorSet descriptorSet;
-
-			PerFrameData()
-			{
-				INFO( "Created a new PerFrameData set" );
-			}
-
-			~PerFrameData()
-			{
-				INFO( "Destroyed a PerFrameData set" );
-			}
 		};
 
 		static std::shared_ptr< PerFrameData > CreatePerFrameData(

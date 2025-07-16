@@ -14,7 +14,7 @@ namespace onyx::ecs
 
 struct ICommand
 {
-	virtual ~ICommand() {}
+	virtual ~ICommand() = default;
 	virtual void Execute( World& world ) = 0;
 };
 
@@ -99,9 +99,11 @@ struct CopySceneToWorldCommand : ICommand
 		if ( !WEAK_ASSERT( m_scene->GetLoadingState() == LoadingState::Loaded ) )
 			return;
 		
-		IDMap entity_id_mapping;
-		m_scene->CopyToWorld( world, entity_id_mapping );
-		m_func( world, entity_id_mapping );
+		IDMap entity_id_map;
+		m_scene->CopyToWorld( world, entity_id_map );
+
+		const IDMap& entity_id_map_ref = entity_id_map;
+		m_func( world, entity_id_map_ref );
 	}
 };
 
@@ -144,9 +146,9 @@ struct CommandBuffer
 		m_commands.push_back( std::make_unique< RemoveComponentCommand >( entity ) );
 	}
 
-	static void IgnorePostCopySceneToWorld( World&, IDMap& ) {}
+	static void IgnorePostCopySceneToWorld( World&, const IDMap& ) {}
 
-	template< typename Func = void(*)( World&, IDMap& ) >
+	template< typename Func = void(*)( World&, const IDMap& ) >
 	void CopySceneToWorld( std::shared_ptr< Scene > scene, Func func = IgnorePostCopySceneToWorld )
 	{
 		std::scoped_lock lock( m_mutex );

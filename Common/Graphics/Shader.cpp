@@ -16,7 +16,7 @@ bool ShaderAsset::Import( const char* filename )
 	if ( !WEAK_ASSERT( file.is_open(), "Failed to open file: {}", filename ) )
 		return false;
 	
-	const u32 file_size = file.tellg();
+	const u32 file_size = (u32)file.tellg();
 	m_source.resize( file_size );
 
 	file.seekg( std::ios::beg )
@@ -110,11 +110,11 @@ void ShaderAsset::Load( LoadType type )
 	if ( type == LoadType::Editor )
 	{
 		m_source.resize( reader->GetLiteral( "Source"_name ) );
-		reader->GetLiteral( "Source"_name, m_source.data(), m_source.size() );
+		reader->GetLiteral( "Source"_name, m_source.data(), (u32)m_source.size() );
 	}
 
 	m_byteCode.resize( reader->GetLiteral( "ByteCode"_name ) / sizeof( u32 ) );
-	reader->GetLiteral( "ByteCode"_name, m_byteCode.data(), m_byteCode.size() * sizeof( u32 ) );
+	reader->GetLiteral( "ByteCode"_name, m_byteCode.data(), (u32)m_byteCode.size() * sizeof( u32 ) );
 
 	//std::stringstream strstr;
 	//for ( u32& word : m_byteCode )
@@ -132,7 +132,7 @@ void ShaderAsset::Save( BjSON::IReadWriteObject& writer, SaveType type )
 	if ( type != SaveType::Export )
 		writer.SetLiteral( "Source"_name, m_source );
 
-	writer.SetLiteral( "ByteCode"_name, m_byteCode.data(), m_byteCode.size() * sizeof( m_byteCode[ 0 ] ) );
+	writer.SetLiteral( "ByteCode"_name, m_byteCode.data(), u32( m_byteCode.size() * sizeof( m_byteCode[ 0 ] ) ) );
 
 	//std::stringstream strstr;
 	//for ( u32& word : m_byteCode )

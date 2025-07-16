@@ -125,7 +125,7 @@ struct IReadWriteObject
 	template<>
 	IReadWriteObject& SetLiteral< std::string >( NameHash name, const std::string& literal )
 	{
-		SetLiteral( name, literal.c_str(), literal.size() );
+		SetLiteral( name, literal.c_str(), (u32)literal.size() );
 		return *this;
 	}
 
@@ -175,7 +175,7 @@ struct IEncoder
 struct Decoder : IDecoder
 {
 	Decoder( const void* data, u32 size );
-	Decoder( const std::vector< byte >& bytes ) : Decoder( bytes.data(), bytes.size() ) {}
+	Decoder( const std::vector< byte >& bytes ) : Decoder( bytes.data(), (u32)bytes.size() ) {}
 	Decoder( std::ifstream& file );
 
 	const IReadOnlyObject& GetRootObject() const override { return impl->GetRootObject(); }

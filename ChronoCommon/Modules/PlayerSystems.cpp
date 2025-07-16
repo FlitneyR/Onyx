@@ -64,47 +64,48 @@ void UpdatePlayers( UpdatePlayers_Context ctx, const PlayerQuery& players, const
 				pc.bulletPrefab->Load( onyx::IAsset::LoadType::Stream );
 
 			cmd.CopySceneToWorld( pc.bulletPrefab,
-			[
-				base_position = transform.GetLocalPosition(),
-				base_rotation = transform.GetLocalRotation(),
-				base_velocity = body.linearVelocity
-			]
-			( World& world, IDMap& id_map )
-			{
-				using onyx::Core::Transform2D;
-				using onyx::Core::AttachedTo;
-				using Physics::PhysicsBody;
-				using Core::Team;
-
-				for ( auto& [_, entity] : id_map )
+				[
+					base_position = transform.GetLocalPosition(),
+					base_rotation = transform.GetLocalRotation(),
+					base_velocity = body.linearVelocity
+				]
+				( World& world, const IDMap& id_map )
 				{
-					if ( Team* const team = world.GetComponent< Team >( entity ) )
-						team->team = Team::Player;
-					else
-						world.AddComponent( entity, Team( Team::Player ) );
+					using onyx::Core::Transform2D;
+					using onyx::Core::AttachedTo;
+					using Physics::PhysicsBody;
+					using Core::Team;
 
-					if ( Transform2D* const transform = world.GetComponent< Transform2D >( entity ) )
+					for ( auto& [_, entity] : id_map )
 					{
-						// ignore child entities
-						if ( world.GetComponent< AttachedTo >( entity ) )
-							continue;
+						if ( Team* const team = world.GetComponent< Team >( entity ) )
+							team->team = Team::Player;
+						else
+							world.AddComponent( entity, Team( Team::Player ) );
 
-						transform->SetLocalPosition( transform->GetLocalPosition() + base_position );
-						transform->SetLocalRotation( transform->GetLocalRotation() + base_rotation );
-
-						if ( const Projectile* const projectile = world.GetComponent< Projectile >( entity ) )
+						if ( Transform2D* const transform = world.GetComponent< Transform2D >( entity ) )
 						{
-							if ( PhysicsBody* const pb = world.GetComponent< PhysicsBody >( entity ) )
-							{
-								glm::vec2 velocity = transform->GetRelative( { 0.f, -projectile->initialSpeed, 0.f } );
-								velocity += base_velocity * glm::dot( normalize( velocity ), normalize( base_velocity ) );
+							// ignore child entities
+							if ( world.GetComponent< AttachedTo >( entity ) )
+								continue;
 
-								pb->linearVelocity = velocity;
+							transform->SetLocalPosition( transform->GetLocalPosition() + base_position );
+							transform->SetLocalRotation( transform->GetLocalRotation() + base_rotation );
+
+							if ( const Projectile* const projectile = world.GetComponent< Projectile >( entity ) )
+							{
+								if ( PhysicsBody* const pb = world.GetComponent< PhysicsBody >( entity ) )
+								{
+									glm::vec2 velocity = transform->GetRelative( { 0.f, -projectile->initialSpeed, 0.f } );
+									velocity += base_velocity * glm::dot( normalize( velocity ), normalize( base_velocity ) );
+
+									pb->linearVelocity = velocity;
+								}
 							}
 						}
 					}
 				}
-			} );
+			);
 		}
 	}
 }

@@ -261,7 +261,7 @@ void AssetManagerWindow::Run( IFrameContext& frame_context )
 			std::string remaining_path = m_currentFolder;
 			std::string partial_path = "";
 			do {
-				const u32 next_delimiter = remaining_path.find_first_of( '/' );
+				const u32 next_delimiter = (u32)remaining_path.find_first_of( '/' );
 				const std::string folder = remaining_path.substr( 0, next_delimiter + 1 );
 				partial_path += folder;
 

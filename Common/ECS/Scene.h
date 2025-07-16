@@ -26,6 +26,7 @@ struct SceneEditor : editor::IWindow
 {
 	struct IPreviewer
 	{
+		virtual ~IPreviewer() = default;
 		virtual void Tick( onyx::IFrameContext& frame_context, std::shared_ptr< onyx::IRenderTarget >& render_target ) = 0;
 
 		struct IFactory

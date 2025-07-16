@@ -1,10 +1,11 @@
 #pragma once
 
 #include "Common/ECS/Query.h"
-
 #include "Common/ECS/Modules/Core.h"
 #include "Common/ECS/Modules/Graphics2D.h"
 #include "Common/ECS/SystemContexts.h"
+
+#include "Common/Random.h"
 
 namespace chrono::Core
 {
@@ -32,6 +33,16 @@ struct Health
 struct OnDeath
 {
 	std::shared_ptr< onyx::ecs::Scene > spawnScene;
+};
+
+struct OffScreenSpawner
+{
+	std::shared_ptr< onyx::ecs::Scene > prefab { nullptr };
+	glm::vec2 linearVelocityRange { 0.f };
+	glm::vec2 angularVelocityRange { 0.f };
+	glm::vec2 spawnPeriodRange { 0.f };
+	f32 timeToNextSpawn = -1.f;
+	u32 spawnCount = 0;
 };
 
 struct Lifetime
@@ -68,6 +79,32 @@ using UpdateCamera_CameraQuery = onyx::ecs::Query<
 >;
 
 void UpdateCamera( onyx::ecs::Context< const onyx::Tick, onyx::Camera2D > ctx, const UpdateCamera_CameraFocusQuery& focii, const UpdateCamera_CameraQuery& cameras );
+
+using UpdateLifetimes_Context = onyx::ecs::Context<
+	const onyx::ecs::World,
+	const onyx::Tick,
+	onyx::AssetManager,
+	onyx::ecs::CommandBuffer
+>;
+
+using UpdateLifetimes_Entities = onyx::ecs::Query<
+	onyx::ecs::Write< Lifetime >
+>;
+
+void UpdateLifetimes( UpdateLifetimes_Context ctx, const UpdateLifetimes_Entities& entities );
+
+using UpdateOffScreenSpawners_Context = onyx::ecs::Context<
+	const onyx::Tick,
+	onyx::ecs::CommandBuffer,
+	const onyx::Camera2D,
+	const onyx::RNG
+>;
+
+using UpdateOffScreenSpawners_Spawners = onyx::ecs::Query<
+	onyx::ecs::Write< OffScreenSpawner >
+>;
+
+void UpdateOffScreenSpawners( UpdateOffScreenSpawners_Context ctx, const UpdateOffScreenSpawners_Spawners& entities );
 
 struct DamageParams
 {

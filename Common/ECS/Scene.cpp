@@ -129,7 +129,7 @@ DEFINE_DEFAULT_PROPERTY_EDITOR_UI( std::shared_ptr< Scene > )
 				was_edited = true;
 				value = nullptr;
 			}
-			else if ( auto scene = asset_manager.Load< Scene >( new_scene_path ) )
+			else if ( auto scene = asset_manager.Load< Scene >( new_scene_path, true, onyx::IAsset::LoadType::Editor ) )
 			{
 				was_edited = true;
 				value = scene;

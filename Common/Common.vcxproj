@@ -223,6 +223,7 @@
     <ClInclude Include="LowLevel\LowLevelInterface.h" />
     <ClInclude Include="LowLevel\WindowManager.h" />
     <ClInclude Include="Clock.h" />
+    <ClInclude Include="Random.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="Window.h" />

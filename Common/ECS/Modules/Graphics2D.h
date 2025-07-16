@@ -53,6 +53,7 @@ struct SpriteAnimator
 	std::shared_ptr< TextureAnimationAsset > animation = nullptr;
 	f32 currentFrame = 0;
 	f32 playRate = 1.f;
+	bool loop = true;
 };
 
 struct ParallaxBackground

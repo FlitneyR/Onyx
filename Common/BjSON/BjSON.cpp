@@ -37,7 +37,7 @@ u32 FileReader::Read( u32 offset, void* dest, u32 size )
 {
 	std::scoped_lock lock( m_mutex );
 
-	return m_file
+	return (u32)m_file
 		.seekg( offset )
 		.read( (char*)dest, size )
 		.gcount();
@@ -66,7 +66,7 @@ ReadOnlyObject::ReadOnlyObject( Reader& reader, u32 offset )
 	, m_baseAddress( offset )
 {
 	m_header.resize( m_reader.Read< u32 >( offset ) );
-	m_reader.Read( offset, m_header.data(), m_header.size() );
+	m_reader.Read( offset, m_header.data(), (u32)m_header.size() );
 }
 
 const MemberReference* ReadOnlyObject::GetMemberReference( NameHash name ) const
@@ -123,7 +123,7 @@ ReadOnlyObjectArray::ReadOnlyObjectArray( Reader& reader, u32 offset )
 	, m_baseAddress( offset )
 {
 	m_header.resize( m_reader.Read< u32 >( offset ) );
-	m_reader.Read( offset, m_header.data(), m_header.size() );
+	m_reader.Read( offset, m_header.data(), (u32)m_header.size() );
 }
 
 std::shared_ptr< const IReadOnlyObject > ReadOnlyObjectArray::GetChild( u32 index ) const
@@ -153,19 +153,19 @@ IReadWriteObjectArray* ReadWriteObject::GetArray( NameHash name ) const
 
 void ReadWriteBlob::Write( Writer& writer, u32& offset ) const
 {
-	writer.Write< u32 >( offset, data.size() );
-	writer.Write( offset, data.data(), data.size() );
+	writer.Write< u32 >( offset, (u32)data.size() );
+	writer.Write( offset, data.data(), (u32)data.size() );
 }
 
 void ReadWriteObject::Write( Writer& writer, u32& offset ) const
 {
 	const u32 base_address = offset;
-	writer.Write< u32 >( offset, m_children.size() );
+	writer.Write< u32 >( offset, (u32)m_children.size() );
 	u32 member_table_address = offset;
 
 	std::vector< MemberReference > member_table;
 	member_table.reserve( m_children.size() );
-	offset += sizeof( member_table.front() ) * m_children.size() + 1;
+	offset += u32( sizeof( member_table.front() ) * m_children.size() + 1 );
 
 	for ( const auto& child : m_children )
 	{
@@ -174,18 +174,18 @@ void ReadWriteObject::Write( Writer& writer, u32& offset ) const
 		offset += 1;
 	}
 
-	writer.Write( member_table_address, member_table.data(), member_table.size() );
+	writer.Write( member_table_address, member_table.data(), (u32)member_table.size() );
 }
 
 void ReadWriteObjectArray::Write( Writer& writer, u32& offset ) const
 {
 	const u32 base_address = offset;
-	writer.Write< u32 >( offset, m_children.size() );
+	writer.Write< u32 >( offset, (u32)m_children.size() );
 	u32 member_table_address = offset;
 
 	std::vector< u32 > member_table;
 	member_table.reserve( m_children.size() );
-	offset += sizeof( member_table.front() ) * m_children.size() + 1;
+	offset += u32( sizeof( member_table.front() ) * m_children.size() + 1 );
 
 	for ( const auto& child : m_children )
 	{
@@ -194,7 +194,7 @@ void ReadWriteObjectArray::Write( Writer& writer, u32& offset ) const
 		offset += 1;
 	}
 
-	writer.Write( member_table_address, member_table.data(), member_table.size() );
+	writer.Write( member_table_address, member_table.data(), (u32)member_table.size() );
 }
 
 }

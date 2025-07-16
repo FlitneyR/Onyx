@@ -3,12 +3,7 @@
 #include "Common/ECS/Scene.h"
 #include "Common/Utils.h"
 
-using Camera = chrono::Core::Camera;
-using CameraFocus = chrono::Core::CameraFocus;
-using Health = chrono::Core::Health;
-using Lifetime = chrono::Core::Lifetime;
-using OnDeath = chrono::Core::OnDeath;
-using Team = chrono::Core::Team;
+using namespace chrono::Core;
 
 COMPONENT_REFLECTOR( Camera )
 {
@@ -55,7 +50,17 @@ COMPONENT_REFLECTOR( Lifetime )
 		f( Lifetime, f32, duration, "Duration")\
 		f( Lifetime, bool, active, "Active")\
 
-	DEFAULT_REFLECTOR( Lifetime, xproperties );
+	DEFAULT_SERIALISE_COMPONENT( Lifetime, xproperties );
+	DEFAULT_SERIALISE_COMPONENT_EDITS( Lifetime, xproperties );
+	DEFAULT_COMPONENT_EDITOR_UI( Lifetime, xproperties );
+
+	DESERIALISE_COMPONENT()
+	{
+		BEGIN_DESERIALISE_COMPONENT( Lifetime, component );
+		xproperties( DEFAULT_DESERIALISE_PROPERTY );
+
+		component.remaining = component.duration;
+	}
 	#undef xproperties
 };
 
@@ -67,6 +72,20 @@ COMPONENT_REFLECTOR( OnDeath )
 		f( OnDeath, std::shared_ptr< onyx::ecs::Scene >, spawnScene, "Spawn Scene" )\
 
 	DEFAULT_REFLECTOR( OnDeath, xproperties );
+	#undef xproperties
+};
+
+COMPONENT_REFLECTOR( OffScreenSpawner )
+{
+	COMPONENT_REFLECTOR_HEADER( OffScreenSpawner );
+
+	#define xproperties( f )\
+		f( OffScreenSpawner, std::shared_ptr< onyx::ecs::Scene >, prefab, "Prefab")\
+		f( OffScreenSpawner, glm::vec2, linearVelocityRange, "Linear Velocity Range")\
+		f( OffScreenSpawner, glm::vec2, angularVelocityRange, "Angular Velocity Range")\
+		f( OffScreenSpawner, glm::vec2, spawnPeriodRange, "Spawn Period Range")\
+
+	DEFAULT_REFLECTOR( OffScreenSpawner, xproperties )
 	#undef xproperties
 };
 
@@ -98,6 +117,7 @@ DEFINE_COMPONENT_REFLECTOR( Health );
 DEFINE_COMPONENT_REFLECTOR( Lifetime );
 DEFINE_COMPONENT_REFLECTOR( OnDeath );
 DEFINE_COMPONENT_REFLECTOR( Team );
+DEFINE_COMPONENT_REFLECTOR( OffScreenSpawner );
 
 void chrono::Core::RegisterReflectors( onyx::ecs::ComponentReflectorTable& table )
 {
@@ -107,4 +127,5 @@ void chrono::Core::RegisterReflectors( onyx::ecs::ComponentReflectorTable& table
 	REGISTER_COMPONENT_REFLECTOR( table, Lifetime );
 	REGISTER_COMPONENT_REFLECTOR( table, OnDeath );
 	REGISTER_COMPONENT_REFLECTOR( table, Team );
+	REGISTER_COMPONENT_REFLECTOR( table, OffScreenSpawner );
 }
