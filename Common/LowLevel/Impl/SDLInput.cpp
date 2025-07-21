@@ -162,6 +162,7 @@ InputAxis SDLInput::InputAxisFromMouseButton( u8 button )
 	switch ( button )
 	{
 	case 1: return InputAxis::MouseButton_Left;
+	case 2: return InputAxis::MouseButton_Middle;
 	case 3: return InputAxis::MouseButton_Right;
 	default:
 		return InputAxis::None;

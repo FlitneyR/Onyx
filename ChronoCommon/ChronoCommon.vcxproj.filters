@@ -13,84 +13,48 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\Components">
-      <UniqueIdentifier>{730d6d44-72db-4e7c-897e-62006d463ae5}</UniqueIdentifier>
+    <Filter Include="Header Files\Modules">
+      <UniqueIdentifier>{af4d0b4a-8cf1-4c37-aa85-09662b42760e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Systems">
-      <UniqueIdentifier>{e400c704-cbca-4249-8853-e460a0a09737}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\ScriptNodes">
-      <UniqueIdentifier>{057132d1-3ec9-49ab-9a1b-eb2b24c9d195}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Systems">
-      <UniqueIdentifier>{f3eb3ba9-d2c2-43f0-8da7-4bf1a73dcc13}</UniqueIdentifier>
+    <Filter Include="Source Files\Modules">
+      <UniqueIdentifier>{a1524ffd-32d5-426e-a7af-5aca118678bf}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ScriptNodes.h">
+    <ClInclude Include="Modules\Core.h">
+      <Filter>Header Files\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Player.h">
+      <Filter>Header Files\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Physics.h">
+      <Filter>Header Files\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="RegisterReflectors.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SystemContexts.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Components\Physics.h">
-      <Filter>Header Files\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Components\Player.h">
-      <Filter>Header Files\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Systems\Physics.h">
-      <Filter>Header Files\Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="Systems\Player.h">
-      <Filter>Header Files\Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptNodes\Physics.h">
-      <Filter>Header Files\ScriptNodes</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptNodes\Player.h">
-      <Filter>Header Files\ScriptNodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Components\Camera.h">
-      <Filter>Header Files\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptNodes\Camera.h">
-      <Filter>Header Files\ScriptNodes</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptNodes\CameraImpl.h">
-      <Filter>Header Files\ScriptNodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Systems\Camera.h">
-      <Filter>Header Files\Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptNodes\PhysicsImpl.h">
-      <Filter>Header Files\ScriptNodes</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptNodes\PlayerImpl.h">
-      <Filter>Header Files\ScriptNodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Components\Spawner.h">
-      <Filter>Header Files\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Components\Team.h">
-      <Filter>Header Files\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Components\health.h">
-      <Filter>Header Files\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ScriptNodes.cpp">
+    <ClCompile Include="Modules\CoreReflectors.cpp">
+      <Filter>Source Files\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\CoreSystems.cpp">
+      <Filter>Source Files\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\PhysicsReflectors.cpp">
+      <Filter>Source Files\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\PhysicsSystems.cpp">
+      <Filter>Source Files\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\PlayerReflectors.cpp">
+      <Filter>Source Files\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\PlayerSystems.cpp">
+      <Filter>Source Files\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="RegisterReflectors.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Systems\Physics.cpp">
-      <Filter>Source Files\Systems</Filter>
-    </ClCompile>
-    <ClCompile Include="Systems\Player.cpp">
-      <Filter>Source Files\Systems</Filter>
-    </ClCompile>
-    <ClCompile Include="Systems\Camera.cpp">
-      <Filter>Source Files\Systems</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

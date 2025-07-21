@@ -13,6 +13,7 @@ namespace onyx::ecs
 template< typename IContext >
 struct ISystem
 {
+	virtual ~ISystem() = default;
 	virtual void Run( IContext& context ) const = 0;
 };
 

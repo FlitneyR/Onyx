@@ -34,7 +34,7 @@ struct ShaderAsset final : IAsset
 	// IAsset
 	void Load( LoadType type ) override;
 	void Save( BjSON::IReadWriteObject& writer, SaveType type ) override;
-	void DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context, const IAssetManagerCallbacks& callbacks ) override;
+	void DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context ) override;
 };
 
 struct ShaderEditorWindow : editor::IWindow

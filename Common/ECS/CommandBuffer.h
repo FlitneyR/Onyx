@@ -1,16 +1,20 @@
 #pragma once
 
+#include "Scene.h"
 #include "World.h"
 
 #include <deque>
+#include <functional>
 #include <memory>
 #include <mutex>
+#include <tuple>
 
 namespace onyx::ecs
 {
 
 struct ICommand
 {
+	virtual ~ICommand() = default;
 	virtual void Execute( World& world ) = 0;
 };
 
@@ -74,6 +78,35 @@ struct RemoveComponentCommand : ICommand
 	}
 };
 
+template< typename Func >
+struct CopySceneToWorldCommand : ICommand
+{
+	std::shared_ptr< Scene > m_scene;
+	Func m_func;
+
+	CopySceneToWorldCommand( std::shared_ptr< Scene > scene, Func func )
+		: m_scene( scene )
+		, m_func( func )
+	{
+		WEAK_ASSERT( m_scene->GetLoadingState() != LoadingState::Errored );
+	}
+
+	void Execute( World& world ) override
+	{
+		if ( m_scene->GetLoadingState() == LoadingState::Unloaded )
+			m_scene->Load( IAsset::LoadType::Stream );
+
+		if ( !WEAK_ASSERT( m_scene->GetLoadingState() == LoadingState::Loaded ) )
+			return;
+		
+		IDMap entity_id_map;
+		m_scene->CopyToWorld( world, entity_id_map );
+
+		const IDMap& entity_id_map_ref = entity_id_map;
+		m_func( world, entity_id_map_ref );
+	}
+};
+
 struct CommandBuffer
 {
 	CommandBuffer( World& world ) : m_world( world ) {}
@@ -111,6 +144,15 @@ struct CommandBuffer
 	{
 		std::scoped_lock lock( m_mutex );
 		m_commands.push_back( std::make_unique< RemoveComponentCommand >( entity ) );
+	}
+
+	static void IgnorePostCopySceneToWorld( World&, const IDMap& ) {}
+
+	template< typename Func = void(*)( World&, const IDMap& ) >
+	void CopySceneToWorld( std::shared_ptr< Scene > scene, Func func = IgnorePostCopySceneToWorld )
+	{
+		std::scoped_lock lock( m_mutex );
+		m_commands.push_back( std::make_unique< CopySceneToWorldCommand< Func > >( scene, func ) );
 	}
 
 	void Execute()

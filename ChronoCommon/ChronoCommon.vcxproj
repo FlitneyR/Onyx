@@ -144,29 +144,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Components\Camera.h" />
-    <ClInclude Include="Components\health.h" />
-    <ClInclude Include="Components\Physics.h" />
-    <ClInclude Include="Components\Player.h" />
-    <ClInclude Include="Components\Spawner.h" />
-    <ClInclude Include="Components\Team.h" />
-    <ClInclude Include="ScriptNodes.h" />
-    <ClInclude Include="ScriptNodes\Camera.h" />
-    <ClInclude Include="ScriptNodes\CameraImpl.h" />
-    <ClInclude Include="ScriptNodes\Physics.h" />
-    <ClInclude Include="ScriptNodes\Player.h" />
-    <ClInclude Include="Systems\Camera.h" />
-    <ClInclude Include="Systems\Physics.h" />
-    <ClInclude Include="Systems\Player.h" />
-    <ClInclude Include="SystemContexts.h" />
+    <ClInclude Include="Modules\Core.h" />
+    <ClInclude Include="Modules\Physics.h" />
+    <ClInclude Include="Modules\Player.h" />
+    <ClInclude Include="RegisterReflectors.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ScriptNodes.cpp" />
-    <ClInclude Include="ScriptNodes\PhysicsImpl.h" />
-    <ClInclude Include="ScriptNodes\PlayerImpl.h" />
-    <ClCompile Include="Systems\Camera.cpp" />
-    <ClCompile Include="Systems\Physics.cpp" />
-    <ClCompile Include="Systems\Player.cpp" />
+    <ClCompile Include="Modules\CoreReflectors.cpp" />
+    <ClCompile Include="Modules\CoreSystems.cpp" />
+    <ClCompile Include="Modules\PhysicsReflectors.cpp" />
+    <ClCompile Include="Modules\PhysicsSystems.cpp" />
+    <ClCompile Include="Modules\PlayerReflectors.cpp" />
+    <ClCompile Include="Modules\PlayerSystems.cpp" />
+    <ClCompile Include="RegisterReflectors.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.vcxproj">

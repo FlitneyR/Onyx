@@ -1,5 +1,7 @@
 #pragma once
 #include "Common/Assets.h"
+#include "Common/Utils.h"
+
 #include "GraphicsResource.h"
 
 namespace onyx
@@ -19,16 +21,6 @@ enum struct ImageCompressionMode : u8
 
 const char* const s_ImageFilterModeNames[] = { "Pixel", "Smooth" };
 const char* const s_ImageCompressionModeNames[] = { "Lossy", "Lossless" };
-
-template< typename T, const size_t count >
-T DecodeEnum( const char* const ( &names )[ count ], const char* name, T default_val )
-{
-	for ( u32 val = 0; val < count; ++val )
-		if ( !strcmp( names[ val ], name ) )
-			return T( val );
-
-	return default_val;
-}
 
 // An RGBA 8bit image
 // CPU side: can be loaded from disk, or initialised from CPU memory
@@ -56,7 +48,7 @@ struct TextureAsset final : IAsset
 	// IAsset
 	void Load( LoadType type ) override;
 	void Save( BjSON::IReadWriteObject& writer, SaveType type ) override;
-	void DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context, const IAssetManagerCallbacks& callbacks ) override;
+	void DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context ) override;
 
 	std::shared_ptr< ITextureResource > GetGraphicsResource();
 
@@ -78,7 +70,7 @@ struct TexturePreviewWindow : editor::IWindow
 	void Run( IFrameContext& frame_context ) override;
 	std::string GetWindowTitle() const override;
 
-	std::shared_ptr< TextureAsset > m_texture;
+	std::shared_ptr< TextureAsset > texture;
 };
 
 struct TextureAnimationAsset final : IAsset
@@ -97,7 +89,7 @@ struct TextureAnimationAsset final : IAsset
 	// IAsset
 	void Load( LoadType type ) override;
 	void Save( BjSON::IReadWriteObject& writer, SaveType type ) override;
-	void DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context, const IAssetManagerCallbacks& callbacks ) override;
+	void DoAssetManagerButton( const char* name, const char* path, f32 width, std::shared_ptr< IAsset > asset, IFrameContext& frame_context ) override;
 };
 
 struct TextureAnimationEditor : editor::IWindow
@@ -110,7 +102,7 @@ struct TextureAnimationEditor : editor::IWindow
 	f32 m_scale = 1.f;
 	
 	std::string m_selectTexturePath;
-	std::shared_ptr< TextureAnimationAsset > m_animation;
+	std::shared_ptr< TextureAnimationAsset > animation;
 };
 
 #pragma endregion

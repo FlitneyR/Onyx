@@ -76,6 +76,7 @@ namespace onyx
 	f( Keyboard_Return				, "Return"					, Keyboard	) \
 	f( Keyboard_Delete				, "Delete"					, Keyboard	) \
 	f( MouseButton_Left				, "Left Click"				, Mouse		) \
+	f( MouseButton_Middle			, "Middle Click"			, Mouse		) \
 	f( MouseButton_Right			, "Right Click"				, Mouse		) \
 	f( MouseAxis_XY					, "Mouse Move"				, Mouse		) \
 	f( MouseAxis_X					, "Mouse Horizontal"		, Mouse		) \
@@ -151,15 +152,15 @@ InputDevice GetInputDeviceForAxis( InputAxis axis );
 #undef INPUT_DEVICE_NAME
 #endif
 
-enum struct ButtonState
+enum struct ButtonState : u8
 {
 	IsDown = 1,
 	WasDown,
 
 	NotHeld = 0,
-	Pressed,
-	Released,
-	Held,
+	Pressed = IsDown & ~WasDown,
+	Released = WasDown & ~IsDown,
+	Held = IsDown | WasDown,
 };
 
 }

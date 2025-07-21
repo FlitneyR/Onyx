@@ -1,22 +1,5 @@
-#include "Common/LowLevel/LowLevelInput.h"
 #include "Common/Assets.h"
-#include "Common/Graphics/Texture.h"
-#include "ChronoEditor/WorldScriptPreviewWindow.h"
-
-namespace chrono
-{
-
-const static struct AssetManagerCallbacks : onyx::IAssetManagerCallbacks
-{
-	void PreviewSceneScript( std::shared_ptr< onyx::Script > script ) const override
-	{
-		auto window = onyx::editor::AddWindow< chrono::WorldScriptPreviewWindow >();
-		window->m_script = script;
-		window->Refresh();
-	}
-} s_assetManagerCallbacks;
-
-}
+#include "Common/LowLevel/LowLevelInput.h"
 
 // add your window here
 // columns are: 
@@ -25,6 +8,6 @@ const static struct AssetManagerCallbacks : onyx::IAssetManagerCallbacks
 #define EDITOR_WINDOWS( f ) \
 	f( ImGuiDemoWindow ) \
 	f( onyx::LowLevelInput::DebugWindow ) \
-	f( onyx::AssetManagerWindow, chrono::s_assetManagerCallbacks ) \
+	f( onyx::AssetManagerWindow ) \
 
 #include "Common/Editor/WindowImpl.h"

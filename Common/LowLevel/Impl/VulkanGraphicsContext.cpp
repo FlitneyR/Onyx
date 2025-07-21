@@ -50,7 +50,7 @@ VulkanGraphicsContext::VulkanGraphicsContext()
 	m_vkInstance = vkb_instance.value().instance;
 	m_shutdownDeleteQueue.Add< Deleter< vk::Instance > >( m_vkInstance, vkb_instance.value().debug_messenger );
 
-	const vkb::Result< vkb::PhysicalDevice> vkb_physical_device = vkb::PhysicalDeviceSelector( vkb_instance.value() )
+	const vkb::Result< vkb::PhysicalDevice > vkb_physical_device = vkb::PhysicalDeviceSelector( vkb_instance.value() )
 		.defer_surface_initialization()
 		.set_required_features_13( vk::PhysicalDeviceVulkan13Features()
 			.setDynamicRendering( true ) )
@@ -366,6 +366,7 @@ VulkanGraphicsContext::TransientCommand VulkanGraphicsContext::BeginTransientCom
 		);
 
 		STRONG_ASSERT( create_buffer_result.result == vk::Result::eSuccess, "Failed to create staging buffer: {}", vk::to_string( create_buffer_result.result ) );
+		m_vmaAllocator.setAllocationName( create_buffer_result.value.second, "Transient staging buffer" );
 
 		m_stagingBuffer = create_buffer_result.value.first;
 		m_stagingBufferAllocation = create_buffer_result.value.second;
@@ -417,6 +418,8 @@ std::shared_ptr< IRenderTarget > VulkanGraphicsContext::CreateRenderTarget( cons
 	if ( !WEAK_ASSERT( create_image_result.result == vk::Result::eSuccess, "Failed to create render target: {}", vk::to_string( create_image_result.result ) ) )
 		return nullptr;
 
+	m_vmaAllocator.setAllocationName( create_image_result.value.second, "Render Target" );
+
 	render_target->m_deleteQueue.Add< Deleter< vk::Image, vma::Allocation > >( m_vmaAllocator, create_image_result.value.first, create_image_result.value.second );
 	render_target->m_image = create_image_result.value.first;
 
@@ -461,7 +464,7 @@ std::shared_ptr< ITextureResource > VulkanGraphicsContext::CreateTextureResource
 	std::shared_ptr< TextureResource > texture = std::make_shared< TextureResource >();
 
 	const glm::uvec2 dimensions = asset.GetDimensions();
-	const u32 required_mip_levels = std::max< u32 >( std::ceil( std::log2( std::max( dimensions.x, dimensions.y ) ) ), 1 );
+	const u32 required_mip_levels = std::max< u32 >( (u32)std::ceil( std::log2( std::max( dimensions.x, dimensions.y ) ) ), 1 );
 	const vk::Filter filter = asset.m_filterMode == ImageFilterMode::Pixel ? vk::Filter::eNearest : vk::Filter::eLinear;
 
 	// create resources
@@ -487,6 +490,7 @@ std::shared_ptr< ITextureResource > VulkanGraphicsContext::CreateTextureResource
 		if ( !WEAK_ASSERT( create_image_result.result == vk::Result::eSuccess, "Failed to create image: {}", vk::to_string( create_image_result.result ) ) )
 			return nullptr;
 
+		m_vmaAllocator.setAllocationName( create_image_result.value.second, std::format( "Texture Resource: {}", asset.m_path ).c_str() );
 		texture->m_deleteQueue.Add< Deleter< vk::Image, vma::Allocation > >( m_vmaAllocator, create_image_result.value.first, create_image_result.value.second );
 		texture->m_image = create_image_result.value.first;
 
@@ -912,7 +916,7 @@ VulkanGraphicsContext::WindowContext::WindowContext( IWindow& window ) : IWindow
 
 VulkanGraphicsContext::WindowContext::~WindowContext()
 {
-	static_cast< VulkanGraphicsContext& >( LowLevel::GetGraphicsContext() ).m_vkDevice.waitIdle();
+	WEAK_ASSERT( static_cast< VulkanGraphicsContext& >( LowLevel::GetGraphicsContext() ).m_vkDevice.waitIdle() == vk::Result::eSuccess );
 
 	if ( LowLevel::GetConfig().enableImGui )
 		ImGui_ImplVulkan_Shutdown();
@@ -981,6 +985,7 @@ void VulkanGraphicsContext::WindowContext::OnResize()
 
 		STRONG_ASSERT( imgui_render_target.result == vk::Result::eSuccess, "Failed to create imgui render target" );
 		const auto [imgui_render_target_image, imgui_render_target_allocation] = imgui_render_target.value;
+		ctx.m_vmaAllocator.setAllocationName( imgui_render_target_allocation, "Imgui Render Target" );
 
 		m_resizeDeleteQueue.Add< Deleter< vk::Image, vma::Allocation > >( ctx.m_vmaAllocator, imgui_render_target_image, imgui_render_target_allocation );
 
@@ -1221,6 +1226,8 @@ std::shared_ptr< VulkanGraphicsContext::SpriteRenderer::PerFrameData > VulkanGra
 		return nullptr;
 
 	std::shared_ptr< PerFrameData > frame_data = std::make_shared< PerFrameData >();
+
+	ctx.m_vmaAllocator.setAllocationName( create_buffer_result.value.second, "Transform Buffer" );
 	frame_data->transformBuffer = create_buffer_result.value.first;
 	frame_data->transformBufferAllocation = create_buffer_result.value.second;
 	frame_data->m_deleteQueue.Add< Deleter< vk::Buffer, vma::Allocation > >( ctx.m_vmaAllocator, frame_data->transformBuffer, frame_data->transformBufferAllocation );
@@ -1257,7 +1264,7 @@ void VulkanGraphicsContext::SpriteRenderer::Render( IFrameContext& frame_context
 		all_sprites.insert( all_sprites.end(), layer.begin(), layer.end() );
 
 	// stop here if there's nothing to render
-	const u32 required_transform_buffer_size = all_sprites.size() * sizeof( all_sprites[ 0 ] );
+	const u32 required_transform_buffer_size = u32( all_sprites.size() * sizeof( all_sprites[ 0 ] ) );
 	if ( required_transform_buffer_size == 0 )
 		return;
 
@@ -1287,7 +1294,7 @@ void VulkanGraphicsContext::SpriteRenderer::Render( IFrameContext& frame_context
 
 	for ( u32 idx = 0; idx < c_maxTextures; ++idx )
 	{
-		TextureResource& texture = static_cast< TextureResource& >( *data.textures[ std::min< u32 >( idx, data.textures.size() - 1 ) ] );
+		TextureResource& texture = static_cast< TextureResource& >( *data.textures[ std::min( idx, (u32)data.textures.size() - 1 ) ] );
 
 		image_infos.push_back( vk::DescriptorImageInfo()
 			.setSampler( texture.m_sampler )
@@ -1340,13 +1347,12 @@ void VulkanGraphicsContext::SpriteRenderer::Render( IFrameContext& frame_context
 	frame.m_cmd.pushConstants< glm::mat3x4 >( ctx.m_spriteRenderingResources->pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, data.cameraMatrix );
 	
 	frame.m_cmd.setScissor( 0, rt_rect );
-	frame.m_cmd.setViewport( 0, vk::Viewport( 0, 0, render_target->GetSize().x, render_target->GetSize().y, 0.f, 1.f ) );
-	frame.m_cmd.draw( 4, all_sprites.size(), 0, 0 );
+	frame.m_cmd.setViewport( 0, vk::Viewport( 0, 0, (f32)render_target->GetSize().x, (f32)render_target->GetSize().y, 0.f, 1.f ) );
+	frame.m_cmd.draw( 4, (u32)all_sprites.size(), 0, 0 );
 
 	frame.m_cmd.endRendering();
 }
 
 #pragma endregion
-
 
 }

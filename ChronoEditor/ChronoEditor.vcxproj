@@ -21,7 +21,7 @@
   <ItemGroup>
     <ClCompile Include="EditorWindows.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="WorldScriptPreviewWindow.cpp" />
+    <ClCompile Include="ScenePreviewer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ChronoCommon\ChronoCommon.vcxproj">
@@ -32,7 +32,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="WorldScriptPreviewWindow.h" />
+    <ClInclude Include="ScenePreviewer.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

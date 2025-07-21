@@ -164,8 +164,6 @@ private:
 	struct SpriteRenderer final : ISpriteRenderer
 	{
 		static constexpr u32 c_maxTextures = 1'000;
-
-		DeleteQueue m_deleteQueue;
 		
 		struct PerFrameData final : IGraphicsResource
 		{

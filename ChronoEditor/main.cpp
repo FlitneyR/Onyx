@@ -4,10 +4,25 @@
 #include "Common/Graphics/FrameContext.h"
 #include "Common/Editor/Window.h"
 
+#include "Common/ECS/Scene.h"
+#include "ScenePreviewer.h"
+
+#include "Common/ECS/Modules/Core.h"
+#include "Common/ECS/Modules/Graphics2D.h"
+
+#include "ChronoCommon/Modules/Core.h"
+#include "ChronoCommon/Modules/Physics.h"
+#include "ChronoCommon/Modules/Player.h"
+
+#include "ChronoCommon/RegisterReflectors.h"
+
 #include "imgui.h"
 
 int main( int argc, const char** argv )
 {
+	INFO( "Registering Component Reflectors" );
+	RegisterReflectors();
+
 	INFO( "Loading Onyx core asset pack" );
 	std::ifstream core_asset_pack_file( "../Common/onyx.pack", std::ios::binary | std::ios::beg );
 	
@@ -39,6 +54,8 @@ int main( int argc, const char** argv )
 	create_window_args.title = "Chrono Editor";
 	create_window_args.resizable = true;
 
+	onyx::ecs::SceneEditor::IPreviewer::IFactory::s_singleton = &chrono::ScenePreviewer::s_factory;
+
 	if ( std::shared_ptr< onyx::IWindow > editor_window = window_manager.CreateWindow( create_window_args ) )
 	{
 		while ( !window_manager.WantsToQuit() )
@@ -62,6 +79,8 @@ int main( int argc, const char** argv )
 				graphics_context.EndFrame( *frame_context );
 			}
 		}
+
+		onyx::editor::CloseAllWindows();
 	}
 
 	onyx::LowLevel::CleanUp();

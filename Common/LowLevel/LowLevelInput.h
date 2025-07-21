@@ -32,6 +32,11 @@ struct LowLevelInput
 		return m_buttonStates[ (u32)axis ];
 	}
 
+	bool IsButtonDown( InputAxis axis ) const
+	{
+		return ( (u8)GetButtonState( axis ) & (u8)ButtonState::IsDown );
+	}
+
 	glm::vec2 GetMousePos() const { return m_mousePos; }
 
 	struct DebugWindow : editor::IWindow

@@ -7,9 +7,9 @@ namespace onyx
 
 struct Tick
 {
-	f32 deltaTime;
-	f32 time;
-	u32 frame;
+	f32 deltaTime = 0.f;
+	f32 time = 0.f;
+	u32 frame = 0;
 };
 
 }

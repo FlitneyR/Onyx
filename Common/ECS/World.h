@@ -14,6 +14,9 @@ namespace onyx::ecs
 // forward declaration from "Common/ECS/Query.h"
 struct IQuery;
 
+// forward declaration from "Common/ECS/Scene.h"
+struct Scene;
+
 struct World
 {
 	template< typename ... Components >
@@ -40,9 +43,15 @@ struct World
 	}
 
 	template< typename Component >
-	void AddComponent( EntityID entity, const Component& component )
+	Component& AddComponent( EntityID entity, const Component& component )
 	{
-		GetComponentTable< Component >().AddComponent( entity, component );
+		return GetComponentTable< Component >().AddComponent( entity, component );
+	}
+
+	template< typename ... Components >
+	void AddComponents( EntityID entity, const Components& ... components )
+	{
+		( [ & ]() { AddComponent( entity, components ); return true; }( ) && ... );
 	}
 
 	template< typename Component >
@@ -52,22 +61,25 @@ struct World
 	}
 
 	template< typename Component >
-	Component* GetComponent( EntityID entity )
+	Component* GetComponent( EntityID entity ) const
 	{
 		return GetComponentTable< Component >().GetComponent( entity );
 	}
 
 	struct IComponentTable
 	{
-		virtual ~IComponentTable() {}
+		virtual ~IComponentTable() = default;
 
 		virtual void RemoveComponent( EntityID entity ) = 0;
 
 		struct IIterator
 		{
+			virtual ~IIterator() = default;
+
 			virtual EntityID ID() const = 0;
 			virtual EntityID NextID() const = 0;
 			virtual operator bool() const = 0;
+			virtual void CopyToWorld( World& world, EntityID entity ) const = 0;
 
 			void Increment() { ++m_currentPairIndex; }
 
@@ -83,7 +95,7 @@ struct World
 	template< typename Component >
 	struct ComponentTable : IComponentTable
 	{
-		void AddComponent( EntityID entity, const Component& component )
+		Component& AddComponent( EntityID entity, const Component& component )
 		{
 			auto iter = std::lower_bound( m_components.begin(), m_components.end(), entity, PairEntityIDComparator );
 			if ( iter == m_components.end() || iter->first != entity )
@@ -95,6 +107,8 @@ struct World
 			{
 				iter->second = component;
 			}
+
+			return iter->second;
 		}
 
 		Component* GetComponent( EntityID entity )
@@ -109,7 +123,7 @@ struct World
 		void RemoveComponent( EntityID entity ) override
 		{
 			auto iter = std::lower_bound( m_components.begin(), m_components.end(), entity, PairEntityIDComparator );
-			if ( iter != m_components.end() )
+			if ( iter != m_components.end() && iter->first == entity )
 			{
 				m_components.erase( iter );
 				m_hasChanged = true;
@@ -140,6 +154,11 @@ struct World
 				return m_table.m_components[ next_index ].first;
 			}
 
+			void CopyToWorld( World& world, EntityID entity ) const override
+			{
+				world.AddComponent( entity, Component() );
+			}
+
 			Component& Component() const { return m_table.m_components[ m_currentPairIndex ].second; }
 
 		private:
@@ -158,32 +177,12 @@ struct World
 		static bool PairEntityIDComparator( const Pair& lhs, const EntityID& entity ) { return lhs.first < entity; }
 	};
 
-	struct BaseEntityIterator
+	struct EntityIterator
 	{
-		EntityID ID() const { return m_currentEntity; }
-
-		template< typename Component >
-		Component* Get() const
-		{
-			auto _iter = m_iterators.find( typeid( Component ).hash_code() );
-			if ( _iter == m_iterators.end() )
-				return nullptr;
-
-			auto& iter = *static_cast<ComponentTable< Component >::Iterator*>( _iter->second.get() );
-			if ( !iter || iter.ID() != ID() )
-				return nullptr;
-
-			return &iter.Component();
-		}
-
-	protected:
-		u32 m_currentEntity = ~0;
+		EntityID m_currentEntity = ~0;
 		std::map< size_t, std::unique_ptr< IComponentTable::IIterator > > m_iterators;
-	};
 
-	struct EntityIterator : BaseEntityIterator
-	{
-		EntityIterator( World& world, const std::set< size_t >* relevant_components )
+		EntityIterator( const World& world, const std::set< size_t >* relevant_components )
 		{
 			for ( auto& [hash, table] : world.m_componentTables )
 			{
@@ -193,7 +192,7 @@ struct World
 				auto iter = table->GenericIter();
 
 				if ( EntityID entity = iter->ID() )
-					m_currentEntity = std::min( m_currentEntity, entity );
+					m_currentEntity = std::min< u32 >( m_currentEntity, entity );
 
 				m_iterators.insert( { hash, std::move( iter ) } );
 			}
@@ -213,10 +212,16 @@ struct World
 			// find the next entity id for any component
 			//EntityID next_entity = ~0;
 
-			m_currentEntity = ~0;
+			EntityID next_entity = ~0;
 			for ( const auto& [hash, iterator] : m_iterators )
-				if ( const EntityID entity = iterator->NextID() )
-					m_currentEntity = std::min( entity, m_currentEntity );
+			{
+				if ( const EntityID curr_id = iterator->ID(); curr_id > m_currentEntity )
+					next_entity = std::min< u32 >( curr_id, next_entity );
+				else if ( const EntityID next_id = iterator->NextID() )
+					next_entity = std::min< u32 >( next_id, next_entity );
+			}
+
+			m_currentEntity = next_entity;
 
 			// progress iterators for each component to at least that entity
 			for ( auto& [hash, iterator] : m_iterators )
@@ -224,6 +229,33 @@ struct World
 					iterator->Increment();
 
 			return *this;
+		}
+
+		EntityID ID() const { return m_currentEntity; }
+
+		template< typename Component >
+		Component* Get() const
+		{
+			auto _iter = m_iterators.find( typeid( Component ).hash_code() );
+			if ( _iter == m_iterators.end() )
+				return nullptr;
+
+			auto& iter = *static_cast<ComponentTable< Component >::Iterator*>( _iter->second.get() );
+			if ( !iter || iter.ID() != ID() )
+				return nullptr;
+
+			return &iter.Component();
+		}
+
+		EntityID CopyToWorld( World& world ) const
+		{
+			const EntityID entity = world.AddEntity();
+
+			for ( const auto& [ type, comp ] : m_iterators )
+				if ( comp->ID() == ID() )
+					comp->CopyToWorld( world, entity );
+
+			return entity;
 		}
 	};
 
@@ -253,14 +285,14 @@ struct World
 
 	QueryManager m_queryManager;
 
-	EntityIterator Iter( const std::set< size_t >* relevant_components = nullptr )
-	{
-		return EntityIterator( *this, relevant_components );
-	}
+	EntityIterator Iter( const std::set< size_t >* relevant_components = nullptr ) const
+	{ return EntityIterator( *this, relevant_components ); }
 
 private:
-	EntityID m_nextEntityID = 1;
 	std::map< size_t, std::unique_ptr< IComponentTable > > m_componentTables;
+	EntityID m_nextEntityID { 1 };
+
+	friend struct Scene;
 
 	IComponentTable* GetComponentTableByHash( size_t component_type_hash )
 	{
@@ -268,10 +300,8 @@ private:
 		return iter == m_componentTables.end() ? nullptr : iter->second.get();
 	}
 
-public:
-
 	template< typename Component >
-	ComponentTable< Component >& GetComponentTable()
+	ComponentTable< Component >& GetComponentTableInternal()
 	{
 		const size_t component_type_hash = typeid( Component ).hash_code();
 
@@ -280,6 +310,14 @@ public:
 			iter = m_componentTables.insert( { component_type_hash, std::make_unique< ComponentTable< Component > >() } ).first;
 
 		return *static_cast<ComponentTable< Component >*>( iter->second.get() );
+	}
+
+public:
+
+	template< typename Component >
+	ComponentTable< Component >& GetComponentTable() const
+	{
+		return const_cast< World* >( this )->GetComponentTableInternal< Component >();
 	}
 };
 

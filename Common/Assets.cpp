@@ -1,9 +1,9 @@
 #include "Assets.h"
 
 // for making new assets of these types
-#include "Common/Scripting/Script.h"
 #include "Common/Graphics/Texture.h"
 #include "Common/Graphics/Shader.h"
+#include "Common/ECS/Scene.h"
 
 #include "imgui_stdlib.h"
 
@@ -39,6 +39,11 @@ void CachedBjSONReader::ReadRecursive( const BjSON::IReadOnlyObject& node, const
 			ReadRecursive( *child_node, path );
 		}
 	}
+}
+
+void CachedBjSONReader::Forget( const std::string& path )
+{
+	m_readers.erase( path );
 }
 
 std::shared_ptr< const BjSON::IReadOnlyObject > CachedBjSONReader::GetReader( const std::string& asset_path )
@@ -89,13 +94,13 @@ AssetManager::AssetManager( const BjSON::IReadOnlyObject& root_node, Flags flags
 
 			switch ( reader->GetLiteral< BjSON::NameHash >( "__assetType"_name ) )
 			{
-			case "Script"_name: asset = New< Script >( path ).get(); break;
 			case "Texture"_name: asset = New< TextureAsset >( path ).get(); break;
 			case "TextureAnimation"_name: asset = New< TextureAnimationAsset >( path ).get(); break;
 			case "Shader"_name: asset = New< ShaderAsset >( path ).get(); break;
+			case "Scene"_name: asset = New< ecs::Scene >( path ).get(); break;
 			}
 
-			if ( asset )
+			if ( WEAK_ASSERT( asset ) )
 			{
 				asset->SetReader( reader );
 				asset->m_assetManager = this;
@@ -153,7 +158,7 @@ void AssetManager::Save( BjSON::IReadWriteObject& root_node )
 
 	for ( auto& [ path, asset ] : m_strongAssetReferences )
 	{
-		if ( asset->GetLoadingState() != IAsset::LoadingState::Loaded )
+		if ( asset->GetLoadingState() != LoadingState::Loaded )
 		{
 			asset->m_assetManager = this;
 			asset->m_path = path;
@@ -231,9 +236,9 @@ void AssetManagerWindow::Run( IFrameContext& frame_context )
 
 					if ( !asset_pack_path.empty() )
 					{
-						std::ofstream ofile( asset_pack_path, std::ios::binary | std::ios::trunc );
 						BjSON::Encoder encoder;
 						m_assetManager->Save( encoder.GetRootObject() );
+						std::ofstream ofile( asset_pack_path, std::ios::binary | std::ios::trunc );
 						encoder.WriteTo( ofile );
 					}
 				}
@@ -256,7 +261,7 @@ void AssetManagerWindow::Run( IFrameContext& frame_context )
 			std::string remaining_path = m_currentFolder;
 			std::string partial_path = "";
 			do {
-				const u32 next_delimiter = remaining_path.find_first_of( '/' );
+				const u32 next_delimiter = (u32)remaining_path.find_first_of( '/' );
 				const std::string folder = remaining_path.substr( 0, next_delimiter + 1 );
 				partial_path += folder;
 
@@ -283,14 +288,6 @@ void AssetManagerWindow::Run( IFrameContext& frame_context )
 				ImGui::SetNextItemWidth( 100.f );
 				if ( ImGui::BeginCombo( "New Asset", "Type" ) )
 				{
-					if ( ImGui::Selectable( "Script" ) )
-					{
-						m_assetManager->New< Script >( m_currentFolder + std::string( m_newAssetPath ) );
-
-						std::memset( m_newAssetPath, 0, sizeof( m_newAssetPath ) );
-						ImGui::CloseCurrentPopup();
-					}
-
 					if ( ImGui::Selectable( "Texture" ) )
 					{
 						TextureAsset* texture = m_assetManager->New< TextureAsset >( m_currentFolder + std::string( m_newAssetPath ) ).get();
@@ -313,6 +310,14 @@ void AssetManagerWindow::Run( IFrameContext& frame_context )
 					if ( ImGui::Selectable( "Shader" ) )
 					{
 						m_assetManager->New< ShaderAsset >( m_currentFolder + std::string( m_newAssetPath ) );
+
+						std::memset( m_newAssetPath, 0, sizeof( m_newAssetPath ) );
+						ImGui::CloseCurrentPopup();
+					}
+
+					if ( ImGui::Selectable( "Scene" ) )
+					{
+						m_assetManager->New< ecs::Scene >( m_currentFolder + std::string( m_newAssetPath ) );
 
 						std::memset( m_newAssetPath, 0, sizeof( m_newAssetPath ) );
 						ImGui::CloseCurrentPopup();
@@ -369,48 +374,50 @@ void AssetManagerWindow::Run( IFrameContext& frame_context )
 					const std::string complete_path = m_currentFolder + name;
 
 					ImGui::TableNextColumn();
-					ImGui::PushID( name.c_str() );
-					
-					const bool should_delete = ImGui::Button( "[-]" );
-					std::string new_name;
-
-					ImGui::SameLine();
-					if ( ImGui::Button( "Rename" ) )
 					{
-						new_name = asset->m_path;
-						ImGui::OpenPopup( "Rename" );
-					}
+						ImGuiScopedID scoped_id( name.c_str() );
 
-					ImGui::SameLine();
-					if ( ImGui::Button( "Copy Path" ) )
-						ImGui::SetClipboardText( complete_path.c_str() );
-
-					if ( ImGui::BeginPopup( "Rename" ) )
-					{
-						ImGui::InputText( "Name", &new_name );
-						
-						if ( ImGui::Button( "Cancel" ) )
-							ImGui::CloseCurrentPopup();
+						const bool should_delete = ImGui::Button( "[-]" );
+						std::string new_name;
 
 						ImGui::SameLine();
-						if ( ImGui::Button( "Ok" ) )
+						if ( ImGui::Button( "Rename" ) )
 						{
-							m_assetManager->m_strongAssetReferences.erase( complete_path );
-							m_assetManager->m_strongAssetReferences.insert( { new_name, asset } );
+							new_name = asset->m_path;
+							ImGui::OpenPopup( "Rename" );
 						}
 
-						ImGui::EndPopup();
+						ImGui::SameLine();
+						if ( ImGui::Button( "Copy Path" ) )
+							ImGui::SetClipboardText( complete_path.c_str() );
+
+						if ( ImGui::BeginPopup( "Rename" ) )
+						{
+							ImGui::InputText( "Name", &new_name );
+
+							if ( ImGui::Button( "Cancel" ) )
+								ImGui::CloseCurrentPopup();
+
+							ImGui::SameLine();
+							if ( ImGui::Button( "Ok" ) )
+							{
+								m_assetManager->m_strongAssetReferences.erase( complete_path );
+								m_assetManager->m_strongAssetReferences.insert( { new_name, asset } );
+							}
+
+							ImGui::EndPopup();
+						}
+
+						if ( should_delete )
+						{
+							m_assetManager->m_strongAssetReferences.erase( complete_path );
+							m_assetManager->m_weakAssetReferences.erase( complete_path );
+							m_assetManager->m_reader.Forget( complete_path );
+							break;
+						}
+
+						asset->DoAssetManagerButton( name.c_str(), complete_path.c_str(), ImGui::GetColumnWidth(), asset, frame_context );
 					}
-
-					if ( should_delete )
-					{
-						m_assetManager->m_strongAssetReferences.erase( complete_path );
-						break;
-					}
-
-					asset->DoAssetManagerButton( name.c_str(), complete_path.c_str(), ImGui::GetColumnWidth(), asset, frame_context, m_callbacks );
-
-					ImGui::PopID();
 
 					if ( !( column = ( column + 1 ) % m_numIconsPerRow ) )
 						ImGui::TableNextRow();

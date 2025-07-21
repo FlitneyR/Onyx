@@ -31,7 +31,7 @@ struct SpriteRenderData
 	glm::mat3x4 cameraMatrix;
 };
 
-struct ISpriteRenderer
+struct ISpriteRenderer 
 {
 	virtual void Render( IFrameContext& frame, std::shared_ptr< IRenderTarget >& render_target, const SpriteRenderData& data ) = 0;
 };

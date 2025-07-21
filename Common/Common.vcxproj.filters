@@ -19,9 +19,6 @@
     <Filter Include="Header Files\Graphics">
       <UniqueIdentifier>{aaa157a7-a8a1-436e-92c4-b89f297a5ed1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Scripting">
-      <UniqueIdentifier>{a2bea643-79a1-423e-9723-296aff2063d7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\BjSON">
       <UniqueIdentifier>{1dcc1077-62a2-4a83-9723-c39223ccb8f5}</UniqueIdentifier>
     </Filter>
@@ -43,9 +40,6 @@
     <Filter Include="Header Files\Editor">
       <UniqueIdentifier>{cbc9785c-9bc2-426c-a357-29d16150bbcc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Scripting">
-      <UniqueIdentifier>{2f3cd8a4-20d6-4520-bbb4-e23ac3f9498d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\External">
       <UniqueIdentifier>{4824d0de-0015-46a3-a808-bb0aba082d3e}</UniqueIdentifier>
     </Filter>
@@ -61,20 +55,14 @@
     <Filter Include="Source Files\Graphics">
       <UniqueIdentifier>{ccc1854a-33ac-40d9-ae4e-ce740708639f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\ECS\Components">
-      <UniqueIdentifier>{1faa9e8b-6f63-4ed1-968a-4151424ddcc0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\ECS\Components">
-      <UniqueIdentifier>{3c6c02be-6445-4d47-8407-2cd69085c60c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\ECS\Systems">
-      <UniqueIdentifier>{d2eff8dc-c5a9-4fab-b809-360d3a629fcf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\ECS\Systems">
-      <UniqueIdentifier>{14e4cd90-796f-4720-b492-2dd505e7149d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resource Files\Shaders">
       <UniqueIdentifier>{71f7cd25-db0c-423d-bbd1-43aef786a861}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ECS\Modules">
+      <UniqueIdentifier>{5723e3da-7001-450c-8908-e8c752aae354}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ECS\Modules">
+      <UniqueIdentifier>{da18949e-a3d2-430e-80dd-b3203835cbad}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -114,14 +102,8 @@
     <ClCompile Include="LowLevel\WindowManager.cpp">
       <Filter>Source Files\LowLevel</Filter>
     </ClCompile>
-    <ClCompile Include="Scripting\Script.cpp">
-      <Filter>Source Files\Scripting</Filter>
-    </ClCompile>
     <ClCompile Include="External\imnodes\imnodes.cpp">
       <Filter>Source Files\External\imnodes</Filter>
-    </ClCompile>
-    <ClCompile Include="ECS\Systems\Rendering2D.cpp">
-      <Filter>Source Files\ECS\Systems</Filter>
     </ClCompile>
     <ClCompile Include="External\stb_impl.cpp">
       <Filter>Source Files\External</Filter>
@@ -129,14 +111,29 @@
     <ClCompile Include="Graphics\Shader.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="ECS\Systems\Transform.cpp">
-      <Filter>Source Files\ECS\Systems</Filter>
-    </ClCompile>
     <ClCompile Include="Graphics\Texture.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\Camera.cpp">
       <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="ECS\Scene.cpp">
+      <Filter>Source Files\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="ECS\Modules\CoreReflectors.cpp">
+      <Filter>Source Files\ECS\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ECS\Modules\CoreSystems.cpp">
+      <Filter>Source Files\ECS\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ECS\Modules\Graphics2DReflectors.cpp">
+      <Filter>Source Files\ECS\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ECS\Modules\Graphics2DSystems.cpp">
+      <Filter>Source Files\ECS\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -158,20 +155,11 @@
     <ClInclude Include="InputTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scripting\ScriptMacros.h">
-      <Filter>Header Files\Scripting</Filter>
-    </ClInclude>
     <ClInclude Include="BjSON\BjSON.h">
       <Filter>Header Files\BjSON</Filter>
     </ClInclude>
     <ClInclude Include="BjSON\BjSON_impl.h">
       <Filter>Header Files\BjSON</Filter>
-    </ClInclude>
-    <ClInclude Include="Scripting\CommonScriptNodes.h">
-      <Filter>Header Files\Scripting</Filter>
-    </ClInclude>
-    <ClInclude Include="Scripting\Script.h">
-      <Filter>Header Files\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="LowLevel\LowLevelInput.h">
       <Filter>Header Files\LowLevel</Filter>
@@ -184,9 +172,6 @@
     </ClInclude>
     <ClInclude Include="LowLevel\Impl\SDLWindowManager.h">
       <Filter>Header Files\LowLevel\Impl</Filter>
-    </ClInclude>
-    <ClInclude Include="Scripting\CommonScriptNodesImpl.h">
-      <Filter>Header Files\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="LowLevel\Impl\SDLInput.h">
       <Filter>Header Files\LowLevel\Impl</Filter>
@@ -224,12 +209,6 @@
     <ClInclude Include="Editor\WindowImpl.h">
       <Filter>Header Files\Editor</Filter>
     </ClInclude>
-    <ClInclude Include="Editor\ScriptEditorWindow.h">
-      <Filter>Header Files\Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="Scripting\ScriptManager.h">
-      <Filter>Header Files\Scripting</Filter>
-    </ClInclude>
     <ClInclude Include="Assets.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -245,27 +224,6 @@
     <ClInclude Include="ECS\SystemContexts.h">
       <Filter>Header Files\ECS</Filter>
     </ClInclude>
-    <ClInclude Include="ECS\Components\Sprite.h">
-      <Filter>Header Files\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="ECS\Components\SpriteScriptNodes.h">
-      <Filter>Header Files\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="ECS\Components\SpriteScriptNodesImpl.h">
-      <Filter>Header Files\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="ECS\Components\Transform.h">
-      <Filter>Header Files\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="ECS\Components\TransformScriptNodes.h">
-      <Filter>Header Files\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="ECS\Components\TransformScriptNodesImpl.h">
-      <Filter>Header Files\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="ECS\Systems\Rendering2D.h">
-      <Filter>Header Files\ECS\Systems</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\SpriteRenderer.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
@@ -278,9 +236,6 @@
     <ClInclude Include="ECS\Entity.h">
       <Filter>Header Files\ECS</Filter>
     </ClInclude>
-    <ClInclude Include="ECS\Systems\Transform.h">
-      <Filter>Header Files\ECS\Systems</Filter>
-    </ClInclude>
     <ClInclude Include="Clock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -289,6 +244,21 @@
     </ClInclude>
     <ClInclude Include="ECS\Scene.h">
       <Filter>Header Files\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\ComponentReflector.h">
+      <Filter>Header Files\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\Modules\Core.h">
+      <Filter>Header Files\ECS\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\Modules\Graphics2D.h">
+      <Filter>Header Files\ECS\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Random.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

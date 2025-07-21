@@ -162,9 +162,14 @@
   <ItemGroup>
     <ClCompile Include="Assets.cpp" />
     <ClCompile Include="BjSON\BjSON.cpp" />
+    <ClCompile Include="Utils.cpp" />
+    <ClInclude Include="ECS\ComponentReflector.h" />
+    <ClCompile Include="ECS\Modules\CoreReflectors.cpp" />
+    <ClCompile Include="ECS\Modules\CoreSystems.cpp" />
+    <ClCompile Include="ECS\Modules\Graphics2DReflectors.cpp" />
+    <ClCompile Include="ECS\Modules\Graphics2DSystems.cpp" />
     <ClCompile Include="ECS\Query.cpp" />
-    <ClCompile Include="ECS\Systems\Rendering2D.cpp" />
-    <ClCompile Include="ECS\Systems\Transform.cpp" />
+    <ClCompile Include="ECS\Scene.cpp" />
     <ClCompile Include="External\imnodes\imnodes.cpp" />
     <ClCompile Include="External\stb_impl.cpp">
       <BufferSecurityCheck Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BufferSecurityCheck>
@@ -182,7 +187,6 @@
     <ClCompile Include="LowLevel\LowLevelInput.cpp" />
     <ClCompile Include="LowLevel\LowLevelInterface.cpp" />
     <ClCompile Include="LowLevel\WindowManager.cpp" />
-    <ClCompile Include="Scripting\Script.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Asserts.h" />
@@ -190,22 +194,15 @@
     <ClInclude Include="BjSON\BjSON.h" />
     <ClInclude Include="BjSON\BjSON_impl.h" />
     <ClInclude Include="ECS\CommandBuffer.h" />
-    <ClInclude Include="ECS\Components\Sprite.h" />
-    <ClInclude Include="ECS\Components\SpriteScriptNodes.h" />
-    <ClInclude Include="ECS\Components\SpriteScriptNodesImpl.h" />
-    <ClInclude Include="ECS\Components\Transform.h" />
-    <ClInclude Include="ECS\Components\TransformScriptNodes.h" />
-    <ClInclude Include="ECS\Components\TransformScriptNodesImpl.h" />
     <ClInclude Include="ECS\Entity.h" />
+    <ClInclude Include="ECS\Modules\Core.h" />
+    <ClInclude Include="ECS\Modules\Graphics2D.h" />
     <ClInclude Include="ECS\Query.h" />
     <ClInclude Include="ECS\Scene.h" />
     <ClInclude Include="ECS\System.h" />
     <ClInclude Include="ECS\SystemSet.h" />
-    <ClInclude Include="ECS\Systems\Rendering2D.h" />
     <ClInclude Include="ECS\SystemContexts.h" />
-    <ClInclude Include="ECS\Systems\Transform.h" />
     <ClInclude Include="ECS\World.h" />
-    <ClInclude Include="Editor\ScriptEditorWindow.h" />
     <ClInclude Include="Editor\Window.h" />
     <ClInclude Include="Editor\WindowImpl.h" />
     <ClInclude Include="External\imnodes\imnodes.h" />
@@ -227,23 +224,20 @@
     <ClInclude Include="LowLevel\LowLevelInput.h" />
     <ClInclude Include="LowLevel\LowLevelInterface.h" />
     <ClInclude Include="LowLevel\WindowManager.h" />
-    <ClInclude Include="Scripting\CommonScriptNodes.h" />
-    <ClInclude Include="Scripting\CommonScriptNodesImpl.h" />
-    <ClInclude Include="Scripting\Script.h" />
-    <ClInclude Include="Scripting\ScriptMacros.h" />
-    <ClInclude Include="Scripting\ScriptManager.h" />
     <ClInclude Include="Clock.h" />
+    <ClInclude Include="Random.h" />
     <ClInclude Include="types.h" />
+    <ClInclude Include="Utils.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Graphics\Shaders\SpriteRenderer.frag">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </None>
     <None Include="Graphics\Shaders\SpriteRenderer.vert">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
