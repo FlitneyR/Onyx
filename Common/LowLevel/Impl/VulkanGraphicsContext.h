@@ -18,6 +18,8 @@
 #include "vulkan-memory-allocator-hpp/vk_mem_alloc.hpp"
 
 #include <map>
+#include <optional>
+#include <mutex>
 
 namespace onyx
 {
@@ -56,18 +58,28 @@ private:
 	vk::CommandPool m_vkRenderingCommandPool;
 	vk::CommandPool m_vkTransientCommandPool;
 
-	vk::Fence m_stagingBufferInUseFence;
-	vk::Buffer m_stagingBuffer;
-	vma::Allocation m_stagingBufferAllocation;
+	struct StagingBuffer
+	{
+		vk::Fence inUseFence = nullptr;
+		vk::Buffer buffer = nullptr;
+		vma::Allocation allocation = nullptr;
+
+		StagingBuffer();
+		bool IsInUse() const;
+		u32 GetSize() const;
+		void Resize( u32 new_size );
+	};
+
+	std::mutex m_stagingBufferMutex;
+	std::vector< StagingBuffer > m_stagingBuffers;
 
 	struct TransientCommand
 	{
 		vk::CommandBuffer cmd;
-		vk::Buffer stagingBuffer;
-		vma::Allocation stagingAllocation;
+		std::optional< StagingBuffer > stagingBuffer;
 	};
 
-	TransientCommand BeginTransientCommand( u32 required_staging_buffer_size );
+	TransientCommand BeginTransientCommand( u32 required_staging_buffer_size = 0 );
 	void SubmitTransientCommand( TransientCommand tc );
 
 	struct WindowContext;

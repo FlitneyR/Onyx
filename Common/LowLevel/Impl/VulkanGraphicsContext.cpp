@@ -121,11 +121,11 @@ VulkanGraphicsContext::VulkanGraphicsContext()
 
 VulkanGraphicsContext::~VulkanGraphicsContext()
 {
-	if ( m_stagingBuffer )
+	for ( StagingBuffer& staging_buffer : m_stagingBuffers )
 	{
-		WEAK_ASSERT( m_stagingBufferAllocation );
-
-		m_vmaAllocator.destroyBuffer( m_stagingBuffer, m_stagingBufferAllocation );
+		WEAK_ASSERT( staging_buffer.buffer && staging_buffer.allocation );
+		m_vmaAllocator.destroyBuffer( staging_buffer.buffer, staging_buffer.allocation );
+		m_vkDevice.destroyFence( staging_buffer.inUseFence );
 	}
 
 	m_shutdownDeleteQueue.Execute();
@@ -324,61 +324,131 @@ void VulkanGraphicsContext::EndFrame( IFrameContext& _frame_context )
 	window_context.m_frameCount++;
 }
 
-VulkanGraphicsContext::TransientCommand VulkanGraphicsContext::BeginTransientCommand( u32 required_staging_buffer_size )
+VulkanGraphicsContext::StagingBuffer::StagingBuffer()
 {
-	if ( !m_stagingBufferInUseFence )
-	{
-		const vk::ResultValue< vk::Fence > create_fence_result = m_vkDevice.createFence( vk::FenceCreateInfo().setFlags( vk::FenceCreateFlagBits::eSignaled ) );
-		STRONG_ASSERT( create_fence_result.result == vk::Result::eSuccess, "{}", vk::to_string( create_fence_result.result ) );
+	VulkanGraphicsContext& ctx = static_cast<VulkanGraphicsContext&>( LowLevel::GetGraphicsContext() );
 
-		m_stagingBufferInUseFence = create_fence_result.value;
-		m_shutdownDeleteQueue.Add< Deleter< vk::Fence > >( m_vkDevice, m_stagingBufferInUseFence );
+	const vk::ResultValue< vk::Fence > fence = ctx.m_vkDevice.createFence( vk::FenceCreateInfo( vk::FenceCreateFlagBits::eSignaled ) );
+	STRONG_ASSERT( fence.result == vk::Result::eSuccess, "Failed to create fence: {}", vk::to_string( fence.result ) );
+	inUseFence = fence.value;
+}
+
+bool VulkanGraphicsContext::StagingBuffer::IsInUse() const
+{
+	VulkanGraphicsContext& ctx = static_cast< VulkanGraphicsContext& >( LowLevel::GetGraphicsContext() );
+
+	const vk::Result status = ctx.m_vkDevice.getFenceStatus( inUseFence );
+	STRONG_ASSERT( status == vk::Result::eNotReady || status == vk::Result::eSuccess, "Unexpected status of staging buffer fence: {}", vk::to_string( status ) );
+
+	return status != vk::Result::eSuccess;
+}
+
+u32 VulkanGraphicsContext::StagingBuffer::GetSize() const
+{
+	VulkanGraphicsContext& ctx = static_cast<VulkanGraphicsContext&>( LowLevel::GetGraphicsContext() );
+
+	const vma::AllocationInfo alloc_info = ctx.m_vmaAllocator.getAllocationInfo( allocation );
+	return alloc_info.size;
+}
+
+void VulkanGraphicsContext::StagingBuffer::Resize( u32 new_size )
+{
+	VulkanGraphicsContext& ctx = static_cast<VulkanGraphicsContext&>( LowLevel::GetGraphicsContext() );
+
+	if ( buffer && STRONG_ASSERT( allocation ) )
+	{
+		ctx.m_vmaAllocator.destroyBuffer( buffer, allocation );
+		buffer = nullptr;
+		allocation = nullptr;
 	}
 
-	const vk::Result wait_for_fence_result = m_vkDevice.waitForFences( m_stagingBufferInUseFence, true, UINT64_MAX );
-	STRONG_ASSERT( wait_for_fence_result == vk::Result::eSuccess, "{}", vk::to_string( wait_for_fence_result ) );
+	const auto create_buffer_result = ctx.m_vmaAllocator.createBuffer(
+		vk::BufferCreateInfo()
+			.setSize( new_size )
+			.setUsage( vk::BufferUsageFlagBits::eTransferSrc ),
+		vma::AllocationCreateInfo()
+			.setUsage( vma::MemoryUsage::eCpuToGpu )
+	);
 
-	m_vkDevice.resetFences( m_stagingBufferInUseFence );
+	STRONG_ASSERT( create_buffer_result.result == vk::Result::eSuccess, "Failed to resize staging buffer: {}", vk::to_string( create_buffer_result.result ) );
+	buffer = create_buffer_result.value.first;
+	allocation = create_buffer_result.value.second;
+
+	ctx.m_vmaAllocator.setAllocationName( allocation, "Transient staging buffer" );
+}
+
+VulkanGraphicsContext::TransientCommand VulkanGraphicsContext::BeginTransientCommand( u32 required_staging_buffer_size )
+{
+	// try to find a staging buffer
+	StagingBuffer* staging_buffer = nullptr;
+
+	if ( required_staging_buffer_size > 0 )
+	{
+		DEBUG( "Looking for a staging buffer of {} bytes", required_staging_buffer_size );
+
+		// make sure no other thread tampers with the staging buffer pool
+		std::scoped_lock mutex_lock( m_stagingBufferMutex );
+
+		u32 staging_buffer_size = 0;
+		for ( StagingBuffer& existing_staging_buffer : m_stagingBuffers )
+		{
+			const std::string& is_in_use = existing_staging_buffer.IsInUse() ? "is in use" : "is not in use";
+			DEBUG( "Staging buffer {} is {} bytes and {}",
+				&existing_staging_buffer - &m_stagingBuffers[0], existing_staging_buffer.GetSize(), is_in_use );
+
+			// we can't use this one, it's currently in use
+			if ( existing_staging_buffer.IsInUse() )
+				continue;
+
+			const u32 existing_staging_buffer_size = existing_staging_buffer.GetSize();
+
+			// any staging buffer is better than no staging buffer
+			// a smaller buffer that is still big enough is better than a buffer that's bigger than we need
+			// a buffer that is too small is not great, but if we're going to have to use a small staging buffer, we should grow the smallest so we have more big buffers to choose from in future
+			const bool existing_staging_buffer_is_better = !staging_buffer
+				|| ( existing_staging_buffer_size >= required_staging_buffer_size && existing_staging_buffer_size < staging_buffer_size )
+				|| ( staging_buffer_size < required_staging_buffer_size && existing_staging_buffer_size < staging_buffer_size );
+
+			if ( existing_staging_buffer_is_better )
+			{
+				staging_buffer = &existing_staging_buffer;
+				staging_buffer_size = existing_staging_buffer_size;
+			}
+		}
+
+		// we didn't find any appropriate staging buffer, so create a new one
+		if ( !staging_buffer )
+		{
+			DEBUG( "Couldn't find a staging buffer, so adding a new one" );
+			m_stagingBuffers.push_back( StagingBuffer() );
+			staging_buffer = &m_stagingBuffers.back();
+		}
+
+		// is it not big enough - or not initialised? Then *make* it big enough!
+		if ( staging_buffer_size < required_staging_buffer_size )
+		{
+			DEBUG( "Staging buffer {} is {} bytes, needs to be {} bytes, so resizing", staging_buffer - &m_stagingBuffers[ 0 ], staging_buffer_size, required_staging_buffer_size );
+			staging_buffer->Resize( required_staging_buffer_size );
+		}
+
+		STRONG_ASSERT( !staging_buffer->IsInUse() );
+	}
+
+	STRONG_ASSERT( staging_buffer );
+	m_vkDevice.resetFences( staging_buffer->inUseFence );
 
 	const vk::ResultValue< std::vector< vk::CommandBuffer > > command_buffers = m_vkDevice.allocateCommandBuffers( vk::CommandBufferAllocateInfo()
 		.setCommandPool( m_vkTransientCommandPool )
 		.setCommandBufferCount( 1 ) );
 
 	STRONG_ASSERT( command_buffers.result == vk::Result::eSuccess, "Failed to create transient command buffer: {}", vk::to_string( command_buffers.result ) );
-
-	if ( m_stagingBuffer && m_stagingBufferAllocation && m_vmaAllocator.getAllocationInfo( m_stagingBufferAllocation ).size < required_staging_buffer_size )
-	{
-		m_vmaAllocator.destroyBuffer( m_stagingBuffer, m_stagingBufferAllocation );
-		m_stagingBuffer = nullptr;
-		m_stagingBufferAllocation = nullptr;
-	}
-
-	if ( !m_stagingBuffer )
-	{
-		WEAK_ASSERT( !m_stagingBufferAllocation );
-
-		const vk::ResultValue< std::pair< vk::Buffer, vma::Allocation > > create_buffer_result = m_vmaAllocator.createBuffer(
-			vk::BufferCreateInfo()
-				.setSize( required_staging_buffer_size )
-				.setUsage( vk::BufferUsageFlagBits::eTransferSrc ),
-			vma::AllocationCreateInfo()
-				.setUsage( vma::MemoryUsage::eCpuToGpu )
-		);
-
-		STRONG_ASSERT( create_buffer_result.result == vk::Result::eSuccess, "Failed to create staging buffer: {}", vk::to_string( create_buffer_result.result ) );
-		m_vmaAllocator.setAllocationName( create_buffer_result.value.second, "Transient staging buffer" );
-
-		m_stagingBuffer = create_buffer_result.value.first;
-		m_stagingBufferAllocation = create_buffer_result.value.second;
-	}
 	
 	const vk::Result begin_result = command_buffers.value.front().begin( vk::CommandBufferBeginInfo().setFlags( vk::CommandBufferUsageFlagBits::eOneTimeSubmit ) );
 	STRONG_ASSERT( begin_result == vk::Result::eSuccess, "Failed to begin a transient command: {}", vk::to_string( begin_result ) );
 
 	return {
 		command_buffers.value.front(),
-		m_stagingBuffer,
-		m_stagingBufferAllocation
+		staging_buffer ? std::optional< StagingBuffer >{ *staging_buffer } : std::nullopt
 	};
 }
 
@@ -389,7 +459,7 @@ void VulkanGraphicsContext::SubmitTransientCommand( TransientCommand tc )
 	const vk::Result transient_submit_result = m_vkGraphicsQueue.submit(
 		vk::SubmitInfo()
 			.setCommandBuffers( tc.cmd ),
-		m_stagingBufferInUseFence
+		tc.stagingBuffer ? tc.stagingBuffer->inUseFence : nullptr
 	);
 
 	STRONG_ASSERT( transient_submit_result == vk::Result::eSuccess, "Failed to submit transient command: {}", vk::to_string( transient_submit_result ) );
@@ -537,12 +607,12 @@ std::shared_ptr< ITextureResource > VulkanGraphicsContext::CreateTextureResource
 		const u32 image_data_size = dimensions.x * dimensions.y * sizeof( TextureAsset::Pixel );
 		TransientCommand tc = BeginTransientCommand( image_data_size );
 
-		if ( vk::ResultValue< void* > mapped_memory = m_vmaAllocator.mapMemory( tc.stagingAllocation );
+		if ( vk::ResultValue< void* > mapped_memory = m_vmaAllocator.mapMemory( tc.stagingBuffer->allocation );
 			WEAK_ASSERT( mapped_memory.result == vk::Result::eSuccess && mapped_memory.value != nullptr,
 				"Failed to map staging buffer memory: {}, {}", vk::to_string( mapped_memory.result ), mapped_memory.value )
 		) {
 			std::memcpy( mapped_memory.value, asset.GetPixels(), dimensions.x * dimensions.y * sizeof( TextureAsset::Pixel ) );
-			m_vmaAllocator.unmapMemory( tc.stagingAllocation );
+			m_vmaAllocator.unmapMemory( tc.stagingBuffer->allocation );
 
 			tc.cmd.pipelineBarrier(
 				vk::PipelineStageFlagBits::eTopOfPipe,
@@ -559,7 +629,7 @@ std::shared_ptr< ITextureResource > VulkanGraphicsContext::CreateTextureResource
 					)
 			);
 
-			tc.cmd.copyBufferToImage( tc.stagingBuffer, texture->m_image, vk::ImageLayout::eTransferDstOptimal,
+			tc.cmd.copyBufferToImage( tc.stagingBuffer->buffer, texture->m_image, vk::ImageLayout::eTransferDstOptimal,
 				vk::BufferImageCopy()
 					.setBufferRowLength( dimensions.x )
 					.setBufferImageHeight( dimensions.y )
