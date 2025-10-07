@@ -29,7 +29,7 @@ struct SystemSet
 	void AddSubset( Funcs* ... callbacks )
 	{
 		auto subset = std::make_unique< Subset >( m_querySet );
-		( [ & ]() { subset->AddSystem( callbacks ); return true; }( ) && ... );
+		( subset->AddSystem( callbacks ), ... );
 		m_systems.push_back( std::move( subset ) );
 	}
 

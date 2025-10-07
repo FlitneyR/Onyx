@@ -20,13 +20,10 @@ struct Scene;
 struct World
 {
 	template< typename ... Components >
-	EntityID AddEntity( Components ... components )
+	EntityID AddEntity( const Components& ... components )
 	{
 		const EntityID entity = m_nextEntityID++;
-
-		// kindly ignore this horrible incantation
-		( [ & ]() { AddComponent( entity, components ); return true; }( ) && ... );
-
+		AddComponents( entity, components ... );
 		return entity;
 	}
 
@@ -51,7 +48,7 @@ struct World
 	template< typename ... Components >
 	void AddComponents( EntityID entity, const Components& ... components )
 	{
-		( [ & ]() { AddComponent( entity, components ); return true; }( ) && ... );
+		( AddComponent( entity, components ), ... );
 	}
 
 	template< typename Component >

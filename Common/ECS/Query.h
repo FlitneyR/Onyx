@@ -160,7 +160,7 @@ struct Query : IQuery
 		return &*iter;
 	}
 
-	u32 Count() const { return m_results.size(); }
+	u32 Count() const { return static_cast< u32 >( m_results.size() ); }
 	const Result& operator []( u32 index ) const { return m_results[ index ]; }
 
 	std::vector< Result >::const_iterator begin() const { return m_results.cbegin(); }

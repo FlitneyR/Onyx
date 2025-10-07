@@ -7,7 +7,10 @@ namespace onyx
 
 struct Clock
 {
-	u32 GetUnixTime() const { return std::chrono::duration_cast< std::chrono::seconds>( SClock::now().time_since_epoch() ).count(); }
+	u32 GetUnixTime() const
+	{
+		return static_cast< u32 >( std::chrono::duration_cast< std::chrono::seconds>( SClock::now().time_since_epoch() ).count() );
+	}
 
 	f32 GetTime() const { return GetDuration( m_start, m_thisTick ); }
 	f32 GetDeltaTime() const { return GetDuration( m_lastTick, m_thisTick ); }
