@@ -85,14 +85,14 @@ int main( int argc, const char** argv )
 		prerender_set.AddSystem( onyx::Graphics2D::CollectSprites );
 
 		INFO( "Loading entry point scene" );
-		auto entry_point = chrono_asset_manager.Load< onyx::ecs::Scene >( "/entry_point" );
-		if ( !WEAK_ASSERT( entry_point, "Missing entry point scene" ) )
-			return -1;
+		{
+			auto entry_point = chrono_asset_manager.Load< onyx::ecs::Scene >( "/entry_point" );
+			if ( !WEAK_ASSERT( entry_point, "Missing entry point scene" ) )
+				return -1;
 
-		std::vector< std::pair< onyx::ecs::EntityID, onyx::ecs::EntityID > > entity_map;
-		// entry_point->CopyToWorld( world, entity_map );
-		cmd.CopySceneToWorld( entry_point );
-		cmd.Execute();
+			cmd.CopySceneToWorld( entry_point );
+			cmd.Execute();
+		}
 
 		INFO( "Opening window" );
 		onyx::IWindowManager::CreateWindowArgs create_window_args;

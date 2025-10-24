@@ -127,7 +127,7 @@ struct Query : IQuery
 		T Get() const
 		{
 			using Component = ComponentTypeT< T >;
-			static_assert( ( []() { return std::is_same_v< Component, Components >; }( ) || ... ), "Missing entity component" );
+			static_assert( ( std::is_same_v< Component, Components > || ... ), "Missing entity component" );
 			return Component::Cast( std::get< typename Component::Ptr >( m_componentPtrs ) );
 		}
 

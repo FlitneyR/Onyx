@@ -1,6 +1,8 @@
 #define VMA_IMPLEMENTATION
 
+#if defined( DEBUG_VMA )
 #define VMA_ASSERT( condition ) WEAK_ASSERT( condition )
+#endif
 
 template< typename ... Ts >
 std::string inline_sprintf( const char* format, Ts ... ts )

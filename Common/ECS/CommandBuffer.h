@@ -31,11 +31,7 @@ struct AddEntityCommand : ICommand
 
 	void Execute( World& world ) override
 	{
-		// kindly ignore this horrible incantation
-		( [ & ]() {
-			world.AddComponent( m_entity, std::get< Components >( m_components ) );
-			return true;
-		}() && ... );
+		world.AddComponents( m_entity, std::get< Components >( m_components ) ... );
 	}
 };
 

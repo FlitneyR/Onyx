@@ -207,8 +207,6 @@ struct World
 		EntityIterator& operator ++()
 		{
 			// find the next entity id for any component
-			//EntityID next_entity = ~0;
-
 			EntityID next_entity = ~0;
 			for ( const auto& [hash, iterator] : m_iterators )
 			{
