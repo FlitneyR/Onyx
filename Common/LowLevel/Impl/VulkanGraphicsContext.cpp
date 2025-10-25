@@ -348,7 +348,7 @@ u32 VulkanGraphicsContext::StagingBuffer::GetSize() const
 	VulkanGraphicsContext& ctx = static_cast<VulkanGraphicsContext&>( LowLevel::GetGraphicsContext() );
 
 	const vma::AllocationInfo alloc_info = ctx.m_vmaAllocator.getAllocationInfo( allocation );
-	return alloc_info.size;
+	return (u32)alloc_info.size;
 }
 
 void VulkanGraphicsContext::StagingBuffer::Resize( u32 new_size )
@@ -384,7 +384,7 @@ VulkanGraphicsContext::TransientCommand VulkanGraphicsContext::BeginTransientCom
 
 	if ( required_staging_buffer_size > 0 )
 	{
-		DEBUG( "Looking for a staging buffer of {} bytes", required_staging_buffer_size );
+		// DEBUG( "Looking for a staging buffer of {} bytes", required_staging_buffer_size );
 
 		// make sure no other thread tampers with the staging buffer pool
 		std::scoped_lock mutex_lock( m_stagingBufferMutex );
@@ -393,8 +393,8 @@ VulkanGraphicsContext::TransientCommand VulkanGraphicsContext::BeginTransientCom
 		for ( StagingBuffer& existing_staging_buffer : m_stagingBuffers )
 		{
 			const std::string& is_in_use = existing_staging_buffer.IsInUse() ? "is in use" : "is not in use";
-			DEBUG( "Staging buffer {} is {} bytes and {}",
-				&existing_staging_buffer - &m_stagingBuffers[0], existing_staging_buffer.GetSize(), is_in_use );
+			// DEBUG( "Staging buffer {} is {} bytes and {}",
+			// 	&existing_staging_buffer - &m_stagingBuffers[0], existing_staging_buffer.GetSize(), is_in_use );
 
 			// we can't use this one, it's currently in use
 			if ( existing_staging_buffer.IsInUse() )
@@ -419,7 +419,7 @@ VulkanGraphicsContext::TransientCommand VulkanGraphicsContext::BeginTransientCom
 		// we didn't find any appropriate staging buffer, so create a new one
 		if ( !staging_buffer )
 		{
-			DEBUG( "Couldn't find a staging buffer, so adding a new one" );
+			// DEBUG( "Couldn't find a staging buffer, so adding a new one" );
 			m_stagingBuffers.push_back( StagingBuffer() );
 			staging_buffer = &m_stagingBuffers.back();
 		}
@@ -427,7 +427,7 @@ VulkanGraphicsContext::TransientCommand VulkanGraphicsContext::BeginTransientCom
 		// is it not big enough - or not initialised? Then *make* it big enough!
 		if ( staging_buffer_size < required_staging_buffer_size )
 		{
-			DEBUG( "Staging buffer {} is {} bytes, needs to be {} bytes, so resizing", staging_buffer - &m_stagingBuffers[ 0 ], staging_buffer_size, required_staging_buffer_size );
+			// DEBUG( "Staging buffer {} is {} bytes, needs to be {} bytes, so resizing", staging_buffer - &m_stagingBuffers[ 0 ], staging_buffer_size, required_staging_buffer_size );
 			staging_buffer->Resize( required_staging_buffer_size );
 		}
 

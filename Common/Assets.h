@@ -171,7 +171,7 @@ public:
 		WEAK_ASSERT( strong_ref_iter == m_strongAssetReferences.end(), "We don't have a valid weak reference, but do have a strong reference? How?" );
 		#endif
 
-		if ( std::shared_ptr< const BjSON::IReadOnlyObject > reader = LOG_ASSERT( m_reader.GetReader( path_to_asset ), "No asset exists at {}", path_to_asset ) )
+		if ( std::shared_ptr< const BjSON::IReadOnlyObject > reader = LOG_ASSERT( m_reader.GetReader( path_to_asset ), "No asset exists at '{}'", path_to_asset ) )
 		{
 			std::shared_ptr< Asset > asset = std::make_shared< Asset >();
 			asset->SetReader( reader );

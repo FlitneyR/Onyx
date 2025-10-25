@@ -58,7 +58,7 @@ void LowLevelInput::DebugWindow::Run( IFrameContext& frame_context )
 		ImGui::SameLine();
 		if ( ImGui::BeginCombo( "##Enable All Inputs For Device", "Device" ) )
 		{
-			for ( onyx::InputDevice device = onyx::InputDevice::None; device < onyx::InputDevice::Count; ++(u32&)device )
+			for ( onyx::InputDevice device = onyx::InputDevice::None; device < onyx::InputDevice::Count; ++(u8&)device )
 			{
 				bool selected = false;
 				ImGui::Selectable( onyx::GetInputDeviceName( device ), &selected );

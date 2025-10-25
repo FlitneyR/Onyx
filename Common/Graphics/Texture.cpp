@@ -13,7 +13,7 @@ namespace onyx
 {
 
 DEFINE_DEFAULT_DESERIALISE_PROPERTY( std::shared_ptr< TextureAsset > )
-{ std::string path; reader.GetLiteral( name, path ); value = asset_manager.Load< TextureAsset >( path ); }
+{ std::string path; value = !reader.GetLiteral( name, path ) || path.empty() ? nullptr : asset_manager.Load< TextureAsset >( path ); }
 
 DEFINE_DEFAULT_PROPERTY_DIFF_HINT( std::shared_ptr< TextureAsset > )
 { ImGui::SetTooltip( !value ? "No Texture" : value->m_path.c_str() ); }

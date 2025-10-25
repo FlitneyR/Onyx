@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34714.143
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChronoGame", "ChronoGame\ChronoGame.vcxproj", "{B627C636-018C-4E90-9240-5032810E61C3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AsteroidsGame", "AsteroidsGame\AsteroidsGame.vcxproj", "{B627C636-018C-4E90-9240-5032810E61C3}"
 	ProjectSection(ProjectDependencies) = postProject
 		{58746D44-E146-4622-B304-B7A8649C142B} = {58746D44-E146-4622-B304-B7A8649C142B}
 		{A668D1F9-98AD-4FEF-9D70-4432F488A20A} = {A668D1F9-98AD-4FEF-9D70-4432F488A20A}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChronoEditor", "ChronoEditor\ChronoEditor.vcxproj", "{0ADF6735-F9BC-4695-874C-27BBA222135A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AsteroidsEditor", "AsteroidsEditor\AsteroidsEditor.vcxproj", "{0ADF6735-F9BC-4695-874C-27BBA222135A}"
 	ProjectSection(ProjectDependencies) = postProject
 		{74895139-D6F0-459F-81CF-A8E756EF35E9} = {74895139-D6F0-459F-81CF-A8E756EF35E9}
 		{A668D1F9-98AD-4FEF-9D70-4432F488A20A} = {A668D1F9-98AD-4FEF-9D70-4432F488A20A}
@@ -28,7 +28,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Editor", "Editor\Editor.vcx
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common", "Common\Common.vcxproj", "{A668D1F9-98AD-4FEF-9D70-4432F488A20A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChronoCommon", "ChronoCommon\ChronoCommon.vcxproj", "{34644D51-386E-462E-AD5C-51DBF75E6380}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AsteroidsCommon", "AsteroidsCommon\AsteroidsCommon.vcxproj", "{34644D51-386E-462E-AD5C-51DBF75E6380}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

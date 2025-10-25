@@ -46,6 +46,12 @@ private:
 	void Refresh() { m_matrix = CalculateMatrix(); }
 
 public:
+	Transform2D( const glm::vec2& position = {}, const glm::vec2& scale = { 1, 1 }, f32 rotation = 0 )
+		: m_position( position )
+		, m_scale( scale )
+		, m_rotation( rotation )
+	{}
+
 	void SetLocale( const glm::mat3& locale ) { m_locale = locale; m_inverseLocale = glm::inverse( m_locale ); Refresh(); }
 	void SetLocalPosition( const glm::vec2& position ) { m_position = position; Refresh(); }
 	void SetLocalScale( const glm::vec2& scale ) { m_scale = scale; Refresh(); }
