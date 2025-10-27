@@ -132,7 +132,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <ForcedIncludeFiles>$(SolutionDir)Common\types.h;$(SolutionDir)Common\asserts.h;$(SolutionDir)vcpkg_installed\x64-windows\x64-windows\include\glm\glm.hpp</ForcedIncludeFiles>
+      <ForcedIncludeFiles>$(SolutionDir)Onyx\types.h;$(SolutionDir)Onyx\asserts.h;$(SolutionDir)vcpkg_installed\x64-windows\x64-windows\include\glm\glm.hpp</ForcedIncludeFiles>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <UseStandardPreprocessor>true</UseStandardPreprocessor>
       <OpenMPSupport>true</OpenMPSupport>

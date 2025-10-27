@@ -134,7 +134,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <UseStandardPreprocessor>true</UseStandardPreprocessor>
-      <ForcedIncludeFiles>$(SolutionDir)Common\types.h;$(SolutionDir)Common\asserts.h;$(SolutionDir)vcpkg_installed\x64-windows\x64-windows\include\glm\glm.hpp</ForcedIncludeFiles>
+      <ForcedIncludeFiles>$(SolutionDir)Onyx\types.h;$(SolutionDir)Onyx\asserts.h;$(SolutionDir)vcpkg_installed\x64-windows\x64-windows\include\glm\glm.hpp</ForcedIncludeFiles>
       <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>

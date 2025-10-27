@@ -131,7 +131,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>C:\Users\yodaf\vcpkg\installed\x64-windows\lib\vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(VULKAN_SDK)lib\vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -143,7 +143,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <ForcedIncludeFiles>$(SolutionDir)Common\types.h;$(SolutionDir)Common\asserts.h;$(SolutionDir)vcpkg_installed\x64-windows\x64-windows\include\glm\glm.hpp</ForcedIncludeFiles>
+      <ForcedIncludeFiles>$(SolutionDir)Onyx\types.h;$(SolutionDir)Onyx\asserts.h;$(SolutionDir)vcpkg_installed\x64-windows\x64-windows\include\glm\glm.hpp</ForcedIncludeFiles>
       <UseStandardPreprocessor>true</UseStandardPreprocessor>
       <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
@@ -154,7 +154,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>C:\Users\yodaf\vcpkg\installed\x64-windows\lib\vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(VULKAN_SDK)lib\vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
