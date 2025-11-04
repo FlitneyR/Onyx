@@ -29,11 +29,7 @@ struct World
 
 	void RemoveEntity( EntityID entity, bool and_children = false );
 
-	void ResetEntities()
-	{
-		m_componentTables.clear();
-		m_nextEntityID = 1;
-	}
+	void ResetEntities();
 
 	template< typename Component >
 	Component& AddComponent( EntityID entity, const Component& component )
@@ -175,54 +171,15 @@ struct World
 		EntityID m_currentEntity = ~0;
 		std::map< size_t, std::unique_ptr< IComponentTable::IIterator > > m_iterators;
 
-		EntityIterator( const World& world, const std::set< size_t >* relevant_components )
-		{
-			for ( auto& [hash, table] : world.m_componentTables )
-			{
-				if ( relevant_components && !relevant_components->contains( hash ) )
-					continue;
+		EntityIterator( const World& world, const std::set< size_t >* relevant_components );
 
-				auto iter = table->GenericIter();
+		explicit operator bool() const;
 
-				if ( EntityID entity = iter->ID() )
-					m_currentEntity = std::min< u32 >( m_currentEntity, entity );
-
-				m_iterators.insert( { hash, std::move( iter ) } );
-			}
-		}
-
-		operator bool() const
-		{
-			for ( auto& [_, iter] : m_iterators )
-				if ( *iter )
-					return true;
-
-			return false;
-		}
-
-		EntityIterator& operator ++()
-		{
-			// find the next entity id for any component
-			EntityID next_entity = ~0;
-			for ( const auto& [hash, iterator] : m_iterators )
-			{
-				if ( const EntityID curr_id = iterator->ID(); curr_id > m_currentEntity )
-					next_entity = std::min< u32 >( curr_id, next_entity );
-				else if ( const EntityID next_id = iterator->NextID() )
-					next_entity = std::min< u32 >( next_id, next_entity );
-			}
-
-			m_currentEntity = next_entity;
-
-			// progress iterators for each component to at least that entity
-			for ( auto& [hash, iterator] : m_iterators )
-				while ( *iterator && iterator->ID() < m_currentEntity )
-					iterator->Increment();
-
-			return *this;
-		}
+		EntityIterator& operator ++();
 
 		EntityID ID() const { return m_currentEntity; }
+
+		EntityID CopyToWorld( World& world ) const;
 
 		template< typename Component >
 		Component* Get() const
@@ -236,17 +193,6 @@ struct World
 				return nullptr;
 
 			return &iter.Component();
-		}
-
-		EntityID CopyToWorld( World& world ) const
-		{
-			const EntityID entity = world.AddEntity();
-
-			for ( const auto& [ type, comp ] : m_iterators )
-				if ( comp->ID() == ID() )
-					comp->CopyToWorld( world, entity );
-
-			return entity;
 		}
 	};
 
@@ -285,11 +231,7 @@ private:
 
 	friend struct Scene;
 
-	IComponentTable* GetComponentTableByHash( size_t component_type_hash )
-	{
-		auto iter = m_componentTables.find( component_type_hash );
-		return iter == m_componentTables.end() ? nullptr : iter->second.get();
-	}
+	IComponentTable* GetComponentTableByHash( size_t component_type_hash );
 
 	template< typename Component >
 	ComponentTable< Component >& GetComponentTableInternal()

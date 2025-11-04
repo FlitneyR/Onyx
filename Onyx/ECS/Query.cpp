@@ -5,29 +5,6 @@
 namespace onyx::ecs
 {
 
-void World::QueryManager::UpdateNeedsRerun( World& world )
-{
-	std::erase_if( m_queries, []( const std::pair< size_t, std::weak_ptr< IQuery > >& pair )
-	{
-		return pair.second.expired();
-	} );
-
-	std::set< size_t > changed_components;
-
-	for ( auto& [hash, table] : world.m_componentTables )
-	{
-		if ( table->m_hasChanged )
-		{
-			changed_components.insert( hash );
-			table->m_hasChanged = false;
-		}
-	}
-
-	for ( const size_t& component_type_hash : changed_components )
-		for ( auto& [hash, query] : m_queries )
-			query.lock()->OnComponentAddedOrRemoved( component_type_hash );
-}
-
 void QuerySet::Update()
 {
 	// remove any queries that are no longer in use
