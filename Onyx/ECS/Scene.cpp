@@ -222,6 +222,8 @@ void Scene::CopyToWorld( World& world, IDMap& map ) const
 
 void Scene::Load( LoadType type )
 {
+	ZoneScoped;
+
 	m_loadingState = LoadingState::Loading;
 
 	const BjSON::IReadOnlyObject* const reader = GetReader();
@@ -437,6 +439,8 @@ void Scene::DoAssetManagerButton( const char* name, const char* path, f32 width,
 
 void SceneEditor::Run( IFrameContext& frame_context )
 {
+	ZoneScoped;
+
 	if ( ImGui::Begin( GetWindowTitle().c_str(), &m_open, ImGuiWindowFlags_MenuBar ) )
 	{
 		ImGui::SetWindowSize( { 1280, 720 }, ImGuiCond_Once );

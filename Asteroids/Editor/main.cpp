@@ -18,6 +18,8 @@
 
 #include "imgui.h"
 
+#include "tracy/Tracy.hpp"
+
 int main( int argc, const char** argv )
 {
 	INFO( "Registering Component Reflectors" );
@@ -78,6 +80,8 @@ int main( int argc, const char** argv )
 
 				graphics_context.EndFrame( *frame_context );
 			}
+
+			FrameMark;
 		}
 
 		onyx::editor::CloseAllWindows();

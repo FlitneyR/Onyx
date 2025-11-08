@@ -133,6 +133,8 @@ bool TextureAsset::Import( const char* filename )
 
 void TextureAsset::Load( LoadType type )
 {
+	ZoneScoped;
+
 	m_loadingState = LoadingState::Loading;
 
 	const BjSON::IReadOnlyObject* const reader = GetReader();
@@ -243,6 +245,8 @@ std::shared_ptr< ITextureResource > TextureAsset::GetGraphicsResource()
 
 void TexturePreviewWindow::Run( IFrameContext& frame_context )
 {
+	ZoneScoped;
+
 	if ( ImGui::Begin( GetWindowTitle().c_str(), &m_open, ImGuiWindowFlags_MenuBar ) )
 	{
 		if ( ImGui::BeginMenuBar() )
@@ -307,6 +311,8 @@ std::string TexturePreviewWindow::GetWindowTitle() const
 
 void TextureAnimationAsset::Load( LoadType type )
 {
+	ZoneScoped;
+
 	m_loadingState = LoadingState::Loading;
 
 	const BjSON::IReadOnlyObject* const reader = GetReader();
@@ -386,6 +392,8 @@ void TextureAnimationAsset::DoAssetManagerButton( const char* name, const char* 
 
 void TextureAnimationEditor::Run( IFrameContext& frame_context )
 {
+	ZoneScoped;
+
 	if ( ImGui::Begin( GetWindowTitle().c_str(), &m_open, ImGuiWindowFlags_MenuBar ) )
 	{
 		if ( ImGui::BeginMenuBar() )

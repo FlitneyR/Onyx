@@ -15,6 +15,8 @@ namespace onyx
 
 void CachedBjSONReader::ReadRecursive( const BjSON::IReadOnlyObject& node, const std::string& partial_path )
 {
+	ZoneScoped;
+
 	auto contents_list = node.GetArray( "__content"_name );
 	if ( !contents_list )
 	{
@@ -48,6 +50,8 @@ void CachedBjSONReader::Forget( const std::string& path )
 
 std::shared_ptr< const BjSON::IReadOnlyObject > CachedBjSONReader::GetReader( const std::string& asset_path )
 {
+	ZoneScoped;
+
 	auto iter = m_readers.find( asset_path );
 	if ( iter == m_readers.end() )
 	{
@@ -80,6 +84,8 @@ AssetManager::AssetManager( const BjSON::IReadOnlyObject& root_node, Flags flags
 	: m_reader( root_node )
 	, m_initialFlags( flags )
 {
+	ZoneScoped;
+
 	if ( flags & ( PreSearch | PreLoad ) )
 		m_reader.ReadRecursive( root_node );
 
@@ -120,6 +126,8 @@ struct CachedBjSONWriter
 
 	BjSON::IReadWriteObject& GetWriter( const std::string& asset_path )
 	{
+		ZoneScoped;
+
 		auto iter = m_writers.find( asset_path );
 		if ( iter == m_writers.end() )
 		{
@@ -152,6 +160,8 @@ private:
 
 void AssetManager::Save( BjSON::IReadWriteObject& root_node )
 {
+	ZoneScoped;
+
 	CachedBjSONWriter writer( root_node );
 
 	WEAK_ASSERT( m_initialFlags & PreLoad, "We're about to save an asset pack, but we didn't load everything at the start, so we might not save everything" );
@@ -189,6 +199,8 @@ std::string AssetManagerWindow::GetWindowTitle() const
 
 void AssetManagerWindow::Run( IFrameContext& frame_context )
 {
+	ZoneScoped;
+
 	if ( ImGui::Begin( GetWindowTitle().c_str(), &m_open, ImGuiWindowFlags_MenuBar ) )
 	{
 		ImGui::SetWindowSize( { 600, 300 }, ImGuiCond_Once );

@@ -13,6 +13,8 @@ void World::ResetEntities()
 
 void World::RemoveEntity( EntityID entity, bool and_children )
 {
+	ZoneScoped;
+
 	for ( auto& [hash, table] : m_componentTables )
 		table->RemoveComponent( entity );
 
@@ -48,7 +50,7 @@ World::EntityIterator::EntityIterator( const World& world, const std::set< size_
 	}
 }
 
-explicit World::EntityIterator::operator bool() const
+World::EntityIterator::operator bool() const
 {
 	for ( auto& [_, iter] : m_iterators )
 		if ( *iter )

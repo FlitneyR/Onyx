@@ -1,10 +1,14 @@
 #include "Physics.h"
 
+#include "tracy/Tracy.hpp"
+
 namespace asteroids::Physics
 {
 
 void UpdateCollisions( onyx::ecs::Context< const onyx::Tick > ctx, const ColliderQuery& colliders )
 {
+	ZoneScoped;
+
 	for ( auto& entity : colliders )
 		entity.Get< Collider& >().collisions.clear();
 
@@ -42,6 +46,8 @@ void UpdateCollisions( onyx::ecs::Context< const onyx::Tick > ctx, const Collide
 
 void UpdatePhysicsBodies( onyx::ecs::Context< const onyx::Tick > ctx, const PhysicsBodyQuery& bodies )
 {
+	ZoneScoped;
+
 	const onyx::Tick& tick = ctx.Get< const onyx::Tick >();
 
 	for ( auto& entity : bodies )
@@ -68,6 +74,8 @@ void UpdatePhysicsBodies( onyx::ecs::Context< const onyx::Tick > ctx, const Phys
 
 void UpdateDamageOnCollision( UpdateDamageOnCollision_Context ctx, const DamageOnCollisionEntities& damagers )
 {
+	ZoneScoped;
+
 	auto [world, cmd, asset_manager] = ctx.Break();
 
 	for ( const auto& damager : damagers )

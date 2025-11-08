@@ -1,11 +1,15 @@
 #include "Core.h"
 #include "Physics.h"
 
+#include "tracy/Tracy.hpp"
+
 namespace asteroids::Core
 {
 
 void UpdateCamera( onyx::ecs::Context< const onyx::Tick, onyx::Camera2D > ctx, const UpdateCamera_CameraFocusQuery& focii, const UpdateCamera_CameraQuery& cameras )
 {
+	ZoneScoped;
+
 	auto [tick, ctx_camera] = ctx.Break();
 
 	if ( focii.Count() == 0 )
@@ -62,6 +66,8 @@ void UpdateCamera( onyx::ecs::Context< const onyx::Tick, onyx::Camera2D > ctx, c
 
 void UpdateLifetimes( UpdateLifetimes_Context ctx, const UpdateLifetimes_Entities& entities )
 {
+	ZoneScoped;
+
 	auto [ world, tick, asset_manager, cmd ] = ctx.Break();
 
 	for ( auto& entity : entities )
@@ -75,6 +81,8 @@ void UpdateLifetimes( UpdateLifetimes_Context ctx, const UpdateLifetimes_Entitie
 
 void UpdateOffScreenSpawners( UpdateOffScreenSpawners_Context ctx, const UpdateOffScreenSpawners_Spawners& entities )
 {
+	ZoneScoped;
+
 	auto [tick, cmd, camera, rng] = ctx.Break();
 
 	for ( auto entity : entities )
@@ -125,6 +133,8 @@ void UpdateOffScreenSpawners( UpdateOffScreenSpawners_Context ctx, const UpdateO
 
 void HandleEntityDeath( const onyx::ecs::World& world, onyx::ecs::CommandBuffer& cmd, onyx::AssetManager& asset_manager, onyx::ecs::EntityID entity )
 {
+	ZoneScoped;
+
 	if ( const OnDeath* const target_on_death = world.GetComponent< OnDeath >( entity ) )
 	{
 		if ( target_on_death->spawnScene && target_on_death->spawnScene->GetLoadingState() == onyx::LoadingState::Loaded )
@@ -147,6 +157,8 @@ void HandleEntityDeath( const onyx::ecs::World& world, onyx::ecs::CommandBuffer&
 
 void DamageEntity( const onyx::ecs::World& world, onyx::ecs::CommandBuffer& cmd, onyx::AssetManager& asset_manager, const DamageParams& params )
 {
+	ZoneScoped;
+
 	if ( params.amount == 0.f )
 		return;
 

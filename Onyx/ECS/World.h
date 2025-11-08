@@ -8,6 +8,8 @@
 
 #include "Entity.h"
 
+#include "tracy/Tracy.hpp"
+
 namespace onyx::ecs
 {
 
@@ -86,6 +88,8 @@ struct World
 	{
 		Component& AddComponent( EntityID entity, const Component& component )
 		{
+			ZoneScoped;
+
 			auto iter = std::lower_bound( m_components.begin(), m_components.end(), entity, PairEntityIDComparator );
 			if ( iter == m_components.end() || iter->first != entity )
 			{
@@ -102,6 +106,8 @@ struct World
 
 		Component* GetComponent( EntityID entity )
 		{
+			ZoneScoped;
+
 			auto iter = std::lower_bound( m_components.begin(), m_components.end(), entity, PairEntityIDComparator );
 			if ( iter == m_components.end() || iter->first != entity )
 				return nullptr;
@@ -111,6 +117,8 @@ struct World
 
 		void RemoveComponent( EntityID entity ) override
 		{
+			ZoneScoped;
+
 			auto iter = std::lower_bound( m_components.begin(), m_components.end(), entity, PairEntityIDComparator );
 			if ( iter != m_components.end() && iter->first == entity )
 			{

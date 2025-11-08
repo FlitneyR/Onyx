@@ -4,11 +4,15 @@
 
 #include "Onyx/LowLevel/LowLevelInterface.h"
 
+#include "tracy/Tracy.hpp"
+
 namespace asteroids::Player
 {
 
 void UpdatePlayers( UpdatePlayers_Context ctx, const PlayerQuery& players, const PlayerEngineQuery& engines )
 {
+	ZoneScoped;
+
 	auto [tick, asset_manager, cmd] = ctx.Break();
 
 	const onyx::LowLevelInput& input = onyx::LowLevel::GetInput();

@@ -6,6 +6,8 @@
 
 #include "imgui.h"
 
+#include "tracy/Tracy.hpp"
+
 namespace onyx
 {
 
@@ -24,6 +26,8 @@ Config s_config = {};
 
 void Init( const Config& config, AssetManager* core_asset_manager )
 {
+	ZoneScoped;
+
 	ASSERT( !s_isReady );
 
 	s_config = config;

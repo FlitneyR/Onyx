@@ -2,11 +2,15 @@
 #include <mutex>
 #include <set>
 
+#include "tracy/Tracy.hpp"
+
 namespace onyx::ecs
 {
 
 void QuerySet::Update()
 {
+	ZoneScoped;
+
 	// remove any queries that are no longer in use
 	std::erase_if( m_queries, []( std::pair< size_t, std::weak_ptr< IQuery > > pair ) {
 		return pair.second.expired();
@@ -23,6 +27,7 @@ void QuerySet::Update()
 		{
 			if ( query->NeedsRerun() )
 			{
+				query->ResetNeedsRerun();
 				query->ClearResults();
 				query->CollectComponentTypes( relevant_components );
 				queries_to_run.push_back( query );
@@ -32,13 +37,12 @@ void QuerySet::Update()
 
 	// if any queries need to rerun, run them
 	if ( !queries_to_run.empty() )
-		for ( auto iter = m_world.Iter( &relevant_components ); iter; ++iter )
-			for ( auto query : queries_to_run )
-				query->Consider( iter );
-
-	// mark that these no longer need to rerun
-	for ( auto query : queries_to_run )
-		query->ResetNeedsRerun();
+	{
+		ZoneScopedN( "Iterate Entities" );
+		for (auto iter = m_world.Iter(&relevant_components); iter; ++iter)
+			for (auto query : queries_to_run)
+				query->Consider(iter);
+	}
 }
 
 }

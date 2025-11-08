@@ -91,6 +91,8 @@ struct CopySceneToWorldCommand : ICommand
 
 	void Execute( World& world ) override
 	{
+		ZoneScoped;
+
 		if ( m_scene->GetLoadingState() == LoadingState::Unloaded )
 			m_scene->Load( IAsset::LoadType::Stream );
 
@@ -155,6 +157,8 @@ struct CommandBuffer
 
 	void Execute()
 	{
+		ZoneScoped;
+
 		while ( !m_commands.empty() )
 		{
 			m_commands.front()->Execute( m_world );

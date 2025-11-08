@@ -10,7 +10,7 @@ std::vector< std::unique_ptr< IWindow > > s_windows;
 struct ImGuiDemoWindow : IWindow
 {
 	inline static const char* const s_name = "ImGui Demo";
-	void Run( IFrameContext& frame_context ) override { ImGui::ShowDemoWindow( &m_open ); }
+	void Run( IFrameContext& frame_context ) override { ZoneScoped; ImGui::ShowDemoWindow( &m_open ); }
 	std::string GetWindowTitle() const override { return s_name; }
 };
 

@@ -21,6 +21,8 @@
 #define EDITOR_WINDOWS( f )
 #include "Onyx/Editor/WindowImpl.h"
 
+#include "tracy/Tracy.hpp"
+
 int main( int argc, const char** argv )
 {
 	INFO( "Registering Component Reflectors" );
@@ -155,6 +157,8 @@ int main( int argc, const char** argv )
 				}
 
 				cmd.Execute();
+				
+				FrameMark;
 			}
 		}
 	}

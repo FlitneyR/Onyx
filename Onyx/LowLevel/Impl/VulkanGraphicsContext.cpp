@@ -10,6 +10,8 @@
 
 #include "imgui_impl_vulkan.h"
 
+#include "tracy/Tracy.hpp"
+
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 namespace onyx
@@ -39,10 +41,14 @@ static VkBool32 VulkanDebugMessageCallback(
 
 VulkanGraphicsContext::VulkanGraphicsContext()
 {
+	ZoneScoped;
+
 	const vkb::Result< vkb::Instance > vkb_instance = vkb::InstanceBuilder()
+#ifdef _DEBUG
 		.set_debug_callback( VulkanDebugMessageCallback )
 		.set_debug_callback_user_data_pointer( this )
 		.enable_validation_layers()
+#endif
 		.require_api_version( 1, 3, 0 )
 		.build();
 
@@ -138,6 +144,8 @@ std::unique_ptr< IWindowContext > VulkanGraphicsContext::CreateWindowContext( IW
 
 IFrameContext* VulkanGraphicsContext::BeginFrame( IWindow& window )
 {
+	ZoneScoped;
+
 	WindowContext& window_context = static_cast< WindowContext& >( window.GetWindowContext() );
 	FrameContext& frame_context = static_cast< FrameContext& >( window_context.GetFrameContext() );
 
@@ -171,9 +179,14 @@ IFrameContext* VulkanGraphicsContext::BeginFrame( IWindow& window )
 
 	frame_context.m_swapchainImageIndex = next_image_index.value;
 
-	// wait to make sure this command buffer is not still rendering a previous frame
-	STRONG_ASSERT( m_vkDevice.waitForFences( frame_context.m_finishedRenderingFence, true, ~0 ) == vk::Result::eSuccess );
-	STRONG_ASSERT( m_vkDevice.resetFences( frame_context.m_finishedRenderingFence ) == vk::Result::eSuccess );
+	{
+		ZoneScopedN( "Wait for fences" );
+
+		// wait to make sure this command buffer is not still rendering a previous frame
+		STRONG_ASSERT(m_vkDevice.waitForFences(frame_context.m_finishedRenderingFence, true, ~0) == vk::Result::eSuccess);
+		STRONG_ASSERT(m_vkDevice.resetFences(frame_context.m_finishedRenderingFence) == vk::Result::eSuccess);
+	}
+
 	frame_context.m_deleteQueue.Execute();
 
 	STRONG_ASSERT( frame_context.m_cmd.begin( vk::CommandBufferBeginInfo()
@@ -207,6 +220,8 @@ IFrameContext* VulkanGraphicsContext::BeginFrame( IWindow& window )
 
 void VulkanGraphicsContext::EndFrame( IFrameContext& _frame_context )
 {
+	ZoneScoped;
+
 	FrameContext& frame_context = static_cast<FrameContext&>( _frame_context );
 	WindowContext& window_context = static_cast<WindowContext&>( *frame_context.m_windowContext );
 	vk::CommandBuffer cmd = frame_context.m_cmd;
@@ -219,6 +234,8 @@ void VulkanGraphicsContext::EndFrame( IFrameContext& _frame_context )
 	// render imgui
 	if ( LowLevel::GetConfig().enableImGui )
 	{
+		ZoneScopedN( "Render ImGui ");
+
 		const glm::ivec2 window_size = window_context.m_renderTargetSize;
 
 		// render imgui to this window's imgui target
@@ -294,9 +311,13 @@ void VulkanGraphicsContext::EndFrame( IFrameContext& _frame_context )
 
 	STRONG_ASSERT( cmd.end() == vk::Result::eSuccess );
 
-	// make sure we got the swapchain image we requested in BeginFrame
-	STRONG_ASSERT( m_vkDevice.waitForFences( frame_context.m_swapchainImageAcquiredFence, true, ~0 ) == vk::Result::eSuccess );
-	STRONG_ASSERT( m_vkDevice.resetFences( frame_context.m_swapchainImageAcquiredFence ) == vk::Result::eSuccess );
+	{
+		ZoneScopedN( "Wait for fences" );
+
+		// make sure we got the swapchain image we requested in BeginFrame
+		STRONG_ASSERT(m_vkDevice.waitForFences(frame_context.m_swapchainImageAcquiredFence, true, ~0) == vk::Result::eSuccess);
+		STRONG_ASSERT(m_vkDevice.resetFences(frame_context.m_swapchainImageAcquiredFence) == vk::Result::eSuccess);
+	}
 
 	const vk::Result submit_result = m_vkGraphicsQueue.submit( vk::SubmitInfo()
 		.setCommandBuffers( cmd )
@@ -379,6 +400,8 @@ void VulkanGraphicsContext::StagingBuffer::Resize( u32 new_size )
 
 VulkanGraphicsContext::TransientCommand VulkanGraphicsContext::BeginTransientCommand( u32 required_staging_buffer_size )
 {
+	ZoneScoped;
+
 	// try to find a staging buffer
 	StagingBuffer* staging_buffer = nullptr;
 
@@ -454,6 +477,8 @@ VulkanGraphicsContext::TransientCommand VulkanGraphicsContext::BeginTransientCom
 
 void VulkanGraphicsContext::SubmitTransientCommand( TransientCommand tc )
 {
+	ZoneScoped;
+
 	STRONG_ASSERT( tc.cmd.end() == vk::Result::eSuccess );
 
 	const vk::Result transient_submit_result = m_vkGraphicsQueue.submit(
@@ -467,6 +492,8 @@ void VulkanGraphicsContext::SubmitTransientCommand( TransientCommand tc )
 
 std::shared_ptr< IRenderTarget > VulkanGraphicsContext::CreateRenderTarget( const glm::uvec2& dimensions )
 {
+	ZoneScoped;
+
 	std::shared_ptr< RenderTarget > render_target = std::make_shared< RenderTarget >( dimensions );
 
 	const vk::ResultValue< std::pair< vk::Image, vma::Allocation > > create_image_result = m_vmaAllocator.createImage(
@@ -531,6 +558,8 @@ std::shared_ptr< IRenderTarget > VulkanGraphicsContext::CreateRenderTarget( cons
 
 std::shared_ptr< ITextureResource > VulkanGraphicsContext::CreateTextureResource( const TextureAsset& asset )
 {
+	ZoneScoped;
+
 	std::shared_ptr< TextureResource > texture = std::make_shared< TextureResource >();
 
 	const glm::uvec2 dimensions = asset.GetDimensions();
@@ -763,6 +792,8 @@ std::shared_ptr< ISpriteRenderer > VulkanGraphicsContext::CreateSpriteRenderer()
 
 void VulkanGraphicsContext::InitSpriteRendererResources()
 {
+	ZoneScoped;
+
 	if ( m_spriteRenderingResources )
 		return;
 
@@ -913,6 +944,8 @@ void VulkanGraphicsContext::InitSpriteRendererResources()
 
 VulkanGraphicsContext::WindowContext::WindowContext( IWindow& window ) : IWindowContext( window )
 {
+	ZoneScoped;
+
 	OnResize();
 
 	VulkanGraphicsContext& ctx = static_cast<VulkanGraphicsContext&>( LowLevel::GetGraphicsContext() );
@@ -999,6 +1032,8 @@ VulkanGraphicsContext::WindowContext::~WindowContext()
 
 void VulkanGraphicsContext::WindowContext::OnResize()
 {
+	ZoneScoped;
+
 	m_failedToResize = true;
 
 	if ( m_window->HasClosed() )
@@ -1091,7 +1126,7 @@ void VulkanGraphicsContext::WindowContext::SDLSetup()
 	m_resizeDeleteQueue.Add< Deleter< vk::SurfaceKHR > >( ctx.m_vkInstance, m_surface );
 
 	vkb::Result< vkb::Swapchain > swapchain = vkb::SwapchainBuilder( ctx.m_vkPhysicalDevice, ctx.m_vkDevice, surface )
-		.set_desired_present_mode( VK_PRESENT_MODE_FIFO_KHR )
+		.set_desired_present_mode( VkPresentModeKHR( vk::PresentModeKHR::eFifo ) )
 		.add_image_usage_flags( VkImageUsageFlags( vk::ImageUsageFlagBits::eTransferDst ) )
 		.build();
 
@@ -1284,6 +1319,8 @@ ImTextureID VulkanGraphicsContext::TextureResource::GetImTextureID()
 
 std::shared_ptr< VulkanGraphicsContext::SpriteRenderer::PerFrameData > VulkanGraphicsContext::SpriteRenderer::CreatePerFrameData( VulkanGraphicsContext& ctx, u32 required_transform_buffer_size )
 {
+	ZoneScoped;
+
 	const vk::ResultValue< std::pair< vk::Buffer, vma::Allocation > > create_buffer_result = ctx.m_vmaAllocator.createBuffer(
 		vk::BufferCreateInfo()
 			.setSize( required_transform_buffer_size )
@@ -1321,6 +1358,8 @@ std::shared_ptr< VulkanGraphicsContext::SpriteRenderer::PerFrameData > VulkanGra
 
 void VulkanGraphicsContext::SpriteRenderer::Render( IFrameContext& frame_context, std::shared_ptr< IRenderTarget >& render_target, const SpriteRenderData& data )
 {
+	ZoneScoped;
+
 	RenderTarget& rt = static_cast< RenderTarget& >( *render_target );
 	FrameContext& frame = static_cast< FrameContext& >( frame_context );
 	VulkanGraphicsContext& ctx = static_cast< VulkanGraphicsContext& >( LowLevel::GetGraphicsContext() );

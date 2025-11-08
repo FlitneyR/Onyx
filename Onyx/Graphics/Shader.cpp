@@ -98,6 +98,8 @@ bool ShaderAsset::CompileSource( LowLevel::Config::GraphicsAPI api, ShaderStage 
 
 void ShaderAsset::Load( LoadType type )
 {
+	ZoneScoped;
+
 	m_loadingState = LoadingState::Loading;
 
 	const BjSON::IReadOnlyObject* reader = GetReader();
@@ -179,6 +181,8 @@ void ShaderAsset::DoAssetManagerButton( const char* name, const char* path, f32 
 
 void ShaderEditorWindow::Run( IFrameContext& frame_context )
 {
+	ZoneScoped;
+
 	if ( ImGui::Begin( GetWindowTitle().c_str(), &m_open, ImGuiWindowFlags_MenuBar ) )
 	{
 		if ( ImGui::BeginMenuBar() )

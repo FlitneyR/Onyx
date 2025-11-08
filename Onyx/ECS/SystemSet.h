@@ -35,6 +35,8 @@ struct SystemSet
 
 	void Run( Components& ... components )
 	{
+		ZoneScoped;
+
 		IContext context( components ... );
 
 		#pragma omp parallel for
@@ -53,6 +55,7 @@ private:
 
 		void Run( IContext& context ) const override
 		{
+			ZoneScoped;
 			for ( auto& system : m_systems )
 				system->Run( context );
 		}

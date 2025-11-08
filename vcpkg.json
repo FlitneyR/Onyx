@@ -4,6 +4,7 @@
   "dependencies": [
     "assimp",
     "glm",
+    "glslang",
     {
       "name": "imgui",
       "features": [
@@ -22,6 +23,6 @@
     "vulkan",
     "vulkan-memory-allocator",
     "vulkan-memory-allocator-hpp",
-    "glslang"
+    "tracy"
   ]
 }

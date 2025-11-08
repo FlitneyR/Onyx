@@ -7,6 +7,8 @@
 #include "SDL2/SDL_vulkan.h"
 #include "imgui_impl_sdl2.h"
 
+#include "tracy/Tracy.hpp"
+
 namespace onyx
 {
 
@@ -50,6 +52,8 @@ void SDLWindow::SetSize( const glm::uvec2& new_size )
 
 std::shared_ptr< IWindow > SDLWindowManager::CreateWindow( const CreateWindowArgs& args )
 {
+	ZoneScoped;
+
 	if ( !ASSERT( !LowLevel::GetConfig().enableImGui || m_windows.empty(), "ImGui does not support multiple windows" ) )
 		return nullptr;
 
@@ -101,6 +105,8 @@ std::shared_ptr< IWindow > SDLWindowManager::CreateWindow( const CreateWindowArg
 
 void SDLWindowManager::ProcessEvents()
 {
+	ZoneScoped;
+
 	SDL_Event event;
 
 	( (SDLInput&)LowLevel::GetInput() ).ResetMouseState();

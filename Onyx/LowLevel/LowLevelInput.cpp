@@ -36,6 +36,8 @@ std::string LowLevelInput::DebugWindow::GetWindowTitle() const
 
 void LowLevelInput::DebugWindow::Run( IFrameContext& frame_context )
 {
+	ZoneScoped;
+
 	if ( ImGui::Begin( GetWindowTitle().c_str(), &m_open ) )
 	{
 		ImGui::SetWindowSize( { 1000, 600 }, ImGuiCond_Once );

@@ -131,6 +131,8 @@ public:
 	template< typename Asset >
 	std::shared_ptr< Asset > New( std::string path_to_asset, bool hold_reference = true )
 	{
+		ZoneScoped;
+
 		const bool asset_exists = m_weakAssetReferences.find( path_to_asset ) != m_weakAssetReferences.end();
 		LOG_ASSERT( !asset_exists, "An asset already exists at {}", path_to_asset );
 
@@ -149,6 +151,8 @@ public:
 	template< typename Asset >
 	std::shared_ptr< Asset > Load( std::string path_to_asset, bool hold_reference = false, IAsset::LoadType load_type = IAsset::LoadType::Stream )
 	{
+		ZoneScoped;
+
 		//auto iter = m_assets.find( path_to_asset );
 		//if ( !LOG_ASSERT( iter != m_assets.end(), "Tried to load an asset at {} but none exists", path_to_asset ) )
 		//	return nullptr;

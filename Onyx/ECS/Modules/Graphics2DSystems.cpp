@@ -1,10 +1,14 @@
 #include "Graphics2D.h"
 
+#include "tracy/Tracy.hpp"
+
 namespace onyx::Graphics2D
 {
 
 void CollectSprites( ecs::Context< SpriteRenderData > ctx, const CollectSpritesQuery& entities )
 {
+	ZoneScoped;
+
 	auto [render_data] = ctx.Break();
 
 	for ( auto& entity : entities )
@@ -33,6 +37,8 @@ void CollectSprites( ecs::Context< SpriteRenderData > ctx, const CollectSpritesQ
 
 void UpdateAnimatedSprites( ecs::Context< const Tick > ctx, const UpdateAnimatedSpritesQuery& animated_sprites )
 {
+	ZoneScoped;
+
 	auto [tick] = ctx.Break();
 
 	for ( auto& entity : animated_sprites )
@@ -61,6 +67,8 @@ void UpdateAnimatedSprites( ecs::Context< const Tick > ctx, const UpdateAnimated
 
 void UpdateParallaxBackgroundLayers( ecs::Context< const Camera2D > ctx, const UpdateParallaxBackgroundLayersQuery& background_layers )
 {
+	ZoneScoped;
+
 	auto [camera] = ctx.Break();
 
 	for ( auto& layer : background_layers )

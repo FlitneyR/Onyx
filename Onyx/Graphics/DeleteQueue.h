@@ -3,6 +3,8 @@
 #include <deque>
 #include <memory>
 
+#include "tracy/Tracy.hpp"
+
 #define DEBUG_HANGING_DELETERS 0
 
 namespace onyx
@@ -43,6 +45,11 @@ struct DeleteQueue
 
 	void Execute()
 	{
+		if ( m_queue.empty() )
+			return;
+
+		ZoneScoped;
+
 		while ( !m_queue.empty() )
 		{
 			m_queue.back()->Execute();
