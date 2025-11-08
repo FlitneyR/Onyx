@@ -187,7 +187,7 @@ IFrameContext* VulkanGraphicsContext::BeginFrame( IWindow& window )
 		STRONG_ASSERT(m_vkDevice.resetFences(frame_context.m_finishedRenderingFence) == vk::Result::eSuccess);
 	}
 
-	frame_context.m_deleteQueue.Execute();
+	frame_context.OnFinishFrame();
 
 	STRONG_ASSERT( frame_context.m_cmd.begin( vk::CommandBufferBeginInfo()
 		.setFlags( vk::CommandBufferUsageFlagBits::eOneTimeSubmit ) ) == vk::Result::eSuccess );
@@ -1027,7 +1027,7 @@ VulkanGraphicsContext::WindowContext::~WindowContext()
 	m_resizeDeleteQueue.Execute();
 
 	for ( FrameContext& frame_context : m_frameContexts )
-		frame_context.m_deleteQueue.Execute();
+		frame_context.OnFinishFrame();
 }
 
 void VulkanGraphicsContext::WindowContext::OnResize()

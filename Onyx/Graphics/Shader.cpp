@@ -27,7 +27,7 @@ bool ShaderAsset::Import( const char* filename )
 
 struct GLSLangDeleter : DeleteQueue::IDeleter
 {
-	void Execute() override { glslang::FinalizeProcess(); }
+	void Delete() override { glslang::FinalizeProcess(); }
 };
 
 bool ShaderAsset::CompileSource( LowLevel::Config::GraphicsAPI api, ShaderStage stage, std::string& log )

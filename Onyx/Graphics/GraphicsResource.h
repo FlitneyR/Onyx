@@ -1,6 +1,8 @@
 #pragma once
 #include "DeleteQueue.h"
 
+#include "tracy/Tracy.hpp"
+
 namespace onyx
 {
 
@@ -18,7 +20,7 @@ struct SharedResourceDeleter : DeleteQueue::IDeleter
 
 	SharedResourceDeleter( std::shared_ptr< IGraphicsResource > resource ) : m_resource( resource ) {}
 
-	void Execute() { m_resource.reset(); }
+	void Delete() { ZoneScoped; m_resource.reset(); }
 };
 
 }
