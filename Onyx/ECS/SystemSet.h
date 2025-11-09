@@ -3,9 +3,12 @@
 #include "World.h"
 #include "Query.h"
 #include "System.h"
+#include "Onyx/Multithreading.h"
 
 #include <vector>
 #include <memory>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace onyx::ecs
 {
@@ -21,57 +24,57 @@ struct SystemSet
 	template< typename Func >
 	void AddSystem( Func* callback )
 	{
-		m_systems.push_back( std::make_unique< System< IContext, Func > >( m_querySet, callback ) );
+		m_systems.insert( { (u64)callback, std::make_unique< System< IContext, Func > >( m_querySet, callback ) } );
 	}
 
-	// add a subset of systems which have to run one after another
-	template< typename ... Funcs >
-	void AddSubset( Funcs* ... callbacks )
+	void AddDependency( void* first, void* second )
 	{
-		auto subset = std::make_unique< Subset >( m_querySet );
-		( subset->AddSystem( callbacks ), ... );
-		m_systems.push_back( std::move( subset ) );
+		auto iter = m_dependencies.find( (u64)first );
+		if ( iter != m_dependencies.end() )
+		{
+			iter->second.insert( (u64)second );
+			return;
+		}
+
+		m_dependencies.insert( (u64)first, { (u64)second });
 	}
 
+private:
+	QuerySet& m_querySet;
+	std::unordered_map< u64, std::unordered_set< u64 > > m_dependencies;
+	std::unordered_map< u64, std::unique_ptr< ISystem< IContext > > > m_systems;
+
+	struct RunSystemJob : IJob
+	{
+		RunSystemJob( ISystem< IContext >* system, IContext* context )
+			: m_system( *system )
+			, m_context( *context )
+		{}
+
+		void Run() override { m_system.Run( m_context ); }
+
+	private:
+		ISystem< IContext >& m_system;
+		IContext& m_context;
+	};
+
+public:
 	void Run( Components& ... components )
 	{
 		ZoneScoped;
 
 		IContext context( components ... );
 
-		#pragma omp parallel for
-		for ( i32 system_index = 0; system_index < m_systems.size(); ++system_index )
-		{
-			m_systems[ system_index ]->Run( context );
-		}
+		WorkerPool& worker_pool = onyx::LowLevel::GetWorkerPool();
+		JobQueue& job_queue = worker_pool.GetJobQueue();
+
+		job_queue.Reserve( m_systems.size() );
+		for ( auto& [_, system] : m_systems )
+			job_queue.AddJob< RunSystemJob >( system.get(), &context );
+
+		worker_pool.Begin();
+		worker_pool.Wait();
 	}
-
-private:
-	struct Subset : ISystem< IContext >
-	{
-		Subset( QuerySet& query_set )
-			: m_querySet( query_set )
-		{}
-
-		void Run( IContext& context ) const override
-		{
-			ZoneScoped;
-			for ( auto& system : m_systems )
-				system->Run( context );
-		}
-
-		template< typename Func >
-		void AddSystem( Func* callback )
-		{
-			m_systems.push_back( std::make_unique< System< IContext, Func > >( m_querySet, callback ) );
-		}
-
-		QuerySet& m_querySet;
-		std::vector< std::unique_ptr< ISystem< IContext > > > m_systems;
-	};
-
-	QuerySet& m_querySet;
-	std::vector< std::unique_ptr< ISystem< IContext > > > m_systems;
 };
 
 }

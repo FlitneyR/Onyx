@@ -4,7 +4,6 @@
 #include "World.h"
 #include "CommandBuffer.h"
 
-
 #include <tuple>
 #include <memory>
 
@@ -15,6 +14,7 @@ template< typename IContext >
 struct ISystem
 {
 	virtual ~ISystem() = default;
+
 	virtual void Run( IContext& context ) const = 0;
 };
 
@@ -31,7 +31,10 @@ struct System< IContext, void( Context, const Queries& ... ) > : ISystem< IConte
 		, m_queries( query_set.Get< Queries >() ... )
 	{}
 
-	void Run( IContext& context ) const override { ( *m_callback )( Context( context ), *std::get< std::shared_ptr< Queries > >( m_queries ) ... ); }
+	void Run( IContext& context ) const override
+	{
+		( *m_callback )( Context( context ), *std::get< std::shared_ptr< Queries > >( m_queries ) ... );
+	}
 
 private:
 	Func* const m_callback;

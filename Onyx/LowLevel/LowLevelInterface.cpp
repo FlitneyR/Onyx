@@ -3,6 +3,7 @@
 #include "Impl/SDLWindowManager.h"
 #include "Impl/SDLInput.h"
 #include "Impl/VulkanGraphicsContext.h"
+#include "Onyx/Multithreading.h"
 
 #include "imgui.h"
 
@@ -21,6 +22,8 @@ LowLevelInput* s_lowLevelInput = nullptr;
 IWindowManager* s_windowManager = nullptr;
 
 AssetManager* s_coreAssetManager = nullptr;
+
+WorkerPool* s_workerPool = nullptr;
 
 Config s_config = {};
 
@@ -71,6 +74,8 @@ void Init( const Config& config, AssetManager* core_asset_manager )
 		break;
 	}
 
+	s_workerPool = new WorkerPool( config.numWorkers );
+
 	s_isReady = true;
 }
 
@@ -78,6 +83,7 @@ void CleanUp()
 {
 	ASSERT( s_isReady );
 
+	delete s_workerPool;
 	delete s_windowManager;
 	delete s_graphicsContext;
 	delete s_lowLevelInput;
@@ -107,6 +113,12 @@ IWindowManager& GetWindowManager()
 {
 	ASSERT( s_isReady );
 	return *ASSERT( s_windowManager );
+}
+
+WorkerPool& GetWorkerPool()
+{
+	ASSERT( s_isReady );
+	return *ASSERT( s_workerPool );
 }
 
 AssetManager* GetCoreAssetManager()

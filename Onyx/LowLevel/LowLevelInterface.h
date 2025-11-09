@@ -9,6 +9,9 @@
 namespace onyx
 {
 
+// forward declaration from "Onyx/Multithreading.h"
+struct WorkerPool;
+
 namespace LowLevel
 {
 
@@ -31,6 +34,8 @@ struct Config
 	};
 
 	bool enableImGui = false;
+
+	u32 numWorkers = 0;
 };
 
 void Init( const Config& config, AssetManager* core_asset_manager = nullptr );
@@ -41,6 +46,7 @@ const Config& GetConfig();
 IGraphicsContext& GetGraphicsContext();
 LowLevelInput& GetInput();
 IWindowManager& GetWindowManager();
+WorkerPool& GetWorkerPool();
 AssetManager* GetCoreAssetManager();
 
 }

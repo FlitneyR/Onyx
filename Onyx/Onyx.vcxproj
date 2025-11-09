@@ -233,7 +233,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>$(VULKAN_SDK)lib\vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(VULKAN_SDK)\lib\vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -256,7 +256,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>$(VULKAN_SDK)lib\vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(VULKAN_SDK)\lib\vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Optimised|x64'">
@@ -279,7 +279,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>$(VULKAN_SDK)lib\vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(VULKAN_SDK)\lib\vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">
@@ -309,6 +309,7 @@
     <ClCompile Include="Assets.cpp" />
     <ClCompile Include="BjSON\BjSON.cpp" />
     <ClCompile Include="ECS\World.cpp" />
+    <ClCompile Include="Multithreading.cpp" />
     <ClCompile Include="Utils.cpp" />
     <ClInclude Include="ECS\ComponentReflector.h" />
     <ClCompile Include="ECS\Modules\CoreReflectors.cpp" />
@@ -374,6 +375,7 @@
     <ClInclude Include="LowLevel\LowLevelInterface.h" />
     <ClInclude Include="LowLevel\WindowManager.h" />
     <ClInclude Include="Clock.h" />
+    <ClInclude Include="Multithreading.h" />
     <ClInclude Include="Random.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="Utils.h" />

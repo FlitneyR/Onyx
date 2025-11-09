@@ -1,6 +1,7 @@
 #include "Onyx/Assets.h"
 #include "Onyx/Clock.h"
 #include "Onyx/Random.h"
+#include "Onyx/Multithreading.h"
 #include "Onyx/Graphics/Camera.h"
 #include "Onyx/Graphics/RenderTarget.h"
 #include "Onyx/LowLevel/LowLevelInterface.h"
@@ -39,6 +40,7 @@ int main( int argc, const char** argv )
 	INFO( "Initialising Asteroids" );
 
 	onyx::LowLevel::Config config;
+	config.numWorkers = 4;
 	onyx::LowLevel::Init( config, &core_asset_manager );
 
 	onyx::LowLevelInput& input = onyx::LowLevel::GetInput();
@@ -75,7 +77,8 @@ int main( int argc, const char** argv )
 		onyx::ecs::QuerySet render_query_set( world );
 		onyx::ecs::SystemSet< onyx::SpriteRenderData, onyx::Camera2D > prerender_set( render_query_set );
 
-		pre_tick_set.AddSubset( asteroids::Physics::UpdatePhysicsBodies, asteroids::Physics::UpdateCollisions );
+		pre_tick_set.AddSystem( asteroids::Physics::UpdatePhysicsBodies );
+		pre_tick_set.AddSystem( asteroids::Physics::UpdateCollisions );
 		pre_tick_set.AddSystem( asteroids::Core::UpdateCamera );
 		tick_set.AddSystem( asteroids::Core::UpdateOffScreenSpawners );
 		tick_set.AddSystem( asteroids::Physics::UpdateDamageOnCollision );
