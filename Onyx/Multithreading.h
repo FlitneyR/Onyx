@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 #include <thread>
 #include <mutex>
@@ -12,9 +13,15 @@ namespace onyx
 struct IJob
 {
 	virtual ~IJob() = default;
+
+	virtual bool TryLock() { return true; }
 	virtual void Run() = 0;
 
+	void AddDependency( const IJob* other_job ) { dependencies.push_back( other_job ); }
+
+	std::vector< const IJob* > dependencies;
 	std::atomic_bool hasStarted = false;
+	bool hasFinished = false;
 };
 
 struct JobQueue
@@ -22,17 +29,24 @@ struct JobQueue
 	void Reserve( u32 num_jobs ) { m_jobs.reserve( num_jobs ); }
 
 	template< typename Job, typename ... Args >
-	void AddJob( Args ... args )
+	void AddJob( u64 id, Args ... args )
 	{
-		m_jobs.push_back( std::make_unique< Job >( args ... ) );
+		m_jobs.insert( { id, std::make_unique< Job >( args ... ) } );
 	}
 
+	IJob* GetNextJob( bool& any_unstarted_jobs );
 	bool StartNextAvailableJob();
 	void Reset() { m_jobs.clear(); }
 	u32 Count() const { return m_jobs.size(); }
 
+	inline IJob* GetJob( u64 id )
+	{
+		auto iter = m_jobs.find( id );
+		return iter == m_jobs.end() ? nullptr : iter->second.get();
+	}
+
 private:
-	std::vector< std::unique_ptr< IJob > > m_jobs;
+	std::unordered_map< u64, std::unique_ptr< IJob > > m_jobs;
 };
 
 struct WorkerPool

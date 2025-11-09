@@ -60,36 +60,47 @@ int main( int argc, const char** argv )
 		onyx::ecs::CommandBuffer cmd( world );
 
 		onyx::ecs::QuerySet tick_query_set( world );
-		using TickSystemSet = onyx::ecs::SystemSet<
+		onyx::ecs::SystemSet<
 			const onyx::ecs::World,
 			onyx::ecs::CommandBuffer,
 			onyx::AssetManager,
 			const onyx::Tick,
 			onyx::Camera2D,
 			onyx::RNG
-		>;
-
-		//TickSystemSet pre_tick_set( tick_query_set );
-		TickSystemSet tick_set( tick_query_set );
-		//TickSystemSet post_tick_set( tick_query_set );
+		> tick_set( tick_query_set );
 
 		onyx::ecs::QuerySet render_query_set( world );
 		onyx::ecs::SystemSet< onyx::SpriteRenderData, onyx::Camera2D > prerender_set( render_query_set );
 
-		tick_set.AddSystem( asteroids::Physics::UpdatePhysicsBodies );
-		tick_set.AddSystem( asteroids::Physics::UpdateCollisions );
-		tick_set.AddSystem( asteroids::Core::UpdateCamera );
-		tick_set.AddSystem( asteroids::Core::UpdateOffScreenSpawners );
-		tick_set.AddSystem( asteroids::Physics::UpdateDamageOnCollision );
-		tick_set.AddSystem( asteroids::Player::UpdatePlayers );
-		tick_set.AddSystem( onyx::Graphics2D::UpdateAnimatedSprites );
-		tick_set.AddSystem( onyx::Core::UpdateTransform2DLocales );
-		tick_set.AddSystem( onyx::Graphics2D::UpdateParallaxBackgroundLayers );
-		tick_set.AddSystem( asteroids::Core::UpdateLifetimes );
-		prerender_set.AddSystem( onyx::Graphics2D::CollectSprites );
+		{
+			INFO( "Registering systems and dependencies" );
+			ZoneScopedN( "Register systems and dependencies" );
+
+			tick_set.AddSystem( asteroids::Physics::UpdatePhysicsBodies );
+			tick_set.AddSystem( asteroids::Physics::UpdateCollisions );
+			tick_set.AddDependency( asteroids::Physics::UpdatePhysicsBodies, asteroids::Physics::UpdateCollisions );
+
+			tick_set.AddSystem( asteroids::Core::UpdateCamera );
+			tick_set.AddSystem( asteroids::Core::UpdateOffScreenSpawners );
+			tick_set.AddDependency( asteroids::Core::UpdateCamera, asteroids::Core::UpdateOffScreenSpawners );
+
+			tick_set.AddSystem( asteroids::Physics::UpdateDamageOnCollision );
+			tick_set.AddSystem( asteroids::Player::UpdatePlayers );
+			tick_set.AddSystem( onyx::Graphics2D::UpdateAnimatedSprites );
+
+			tick_set.AddSystem( onyx::Core::UpdateTransform2DLocales );
+			tick_set.AddSystem( onyx::Graphics2D::UpdateParallaxBackgroundLayers );
+			tick_set.AddDependency( onyx::Graphics2D::UpdateAnimatedSprites, onyx::Graphics2D::UpdateParallaxBackgroundLayers );
+
+			tick_set.AddSystem( asteroids::Core::UpdateLifetimes );
+
+			prerender_set.AddSystem( onyx::Graphics2D::CollectSprites );
+		}
 
 		INFO( "Loading entry point scene" );
 		{
+			ZoneScopedN( "Load entry point scene" );
+
 			auto entry_point = asteroids_asset_manager.Load< onyx::ecs::Scene >( "/entry_point" );
 			if ( !WEAK_ASSERT( entry_point, "Missing entry point scene" ) )
 				return -1;
@@ -133,9 +144,7 @@ int main( int argc, const char** argv )
 				tick_data.deltaTime = clock.GetDeltaTime();
 
 				tick_query_set.Update();
-				//pre_tick_set.Run( world, cmd, asteroids_asset_manager, tick_data, camera, rng );
 				tick_set.Run( world, cmd, asteroids_asset_manager, tick_data, camera, rng );
-				//post_tick_set.Run( world, cmd, asteroids_asset_manager, tick_data, camera, rng );
 
 				if ( onyx::IFrameContext* frame_context = graphics_context.BeginFrame( *game_window ) )
 				{

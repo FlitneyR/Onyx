@@ -13,9 +13,16 @@ namespace onyx::ecs
 template< typename IContext >
 struct ISystem
 {
+	ISystem( u64 id ) : id( id ) {}
+
 	virtual ~ISystem() = default;
 
 	virtual void Run( IContext& context ) const = 0;
+
+	u64 GetID() const { return id; }
+
+private:
+	u64 id = 0;
 };
 
 template< typename IContext, typename Func >
@@ -27,7 +34,8 @@ struct System< IContext, void( Context, const Queries& ... ) > : ISystem< IConte
 	using Func = void( Context, const Queries& ... );
 
 	System( QuerySet& query_set, Func* callback )
-		: m_callback( callback )
+		: ISystem< IContext >( (u64)callback )
+		, m_callback( callback )
 		, m_queries( query_set.Get< Queries >() ... )
 	{}
 

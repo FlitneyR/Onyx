@@ -7,8 +7,6 @@
 
 #include <vector>
 #include <memory>
-#include <unordered_map>
-#include <unordered_set>
 
 namespace onyx::ecs
 {
@@ -24,25 +22,18 @@ struct SystemSet
 	template< typename Func >
 	void AddSystem( Func* callback )
 	{
-		m_systems.insert( { (u64)callback, std::make_unique< System< IContext, Func > >( m_querySet, callback ) } );
+		m_systems.push_back( std::make_unique< System< IContext, Func > >( m_querySet, callback ) );
 	}
 
 	void AddDependency( void* first, void* second )
 	{
-		auto iter = m_dependencies.find( (u64)first );
-		if ( iter != m_dependencies.end() )
-		{
-			iter->second.insert( (u64)second );
-			return;
-		}
-
-		m_dependencies.insert( (u64)first, { (u64)second });
+		m_dependencies.push_back( { (u64)first, (u64)second } );
 	}
 
 private:
 	QuerySet& m_querySet;
-	std::unordered_map< u64, std::unordered_set< u64 > > m_dependencies;
-	std::unordered_map< u64, std::unique_ptr< ISystem< IContext > > > m_systems;
+	std::vector< std::tuple< u64, u64 > > m_dependencies;
+	std::vector< std::unique_ptr< ISystem< IContext > > > m_systems;
 
 	struct RunSystemJob : IJob
 	{
@@ -69,8 +60,14 @@ public:
 		JobQueue& job_queue = worker_pool.GetJobQueue();
 
 		job_queue.Reserve( m_systems.size() );
-		for ( auto& [_, system] : m_systems )
-			job_queue.AddJob< RunSystemJob >( system.get(), &context );
+
+		for ( auto& system : m_systems )
+			job_queue.AddJob< RunSystemJob >( system->GetID(), system.get(), &context );
+
+		for ( auto& [first, second] : m_dependencies )
+			if ( IJob* first_job = job_queue.GetJob( first ) )
+				if ( IJob* second_job = job_queue.GetJob( second ) )
+					second_job->AddDependency( first_job );
 
 		worker_pool.Begin();
 		worker_pool.Wait();

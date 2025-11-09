@@ -10,25 +10,52 @@
 namespace onyx
 {
 
-bool JobQueue::StartNextAvailableJob()
+IJob* JobQueue::GetNextJob( bool& any_unstarted_jobs )
 {
-	ZoneScoped;
+	any_unstarted_jobs = false;
 
-	IJob* job = nullptr;
-	for ( auto& iter : m_jobs )
+	for ( auto& [id, _job] : m_jobs )
 	{
-		if ( !iter->hasStarted.exchange( true ) )
+		if ( _job->hasFinished )
+			continue;
+
+		if ( !_job->hasStarted.exchange( true ) )
 		{
-			job = iter.get();
-			break;
+			any_unstarted_jobs = true;
+
+			bool can_start = true;
+			for ( const IJob* dependency : _job->dependencies )
+			{
+				if ( !dependency->hasFinished )
+					can_start = false;
+
+				break;
+			}
+
+			if ( !can_start )
+			{
+				_job->hasStarted = false;
+				continue;
+			}
+
+			return _job.get();
 		}
 	}
 
-	if ( !job )
-		return false;
+	return nullptr;
+}
 
-	job->Run();
-	return true;
+bool JobQueue::StartNextAvailableJob()
+{
+	bool any_unstarted_jobs;
+
+	if ( IJob* const job = GetNextJob( any_unstarted_jobs ) )
+	{
+		job->Run();
+		job->hasFinished = true;
+	}
+
+	return any_unstarted_jobs;
 }
 
 WorkerPool::WorkerPool( u32 num_workers )
