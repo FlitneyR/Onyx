@@ -122,8 +122,6 @@ void WorkerPool::Worker( u32 index, u32 count )
 	}
 #endif
 
-	u32 last_work_batch = 0;
-
 	while ( !m_workersShouldStop )
 	{
 		if ( index >= m_workersCanStart )
