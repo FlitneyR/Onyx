@@ -12,6 +12,8 @@ namespace onyx
 
 bool JobQueue::StartNextAvailableJob()
 {
+	ZoneScoped;
+
 	IJob* job = nullptr;
 	for ( auto& iter : m_jobs )
 	{
@@ -31,12 +33,13 @@ bool JobQueue::StartNextAvailableJob()
 
 WorkerPool::WorkerPool( u32 num_workers )
 {
-	if ( num_workers == 0 )
-		num_workers = std::thread::hardware_concurrency();
+	SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_HIGHEST );
+
+	num_workers = std::min( num_workers, std::thread::hardware_concurrency() );
 
 	m_workers.reserve( num_workers );
 	for ( u32 idx = 0; idx < num_workers; ++idx )
-		m_workers.push_back( std::jthread( [this, idx] { Worker( idx ); } ) );
+		m_workers.push_back( std::jthread( [this, idx, num_workers] { Worker( idx, num_workers ); } ) );
 }
 
 WorkerPool::~WorkerPool()
@@ -61,9 +64,16 @@ void WorkerPool::Begin()
 {
 	ZoneScoped;
 
-	m_workersCanStart = true;
-	while ( m_activeWorkers < m_workers.size() );
-	m_workersCanStart = false;
+	m_workersCanStart = std::min< u32 >( ( m_jobQueue.Count() + 1 ) / 2, m_workers.size() );
+
+#ifdef _WIN32
+	// tell the important threads to ramp up
+	for ( u32 idx = 0; idx < m_workersCanStart; ++idx )
+		SetThreadPriority( m_workers[ idx ].native_handle(), THREAD_PRIORITY_HIGHEST );
+#endif
+
+	while ( m_activeWorkers < m_workersCanStart );
+	m_workersCanStart = 0;
 }
 
 void WorkerPool::Wait()
@@ -73,7 +83,7 @@ void WorkerPool::Wait()
 	while ( m_activeWorkers > 0 );
 }
 
-void WorkerPool::Worker( u32 index )
+void WorkerPool::Worker( u32 index, u32 count )
 {
 #ifdef _WIN32
 	{
@@ -81,6 +91,7 @@ void WorkerPool::Worker( u32 index )
 		wsprintf( thread_name, L"Worker %u", index );
 
 		SetThreadDescription( GetCurrentThread(), thread_name );
+		SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_LOWEST );
 	}
 #endif
 
@@ -88,15 +99,23 @@ void WorkerPool::Worker( u32 index )
 
 	while ( !m_workersShouldStop )
 	{
-		if ( !m_workersCanStart )
+		if ( index >= m_workersCanStart )
 		{
 			std::this_thread::yield();
 			continue;
 		}
 		
+		TracyMessageL( "Woke up" );
 		m_activeWorkers++;
+
 		while ( m_jobQueue.StartNextAvailableJob() );
-		while ( m_workersCanStart ) std::this_thread::yield();
+
+		SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_LOWEST );
+
+		TracyMessageL( "Ready to sleep" );
+		while ( index < m_workersCanStart ) std::this_thread::yield();
+
+		TracyMessageL( "Back to sleep" );
 		m_activeWorkers--;
 	}
 }

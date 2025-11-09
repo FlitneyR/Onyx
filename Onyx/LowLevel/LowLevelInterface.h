@@ -35,7 +35,7 @@ struct Config
 
 	bool enableImGui = false;
 
-	u32 numWorkers = 0;
+	u32 numWorkers = UINT32_MAX;
 };
 
 void Init( const Config& config, AssetManager* core_asset_manager = nullptr );

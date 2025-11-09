@@ -29,6 +29,7 @@ struct JobQueue
 
 	bool StartNextAvailableJob();
 	void Reset() { m_jobs.clear(); }
+	u32 Count() const { return m_jobs.size(); }
 
 private:
 	std::vector< std::unique_ptr< IJob > > m_jobs;
@@ -36,7 +37,7 @@ private:
 
 struct WorkerPool
 {
-	WorkerPool( u32 num_workers = 0 );
+	WorkerPool( u32 num_workers = UINT32_MAX );
 	~WorkerPool();
 
 	JobQueue& GetJobQueue();
@@ -47,10 +48,10 @@ private:
 	std::vector< std::jthread > m_workers;
 	JobQueue m_jobQueue;
 	std::atomic_uint32_t m_activeWorkers = 0;
-	bool m_workersCanStart = false;
+	u32 m_workersCanStart = 0;
 	bool m_workersShouldStop = false;
 
-	void Worker( u32 index );
+	void Worker( u32 index, u32 count );
 };
 
 }
