@@ -18,11 +18,12 @@ ScenePreviewer::ScenePreviewer( onyx::ecs::World& world )
 	, m_tickSystemSet( m_tickQuerySet )
 	, m_renderSystemSet( m_renderQuerySet )
 {
-	m_tickSystemSet.AddSubset(
-		onyx::Graphics2D::UpdateAnimatedSprites,
-		onyx::Core::UpdateTransform2DLocales,
-		onyx::Graphics2D::UpdateParallaxBackgroundLayers
-	);
+	m_tickSystemSet.AddSystem( onyx::Graphics2D::UpdateAnimatedSprites );
+	m_tickSystemSet.AddSystem( onyx::Core::UpdateTransform2DLocales );
+	m_tickSystemSet.AddSystem( onyx::Graphics2D::UpdateParallaxBackgroundLayers );
+
+	m_tickSystemSet.AddDependency( onyx::Graphics2D::UpdateAnimatedSprites, onyx::Core::UpdateTransform2DLocales );
+	m_tickSystemSet.AddDependency( onyx::Core::UpdateTransform2DLocales, onyx::Graphics2D::UpdateParallaxBackgroundLayers );
 
 	m_renderSystemSet.AddSystem( onyx::Graphics2D::CollectSprites );
 

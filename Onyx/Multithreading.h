@@ -68,4 +68,9 @@ private:
 	void Worker( u32 index, u32 count );
 };
 
+namespace LowLevel
+{
+WorkerPool& GetWorkerPool();
+}
+
 }

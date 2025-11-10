@@ -34,20 +34,20 @@ DEFINE_DEFAULT_PROPERTY_EDITOR_UI( EntityID )
 
 		for ( auto iter = world.Iter(); iter; ++iter )
 		{
-			std::string entity_name = std::format( "{}", iter.ID() );
+			std::string entity_name = std::format( "{}", iter.GetEntityID() );
 
 			if ( const Core::Name* name = iter.Get< Core::Name >() )
 			{
 				if ( !strstr( name->name.c_str(), search_term.c_str() ) )
 					continue;
 
-				entity_name = std::format( "{}({})", name->name, iter.ID() );
+				entity_name = std::format( "{}({})", name->name, iter.GetEntityID() );
 			}
 
 			if ( ImGui::Selectable( entity_name.c_str() ) )
 			{
 				has_changed = true;
-				value = iter.ID();
+				value = iter.GetEntityID();
 			}
 		}
 
@@ -214,7 +214,7 @@ void ComponentReflectorTable::PostCopyToWorld( World& world, EntityID entity, co
 void Scene::CopyToWorld( World& world, IDMap& map ) const
 {
 	for ( auto iter = m_world.Iter(); iter; ++iter )
-		map.push_back( { iter.ID(), iter.CopyToWorld( world ) } );
+		map.push_back( { iter.GetEntityID(), iter.CopyToWorld( world ) } );
 
 	for ( const auto& [src_id, dst_id] : map )
 		ComponentReflectorTable::s_singleton.PostCopyToWorld( world, dst_id, map );
@@ -348,11 +348,11 @@ void Scene::Save( BjSON::IReadWriteObject& writer, SaveType type )
 	for ( auto entity_iter = m_world.Iter(); entity_iter; )
 	{
 		auto& entity_writer = entities_writer.AddChild();
-		entity_writer.SetLiteral( "ID"_name, entity_iter.ID() );
+		entity_writer.SetLiteral( "ID"_name, entity_iter.GetEntityID() );
 
 		if ( const SceneInstance* const scene_instance = entity_iter.Get< SceneInstance >() )
 		{
-			const EntityID scene_root = entity_iter.ID();
+			const EntityID scene_root = entity_iter.GetEntityID();
 			if ( !WEAK_ASSERT( scene_instance->m_scene && scene_instance->m_scene->GetLoadingState() == LoadingState::Loaded ) )
 				return;
 
@@ -364,7 +364,7 @@ void Scene::Save( BjSON::IReadWriteObject& writer, SaveType type )
 					if ( scene_child->m_rootEntity != scene_root )
 						break;
 
-					entity_map.push_back( { scene_child->m_sceneEntityId, entity_iter.ID() } );
+					entity_map.push_back( { scene_child->m_sceneEntityId, entity_iter.GetEntityID() } );
 				}
 				else
 					break;
@@ -393,7 +393,7 @@ void Scene::Save( BjSON::IReadWriteObject& writer, SaveType type )
 		else
 		{
 			for ( auto& iter : entity_iter.m_iterators )
-				if ( iter.second->ID() == entity_iter.ID() )
+				if ( iter.second.GetEntityID() == entity_iter.GetEntityID() )
 					if ( auto reflector = ComponentReflectorTable::s_singleton.GetReflector( iter.first ) )
 						reflector->SerialiseComponent( entity_writer, entity_iter );
 
@@ -474,11 +474,11 @@ void SceneEditor::Run( IFrameContext& frame_context )
 				iter = hierarchy.find( attachment->localeEntity );
 			}
 
-			iter->second.push_back( entity.ID() );
+			iter->second.push_back( entity.GetEntityID() );
 		}
 		else
 		{
-			root_entities.push_back( entity.ID() );
+			root_entities.push_back( entity.GetEntityID() );
 		}
 	}
 

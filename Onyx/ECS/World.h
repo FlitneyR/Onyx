@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include "Entity.h"
+#include "ComponentTable.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -22,10 +23,10 @@ struct Scene;
 struct World
 {
 	template< typename ... Components >
-	EntityID AddEntity( const Components& ... components )
+	EntityID AddEntity( Components&& ... components )
 	{
 		const EntityID entity = m_nextEntityID++;
-		AddComponents( entity, components ... );
+		AddComponents( entity, std::move( components ) ... );
 		return entity;
 	}
 
@@ -34,15 +35,15 @@ struct World
 	void ResetEntities();
 
 	template< typename Component >
-	Component& AddComponent( EntityID entity, const Component& component )
+	Component& AddComponent( EntityID entity, Component&& component )
 	{
-		return GetComponentTable< Component >().AddComponent( entity, component );
+		return GetComponentTable< Component >().AddComponent( entity, std::move( component ) );
 	}
 
 	template< typename ... Components >
-	void AddComponents( EntityID entity, const Components& ... components )
+	void AddComponents( EntityID entity, Components&& ... components )
 	{
-		( AddComponent( entity, components ), ... );
+		( AddComponent( entity, std::move( components ) ), ... );
 	}
 
 	template< typename Component >
@@ -57,150 +58,30 @@ struct World
 		return GetComponentTable< Component >().GetComponent( entity );
 	}
 
-	struct IComponentTable
-	{
-		virtual ~IComponentTable() = default;
-
-		virtual void RemoveComponent( EntityID entity ) = 0;
-
-		struct IIterator
-		{
-			virtual ~IIterator() = default;
-
-			virtual EntityID ID() const = 0;
-			virtual EntityID NextID() const = 0;
-			virtual operator bool() const = 0;
-			virtual void CopyToWorld( World& world, EntityID entity ) const = 0;
-
-			void Increment() { ++m_currentPairIndex; }
-
-		protected:
-			u32 m_currentPairIndex = 0;
-		};
-
-		virtual std::unique_ptr< IIterator > GenericIter() = 0;
-
-		bool m_hasChanged = false;
-	};
-
-	template< typename Component >
-	struct ComponentTable : IComponentTable
-	{
-		Component& AddComponent( EntityID entity, const Component& component )
-		{
-			ZoneScoped;
-
-			auto iter = std::lower_bound( m_components.begin(), m_components.end(), entity, PairEntityIDComparator );
-			if ( iter == m_components.end() || iter->first != entity )
-			{
-				iter = m_components.insert( iter, { entity, component } );
-				m_hasChanged = true;
-			}
-			else
-			{
-				iter->second = component;
-			}
-
-			return iter->second;
-		}
-
-		Component* GetComponent( EntityID entity )
-		{
-			ZoneScoped;
-
-			auto iter = std::lower_bound( m_components.begin(), m_components.end(), entity, PairEntityIDComparator );
-			if ( iter == m_components.end() || iter->first != entity )
-				return nullptr;
-
-			return &iter->second;
-		}
-
-		void RemoveComponent( EntityID entity ) override
-		{
-			ZoneScoped;
-
-			auto iter = std::lower_bound( m_components.begin(), m_components.end(), entity, PairEntityIDComparator );
-			if ( iter != m_components.end() && iter->first == entity )
-			{
-				m_components.erase( iter );
-				m_hasChanged = true;
-			}
-		}
-
-		struct Iterator : IIterator
-		{
-			Iterator( ComponentTable& table ) : m_table( table ) {}
-
-			operator bool() const override { return ID() != NoEntity; }
-			Iterator& operator ++() { Increment(); return *this; }
-
-			EntityID ID() const override
-			{
-				if ( m_currentPairIndex >= m_table.m_components.size() )
-					return NoEntity;
-
-				return m_table.m_components[ m_currentPairIndex ].first;
-			}
-
-			EntityID NextID() const override
-			{
-				const u32 next_index = m_currentPairIndex + 1;
-				if ( next_index >= m_table.m_components.size() )
-					return NoEntity;
-
-				return m_table.m_components[ next_index ].first;
-			}
-
-			void CopyToWorld( World& world, EntityID entity ) const override
-			{
-				world.AddComponent( entity, Component() );
-			}
-
-			Component& Component() const { return m_table.m_components[ m_currentPairIndex ].second; }
-
-		private:
-
-			ComponentTable& m_table;
-		};
-
-		Iterator Iter() { return Iterator( *this ); }
-		std::unique_ptr< IIterator > GenericIter() override { return std::make_unique< Iterator >( *this ); }
-
-		using Pair = std::pair< EntityID, Component >;
-
-	private:
-		std::vector< Pair > m_components;
-
-		static bool PairEntityIDComparator( const Pair& lhs, const EntityID& entity ) { return lhs.first < entity; }
-	};
-
 	struct EntityIterator
 	{
-		EntityID m_currentEntity = ~0;
-		std::map< size_t, std::unique_ptr< IComponentTable::IIterator > > m_iterators;
+		EntityID m_currentEntity = UINT32_MAX;
+		std::map< size_t, IComponentTable::IIterator > m_iterators;
 
-		EntityIterator( const World& world, const std::set< size_t >* relevant_components );
+		EntityIterator( const World& world, const std::set< size_t >* relevant_components = nullptr );
 
-		explicit operator bool() const;
-
+		operator bool() const { return (u32)GetEntityID() < UINT32_MAX; }
 		EntityIterator& operator ++();
 
-		EntityID ID() const { return m_currentEntity; }
+		EntityID GetEntityID() const { return m_currentEntity; }
+
+		void ResetDirtyFlags() { for ( auto& [_, iter] : m_iterators ) iter.RemoveDirtyFlag(); }
 
 		EntityID CopyToWorld( World& world ) const;
 
 		template< typename Component >
 		Component* Get() const
 		{
-			auto _iter = m_iterators.find( typeid( Component ).hash_code() );
-			if ( _iter == m_iterators.end() )
+			auto iter = m_iterators.find( typeid( Component ).hash_code() );
+			if ( iter == m_iterators.end() || iter->second.GetEntityID() != GetEntityID() )
 				return nullptr;
 
-			auto& iter = *static_cast<ComponentTable< Component >::Iterator*>( _iter->second.get() );
-			if ( !iter || iter.ID() != ID() )
-				return nullptr;
-
-			return &iter.Component();
+			return reinterpret_cast< const typename ComponentTable< Component >::Iterator* >( &iter->second )->GetComponent();
 		}
 	};
 
@@ -270,8 +151,15 @@ public:
 	template< typename Component >
 	ComponentTable< Component >* GetOptionalComponentTable() const
 	{
-		return const_cast<World*>( this )->GetOptionalComponentTableInternal< Component >();
+		return const_cast< World* >( this )->GetOptionalComponentTableInternal< Component >();
 	}
 };
+
+template< typename Component >
+void ComponentTable< Component >::CopyComponentToWorld( World& world, IPage& page, u8 index, EntityID entity_id ) const
+{
+	if ( Component* component = reinterpret_cast< Page& >( page ).GetComponent( index ) )
+		world.AddComponent( entity_id, Component( *component ) );
+}
 
 }

@@ -1126,7 +1126,7 @@ void VulkanGraphicsContext::WindowContext::SDLSetup()
 	m_resizeDeleteQueue.Add< Deleter< vk::SurfaceKHR > >( ctx.m_vkInstance, m_surface );
 
 	vkb::Result< vkb::Swapchain > swapchain = vkb::SwapchainBuilder( ctx.m_vkPhysicalDevice, ctx.m_vkDevice, surface )
-		.set_desired_present_mode( VkPresentModeKHR( vk::PresentModeKHR::eImmediate ) )
+		.set_desired_present_mode( VkPresentModeKHR( vk::PresentModeKHR::eFifo ) )
 		.add_image_usage_flags( VkImageUsageFlags( vk::ImageUsageFlagBits::eTransferDst ) )
 		.build();
 

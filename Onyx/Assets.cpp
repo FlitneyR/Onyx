@@ -389,46 +389,48 @@ void AssetManagerWindow::Run( IFrameContext& frame_context )
 					{
 						ImGuiScopedID scoped_id( name.c_str() );
 
-						const bool should_delete = ImGui::Button( "[-]" );
-						std::string new_name;
+						asset->DoAssetManagerButton( name.c_str(), complete_path.c_str(), ImGui::GetColumnWidth(), asset, frame_context );
 
-						ImGui::SameLine();
-						if ( ImGui::Button( "Rename" ) )
+						if ( ImGui::BeginPopupContextItem() )
 						{
-							new_name = asset->m_path;
-							ImGui::OpenPopup( "Rename" );
-						}
+							const bool should_delete = ImGui::Button( "[-]" );
+							std::string new_name;
 
-						ImGui::SameLine();
-						if ( ImGui::Button( "Copy Path" ) )
-							ImGui::SetClipboardText( complete_path.c_str() );
+							if ( ImGui::Button( "Rename" ) )
+							{
+								new_name = asset->m_path;
+								ImGui::OpenPopup( "Rename" );
+							}
 
-						if ( ImGui::BeginPopup( "Rename" ) )
-						{
-							ImGui::InputText( "Name", &new_name );
+							if ( ImGui::Button( "Copy Path" ) )
+								ImGui::SetClipboardText( complete_path.c_str() );
 
-							if ( ImGui::Button( "Cancel" ) )
-								ImGui::CloseCurrentPopup();
+							if ( ImGui::BeginPopup( "Rename" ) )
+							{
+								ImGui::InputText( "Name", &new_name );
 
-							ImGui::SameLine();
-							if ( ImGui::Button( "Ok" ) )
+								if ( ImGui::Button( "Cancel" ) )
+									ImGui::CloseCurrentPopup();
+
+								if ( ImGui::Button( "Ok" ) )
+								{
+									m_assetManager->m_strongAssetReferences.erase( complete_path );
+									m_assetManager->m_strongAssetReferences.insert( { new_name, asset } );
+								}
+
+								ImGui::EndPopup();
+							}
+
+							if ( should_delete )
 							{
 								m_assetManager->m_strongAssetReferences.erase( complete_path );
-								m_assetManager->m_strongAssetReferences.insert( { new_name, asset } );
+								m_assetManager->m_weakAssetReferences.erase( complete_path );
+								m_assetManager->m_reader.Forget( complete_path );
+								break;
 							}
 
 							ImGui::EndPopup();
 						}
-
-						if ( should_delete )
-						{
-							m_assetManager->m_strongAssetReferences.erase( complete_path );
-							m_assetManager->m_weakAssetReferences.erase( complete_path );
-							m_assetManager->m_reader.Forget( complete_path );
-							break;
-						}
-
-						asset->DoAssetManagerButton( name.c_str(), complete_path.c_str(), ImGui::GetColumnWidth(), asset, frame_context );
 					}
 
 					if ( !( column = ( column + 1 ) % m_numIconsPerRow ) )

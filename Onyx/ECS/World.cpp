@@ -24,9 +24,9 @@ void World::RemoveEntity( EntityID entity, bool and_children )
 		{
 			std::vector< EntityID > children;
 
-			for ( auto attached_to_iter = attached_to_table->Iter(); attached_to_iter; ++attached_to_iter )
-				if ( attached_to_iter.Component().localeEntity == entity )
-					children.push_back( attached_to_iter.ID() );
+			for ( auto attached_to_iter = attached_to_table->Iter(); attached_to_iter; attached_to_iter.GoToNext() )
+				if ( attached_to_iter.GetComponent()->localeEntity == entity )
+					children.push_back( attached_to_iter.GetEntityID() );
 
 			for ( EntityID child : children )
 				RemoveEntity( child, and_children );
@@ -41,42 +41,34 @@ World::EntityIterator::EntityIterator( const World& world, const std::set< size_
 		if ( relevant_components && !relevant_components->contains( hash ) )
 			continue;
 
-		auto iter = table->GenericIter();
+		IComponentTable::IIterator iter( *table );
 
-		if ( EntityID entity = iter->ID() )
-			m_currentEntity = std::min< u32 >( m_currentEntity, entity );
+		// INFO( "iter.m_index = {}, iter.GetEntityID() = {}", iter.m_index, iter.GetEntityID() );
 
-		m_iterators.insert( { hash, std::move( iter ) } );
+		if ( const EntityID first_entity = iter.GetEntityID() )
+			m_currentEntity = std::min< u32 >( m_currentEntity, first_entity );
+
+		m_iterators.insert( { hash, iter } );
 	}
-}
-
-World::EntityIterator::operator bool() const
-{
-	for ( auto& [_, iter] : m_iterators )
-		if ( *iter )
-			return true;
-
-	return false;
 }
 
 World::EntityIterator& World::EntityIterator::operator ++()
 {
-	// find the next entity id for any component
-	EntityID next_entity = ~0;
-	for ( const auto& [hash, iterator] : m_iterators )
+	// find the lowest next entity ID
+	EntityID lowest_next_entity_id = UINT32_MAX;
+	for ( auto& [_, iter] : m_iterators )
 	{
-		if ( const EntityID curr_id = iterator->ID(); curr_id > m_currentEntity )
-			next_entity = std::min< u32 >( curr_id, next_entity );
-		else if ( const EntityID next_id = iterator->NextID() )
-			next_entity = std::min< u32 >( next_id, next_entity );
+		if ( const EntityID curr = iter.GetEntityID(); curr > m_currentEntity )
+			lowest_next_entity_id = std::min( lowest_next_entity_id, curr );
+		else if ( const EntityID next = iter.GetNextEntityID() )
+			lowest_next_entity_id = std::min( lowest_next_entity_id, next );
 	}
 
-	m_currentEntity = next_entity;
-
-	// progress iterators for each component to at least that entity
-	for ( auto& [hash, iterator] : m_iterators )
-		while ( *iterator && iterator->ID() < m_currentEntity )
-			iterator->Increment();
+	// progress to that entity ID
+	m_currentEntity = lowest_next_entity_id;
+	for ( auto& [_, iter] : m_iterators )
+		while ( iter && iter.GetEntityID() < lowest_next_entity_id )
+			++iter;
 
 	return *this;
 }
@@ -86,8 +78,8 @@ EntityID World::EntityIterator::CopyToWorld( World& world ) const
 	const EntityID entity = world.AddEntity();
 
 	for ( const auto& [type, comp] : m_iterators )
-		if ( comp->ID() == ID() )
-			comp->CopyToWorld( world, entity );
+		if ( comp.GetEntityID() == GetEntityID() )
+			comp.CopyToWorld( world, entity );
 
 	return entity;
 }
@@ -115,7 +107,7 @@ void World::QueryManager::UpdateNeedsRerun( World& world )
 			query.lock()->OnComponentAddedOrRemoved( component_type_hash );
 }
 
-World::IComponentTable* World::GetComponentTableByHash( size_t component_type_hash )
+IComponentTable* World::GetComponentTableByHash( size_t component_type_hash )
 {
 	auto iter = m_componentTables.find( component_type_hash );
 	return iter == m_componentTables.end() ? nullptr : iter->second.get();

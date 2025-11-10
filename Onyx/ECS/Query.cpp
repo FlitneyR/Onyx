@@ -39,9 +39,13 @@ void QuerySet::Update()
 	if ( !queries_to_run.empty() )
 	{
 		ZoneScopedN( "Iterate Entities" );
-		for (auto iter = m_world.Iter(&relevant_components); iter; ++iter)
-			for (auto query : queries_to_run)
-				query->Consider(iter);
+		for (auto iter = m_world.Iter( &relevant_components ); iter; ++iter)
+		{
+			for ( auto query : queries_to_run )
+				query->Consider( iter );
+
+			iter.ResetDirtyFlags();
+		}
 	}
 }
 

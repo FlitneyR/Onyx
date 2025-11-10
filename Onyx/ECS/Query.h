@@ -117,11 +117,11 @@ struct Query : IQuery
 		using Query = Query;
 
 		Result( const World::EntityIterator& entity )
-			: m_entity( entity.ID() )
+			: m_entity( entity.GetEntityID() )
 			, m_componentPtrs( entity.Get< typename Components::Type >() ... )
 		{}
 
-		EntityID ID() const { return m_entity; }
+		EntityID GetEntityID() const { return m_entity; }
 
 		template< typename T >
 		T Get() const
@@ -151,10 +151,10 @@ struct Query : IQuery
 	const Result* Get( EntityID entity ) const
 	{
 		auto iter = std::lower_bound( begin(), end(), entity, []( const Result& result, EntityID entity ) {
-			return result.ID() < entity;
+			return result.GetEntityID() < entity;
 		} );
 
-		if ( iter == end() || iter->ID() != entity )
+		if ( iter == end() || iter->GetEntityID() != entity )
 			return nullptr;
 
 		return &*iter;
