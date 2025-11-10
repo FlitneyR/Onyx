@@ -126,7 +126,7 @@ struct IComponentTable
 		}
 
 		inline bool IsDirty() const { return m_page->IsDirty( m_index ); }
-		inline void RemoveDirtyFlag() { m_page->RemoveDirtyFlag( m_index ); }
+		inline void RemoveDirtyFlag() { if ( m_index < 16 ) m_page->RemoveDirtyFlag( m_index ); }
 
 		EntityID FindNextDirtyEntityID() const;
 		EntityID GetNextEntityID() const;
