@@ -37,16 +37,16 @@ private:
 
 	struct RunSystemJob : IJob
 	{
-		RunSystemJob( ISystem< IContext >* system, IContext* context )
-			: m_system( *system )
-			, m_context( *context )
+		RunSystemJob( ISystem< IContext >& system, IContext& context )
+			: m_system( system )
+			, m_context( context )
 		{}
 
 		void Run() override { m_system.Run( m_context ); }
 
 	private:
 		ISystem< IContext >& m_system;
-		IContext& m_context;
+		IContext m_context;
 	};
 
 public:
@@ -61,16 +61,23 @@ public:
 
 		job_queue.Reserve( m_systems.size() );
 
-		for ( auto& system : m_systems )
-			job_queue.AddJob< RunSystemJob >( system->GetID(), system.get(), &context );
+		{
+			ZoneScopedN( "Adding System Jobs to queue" );
 
-		for ( auto& [first, second] : m_dependencies )
-			if ( IJob* first_job = job_queue.GetJob( first ) )
-				if ( IJob* second_job = job_queue.GetJob( second ) )
-					second_job->AddDependency( first_job );
+			for ( auto& system : m_systems )
+				job_queue.AddJob< RunSystemJob >( system->GetID(), *system, context );
+		}
+
+		{
+			ZoneScopedN( "Adding dependencies to queue" );
+
+			for ( auto& [first, second] : m_dependencies )
+				if ( IJob* first_job = job_queue.GetJob( first ) )
+					if ( IJob* second_job = job_queue.GetJob( second ) )
+						second_job->AddDependency( first_job );
+		}
 
 		worker_pool.Begin();
-		worker_pool.Wait();
 	}
 };
 

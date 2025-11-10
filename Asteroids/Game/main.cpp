@@ -89,6 +89,8 @@ int main( int argc, const char** argv )
 			tick_set.AddSystem( onyx::Graphics2D::UpdateAnimatedSprites );
 
 			tick_set.AddSystem( onyx::Core::UpdateTransform2DLocales );
+			tick_set.AddDependency( asteroids::Physics::UpdatePhysicsBodies, onyx::Core::UpdateTransform2DLocales );
+
 			tick_set.AddSystem( onyx::Graphics2D::UpdateParallaxBackgroundLayers );
 			tick_set.AddDependency( onyx::Graphics2D::UpdateAnimatedSprites, onyx::Graphics2D::UpdateParallaxBackgroundLayers );
 
@@ -161,6 +163,10 @@ int main( int argc, const char** argv )
 					prerender_set.Run( sprite_render_data, camera );
 
 					render_target->Clear( *frame_context, {} );
+
+					// wait for the rendering systems to finish
+					onyx::LowLevel::GetWorkerPool().Wait();
+
 					sprite_renderer->Render( *frame_context, render_target, sprite_render_data );
 					frame_context->BlitRenderTarget( render_target, {}, frame_context->GetSize() );
 

@@ -127,6 +127,8 @@ VulkanGraphicsContext::VulkanGraphicsContext()
 
 VulkanGraphicsContext::~VulkanGraphicsContext()
 {
+	ZoneScoped;
+
 	for ( StagingBuffer& staging_buffer : m_stagingBuffers )
 	{
 		WEAK_ASSERT( staging_buffer.buffer && staging_buffer.allocation );
@@ -139,6 +141,8 @@ VulkanGraphicsContext::~VulkanGraphicsContext()
 
 std::unique_ptr< IWindowContext > VulkanGraphicsContext::CreateWindowContext( IWindow& window )
 {
+	ZoneScoped;
+
 	return std::make_unique< WindowContext >( window );
 }
 
@@ -347,6 +351,8 @@ void VulkanGraphicsContext::EndFrame( IFrameContext& _frame_context )
 
 VulkanGraphicsContext::StagingBuffer::StagingBuffer()
 {
+	ZoneScoped;
+
 	VulkanGraphicsContext& ctx = static_cast<VulkanGraphicsContext&>( LowLevel::GetGraphicsContext() );
 
 	const vk::ResultValue< vk::Fence > fence = ctx.m_vkDevice.createFence( vk::FenceCreateInfo( vk::FenceCreateFlagBits::eSignaled ) );
@@ -374,6 +380,8 @@ u32 VulkanGraphicsContext::StagingBuffer::GetSize() const
 
 void VulkanGraphicsContext::StagingBuffer::Resize( u32 new_size )
 {
+	ZoneScoped;
+
 	VulkanGraphicsContext& ctx = static_cast<VulkanGraphicsContext&>( LowLevel::GetGraphicsContext() );
 
 	if ( buffer && STRONG_ASSERT( allocation ) )
@@ -1019,6 +1027,8 @@ VulkanGraphicsContext::WindowContext::WindowContext( IWindow& window ) : IWindow
 
 VulkanGraphicsContext::WindowContext::~WindowContext()
 {
+	ZoneScoped;
+
 	WEAK_ASSERT( static_cast< VulkanGraphicsContext& >( LowLevel::GetGraphicsContext() ).m_vkDevice.waitIdle() == vk::Result::eSuccess );
 
 	if ( LowLevel::GetConfig().enableImGui )
@@ -1117,6 +1127,8 @@ void VulkanGraphicsContext::WindowContext::OnResize()
 
 void VulkanGraphicsContext::WindowContext::SDLSetup()
 {
+	ZoneScoped;
+
 	SDLWindow& window = static_cast< SDLWindow& >( *m_window );
 	VulkanGraphicsContext& ctx = static_cast<VulkanGraphicsContext&>( LowLevel::GetGraphicsContext() );
 
@@ -1168,6 +1180,8 @@ IFrameContext& VulkanGraphicsContext::WindowContext::GetFrameContext()
 
 void VulkanGraphicsContext::FrameContext::BlitRenderTarget( std::shared_ptr< IRenderTarget >& render_target, glm::uvec2 position, glm::uvec2 size )
 {
+	ZoneScoped;
+
 	RegisterUsedResource( render_target );
 	RenderTarget& rt = static_cast< RenderTarget& >( *render_target );
 
@@ -1195,6 +1209,8 @@ void VulkanGraphicsContext::FrameContext::BlitRenderTarget( std::shared_ptr< IRe
 
 void VulkanGraphicsContext::RenderTarget::Clear( IFrameContext& frame_ctx, const glm::vec4& colour )
 {
+	ZoneScoped;
+
 	FrameContext& ctx = static_cast< FrameContext& >( frame_ctx );
 	
 	if ( m_layout != vk::ImageLayout::eTransferDstOptimal )

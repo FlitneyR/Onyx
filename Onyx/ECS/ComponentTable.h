@@ -2,6 +2,8 @@
 
 #include "Entity.h"
 
+#include "tracy/Tracy.hpp"
+
 #include <vector>
 
 namespace onyx::ecs
@@ -58,7 +60,10 @@ struct IComponentTable
 
 		inline bool HasComponent( u8 index ) const
 		{
+#			if _DEBUG
 			STRONG_ASSERT( ( index & c_pageIndexMask ) == index, "Invalid index into a component page: {}", index );
+#			endif
+
 			return m_occupancy & ( 1u << index );
 		}
 
@@ -82,13 +87,19 @@ struct IComponentTable
 
 		inline bool IsDirty( u8 index ) const
 		{
+#			if _DEBUG
 			STRONG_ASSERT( ( index & c_pageIndexMask ) == index, "Invalid index into a component page: {}", index );
+#			endif
+
 			return m_dirty & ( 1u << index );
 		}
 
 		inline void RemoveDirtyFlag( u8 index )
 		{
+#			if _DEBUG
 			STRONG_ASSERT( ( index & c_pageIndexMask ) == index, "Invalid index into a component page: {}", index );
+#			endif
+
 			m_dirty &= ~( 1u << index );
 		}
 
@@ -133,7 +144,7 @@ struct IComponentTable
 		void GoToNext();
 
 		// walk _forward_ to the specified entity ID
-		// if not present, walk to the last entity ID that is smaller and is occupied
+		// if not present, walk to the next entity ID that is occupied
 		void GoTo( EntityID entity );
 
 		inline void CopyToWorld( World& world, EntityID entity ) const
@@ -168,26 +179,34 @@ struct ComponentTable : IComponentTable
 
 		Component* GetComponent( u8 index ) const
 		{
+#			if _DEBUG
 			STRONG_ASSERT( ( index & c_pageIndexMask ) == index, "Invalid index into a component page: {}", index );
+#			endif
 
 			return HasComponent( index ) ? Components() + index : nullptr;
 		}
 
 		Component& AddComponent( u8 index, Component&& component )
 		{
+#			if _DEBUG
 			STRONG_ASSERT( ( index & c_pageIndexMask ) == index, "Invalid index into a component page: {}", index );
+#			endif
 
-			if ( Component* existing_component = GetComponent( index ) )
-				return *existing_component = component;
+			Component* addr = Components() + index;
+
+			if ( m_occupancy & ( 1 << index ) )
+				return *addr = component;
 
 			m_occupancy |= ( 1 << index );
 			m_dirty |= ( 1 << index );
-			return *new( Components() + index ) Component( std::move( component ) );
+			return *new( addr ) Component( std::move( component ) );
 		}
 
 		void RemoveComponent( u8 index )
 		{
+#			if _DEBUG
 			STRONG_ASSERT( ( index & c_pageIndexMask ) == index, "Invalid index into a component page: {}", index );
+#			endif
 
 			if ( !HasComponent( index ) )
 				return;
@@ -226,6 +245,8 @@ struct ComponentTable : IComponentTable
 
 	Component* GetComponent( EntityID entity )
 	{
+		ZoneScoped;
+
 		const u32 page_id = (u32)entity & IPage::c_pageIdMask;
 		const u8 index = (u32)entity & IPage::c_pageIndexMask;
 
@@ -239,6 +260,8 @@ struct ComponentTable : IComponentTable
 
 	Component& AddComponent( EntityID entity, Component&& component )
 	{
+		ZoneScoped;
+
 		const u32 page_id = (u32)entity & IPage::c_pageIdMask;
 		const u8 index = (u32)entity & IPage::c_pageIndexMask;
 
@@ -253,6 +276,8 @@ struct ComponentTable : IComponentTable
 
 	void RemoveComponent( EntityID entity )
 	{
+		ZoneScoped;
+
 		const u32 page_id = (u32)entity & IPage::c_pageIdMask;
 		const u8 index = (u32)entity & IPage::c_pageIndexMask;
 

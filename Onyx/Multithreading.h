@@ -29,7 +29,7 @@ struct JobQueue
 	void Reserve( u32 num_jobs ) { m_jobs.reserve( num_jobs ); }
 
 	template< typename Job, typename ... Args >
-	void AddJob( u64 id, Args ... args )
+	void AddJob( u64 id, Args& ... args )
 	{
 		m_jobs.insert( { id, std::make_unique< Job >( args ... ) } );
 	}

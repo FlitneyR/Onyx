@@ -76,6 +76,8 @@ template< typename T > struct ComponentType<       T* > { using Type = WriteOpti
 template< typename ... Components >
 struct Context
 {
+	Context( const Context& other ) = default;
+
 	Context( Components& ... components )
 		: m_components( components ... )
 	{}

@@ -60,8 +60,6 @@ bool JobQueue::StartNextAvailableJob()
 
 WorkerPool::WorkerPool( u32 num_workers )
 {
-	SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_HIGHEST );
-
 	num_workers = std::min( num_workers, std::thread::hardware_concurrency() );
 
 	m_workers.reserve( num_workers );
@@ -92,20 +90,14 @@ void WorkerPool::Begin()
 	ZoneScoped;
 
 	m_workersCanStart = std::min< u32 >( ( m_jobQueue.Count() + 1 ) / 2, m_workers.size() );
-
-#ifdef _WIN32
-	// tell the important threads to ramp up
-	for ( u32 idx = 0; idx < m_workersCanStart; ++idx )
-		SetThreadPriority( m_workers[ idx ].native_handle(), THREAD_PRIORITY_HIGHEST );
-#endif
-
-	while ( m_activeWorkers < m_workersCanStart );
-	m_workersCanStart = 0;
 }
 
 void WorkerPool::Wait()
 {
 	ZoneScoped;
+
+	while ( m_activeWorkers < m_workersCanStart );
+	m_workersCanStart = 0;
 
 	while ( m_activeWorkers > 0 );
 }
@@ -118,7 +110,6 @@ void WorkerPool::Worker( u32 index, u32 count )
 		wsprintf( thread_name, L"Worker %u", index );
 
 		SetThreadDescription( GetCurrentThread(), thread_name );
-		SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_LOWEST );
 	}
 #endif
 
@@ -134,8 +125,6 @@ void WorkerPool::Worker( u32 index, u32 count )
 		m_activeWorkers++;
 
 		while ( m_jobQueue.StartNextAvailableJob() );
-
-		SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_LOWEST );
 
 		TracyMessageL( "Ready to sleep" );
 		while ( index < m_workersCanStart ) std::this_thread::yield();
