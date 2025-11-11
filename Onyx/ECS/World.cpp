@@ -16,7 +16,7 @@ void World::RemoveEntity( EntityID entity, bool and_children )
 	ZoneScoped;
 
 	for ( auto& [hash, table] : m_componentTables )
-		table->RemoveComponent( entity );
+		table.RemoveComponent( entity );
 
 	if ( and_children )
 	{
@@ -34,7 +34,7 @@ void World::RemoveEntity( EntityID entity, bool and_children )
 	}
 }
 
-World::EntityIterator::EntityIterator( const World& world, const std::set< size_t >* relevant_components, bool dirty_only )
+World::EntityIterator::EntityIterator( World& world, const std::set< size_t >* relevant_components, bool dirty_only )
 	: m_dirtyOnly( dirty_only )
 {
 	for ( auto& [hash, table] : world.m_componentTables )
@@ -42,7 +42,7 @@ World::EntityIterator::EntityIterator( const World& world, const std::set< size_
 		if ( relevant_components && !relevant_components->contains( hash ) )
 			continue;
 
-		IComponentTable::IIterator iter( *table, !dirty_only );
+		GenericComponentTable::Iterator iter( table, !dirty_only );
 
 		if ( m_dirtyOnly )
 		{
@@ -116,10 +116,10 @@ void World::QueryManager::UpdateNeedsRerun( World& world )
 
 	for ( auto& [hash, table] : world.m_componentTables )
 	{
-		if ( table->m_hasChanged )
+		if ( table.HasChanged() )
 		{
 			changed_components.insert( hash );
-			table->m_hasChanged = false;
+			table.ResetHasChanged();
 		}
 	}
 
@@ -131,13 +131,13 @@ void World::QueryManager::UpdateNeedsRerun( World& world )
 void World::CleanUpPages()
 {
 	for ( auto& [_, table] : m_componentTables )
-		table->CleanUpPages();
+		table.CleanUpPages();
 }
 
-IComponentTable* World::GetComponentTableByHash( size_t component_type_hash )
+GenericComponentTable* World::GetComponentTableByHash( size_t component_type_hash )
 {
 	auto iter = m_componentTables.find( component_type_hash );
-	return iter == m_componentTables.end() ? nullptr : iter->second.get();
+	return iter == m_componentTables.end() ? nullptr : &iter->second;
 }
 
 }

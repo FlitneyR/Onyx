@@ -211,7 +211,7 @@ void ComponentReflectorTable::PostCopyToWorld( World& world, EntityID entity, co
 		reflector->PostCopy( world, entity, entity_id_map );
 }
 
-void Scene::CopyToWorld( World& world, IDMap& map ) const
+void Scene::CopyToWorld( World& world, IDMap& map )
 {
 	for ( auto iter = m_world.Iter(); iter; ++iter )
 		map.push_back( { iter.GetEntityID(), iter.CopyToWorld( world ) } );

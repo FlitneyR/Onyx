@@ -93,6 +93,7 @@ int main( int argc, const char** argv )
 
 			tick_set.AddSystem( onyx::Graphics2D::UpdateParallaxBackgroundLayers );
 			tick_set.AddDependency( onyx::Graphics2D::UpdateAnimatedSprites, onyx::Graphics2D::UpdateParallaxBackgroundLayers );
+			tick_set.AddDependency( asteroids::Core::UpdateCamera, onyx::Graphics2D::UpdateParallaxBackgroundLayers );
 
 			tick_set.AddSystem( asteroids::Core::UpdateLifetimes );
 

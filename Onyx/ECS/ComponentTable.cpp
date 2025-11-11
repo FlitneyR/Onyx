@@ -3,7 +3,7 @@
 namespace onyx::ecs
 {
 
-IComponentTable::IIterator& IComponentTable::IIterator::operator ++()
+GenericComponentTable::Iterator& GenericComponentTable::Iterator::operator ++()
 {
 	// we can't incremenet, we've walked off the table
 	if ( m_page == m_table.End() )
@@ -24,9 +24,9 @@ IComponentTable::IIterator& IComponentTable::IIterator::operator ++()
 	return *this;
 }
 
-EntityID IComponentTable::IIterator::FindNextDirtyEntityID() const
+EntityID GenericComponentTable::Iterator::FindNextDirtyEntityID() const
 {
-	IPage* page = m_page;
+	Page* page = m_page;
 
 	// we've reached the end of these components
 	if ( page == m_table.End() )
@@ -47,14 +47,14 @@ EntityID IComponentTable::IIterator::FindNextDirtyEntityID() const
 	return page->GetEntityID( page->GetNextDirtyIndex() );
 }
 
-EntityID IComponentTable::IIterator::GetNextEntityID() const
+EntityID GenericComponentTable::Iterator::GetNextEntityID() const
 {
 	if ( m_page == m_table.End() ) return NoEntity;
 	
 	if ( u8 next_index = m_page->GetNextOccupantIndex( m_index ); next_index < 16 )
 		return m_page->GetEntityID( next_index );
 
-	IPage* next_page = m_page + 1;
+	Page* next_page = m_page + 1;
 	while ( next_page != m_table.End() && next_page->m_occupancy == 0 )
 		++next_page;
 
@@ -63,7 +63,7 @@ EntityID IComponentTable::IIterator::GetNextEntityID() const
 	return next_page->GetEntityID( next_page->GetNextOccupantIndex() );
 }
 
-void IComponentTable::IIterator::GoToNext()
+void GenericComponentTable::Iterator::GoToNext()
 {
 	// don't risk dereferencing endPage
 	if ( m_page == m_table.End() ) return;
@@ -79,15 +79,15 @@ void IComponentTable::IIterator::GoToNext()
 	m_index = m_page->GetNextOccupantIndex();
 }
 
-void IComponentTable::IIterator::GoTo( EntityID entity )
+void GenericComponentTable::Iterator::GoTo( EntityID entity )
 {
 	// don't do anything if we've already reached the end of the array
 	if ( m_page == m_table.End() )
 		return;
 
 	// extract the page id and index
-	const u32 page_id = u32( entity ) & IPage::c_pageIdMask;
-	const u8 idx = u32( entity ) & IPage::c_pageIndexMask;
+	const u32 page_id = u32( entity ) & Page::c_pageIdMask;
+	const u8 idx = u32( entity ) & Page::c_pageIndexMask;
 
 	// walk through the page list to the matching page
 	while ( m_page != m_table.End() && m_page->m_pageId < page_id )

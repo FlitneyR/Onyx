@@ -12,7 +12,7 @@ namespace onyx::ecs
 struct Scene : IAsset
 {
 	// copy the entities in this scene to the destination world, and return a map from entity IDs in this scene, to the ids those entities have in the world
-	void CopyToWorld( World& world, IDMap& entity_map ) const;
+	void CopyToWorld( World& world, IDMap& entity_map );
 
 	// IAsset
 	void Load( LoadType type ) override;

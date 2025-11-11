@@ -60,12 +60,12 @@ struct World
 
 	struct EntityIterator
 	{
-		std::map< size_t, IComponentTable::IIterator > m_iterators;
+		std::map< size_t, GenericComponentTable::Iterator > m_iterators;
 		EntityID m_currentEntity = UINT32_MAX;
 		bool m_dirtyOnly = false;
 
 		EntityIterator() = default;
-		EntityIterator( const World& world, const std::set< size_t >* relevant_components = nullptr, bool dirty_only = false );
+		EntityIterator( World& world, const std::set< size_t >* relevant_components = nullptr, bool dirty_only = false );
 
 		operator bool() const { return (u32)GetEntityID() < UINT32_MAX; }
 		EntityIterator& operator ++();
@@ -83,7 +83,7 @@ struct World
 			if ( iter == m_iterators.end() || iter->second.GetEntityID() != GetEntityID() )
 				return nullptr;
 
-			return reinterpret_cast< const typename ComponentTable< Component >::Iterator* >( &iter->second )->GetComponent();
+			return iter->second.Cast< Component >().GetComponent();
 		}
 	};
 
@@ -113,18 +113,18 @@ struct World
 
 	QueryManager m_queryManager;
 
-	EntityIterator Iter( const std::set< size_t >* relevant_components = nullptr, bool dirty_only = false ) const
+	EntityIterator Iter( const std::set< size_t >* relevant_components = nullptr, bool dirty_only = false )
 	{ return EntityIterator( *this, relevant_components, dirty_only ); }
 
 	void CleanUpPages();
 
 private:
-	std::map< size_t, std::unique_ptr< IComponentTable > > m_componentTables;
+	std::map< size_t, GenericComponentTable > m_componentTables;
 	EntityID m_nextEntityID { 1 };
 
 	friend struct Scene;
 
-	IComponentTable* GetComponentTableByHash( size_t component_type_hash );
+	GenericComponentTable* GetComponentTableByHash( size_t component_type_hash );
 
 	template< typename Component >
 	ComponentTable< Component >& GetComponentTableInternal()
@@ -133,15 +133,15 @@ private:
 
 		auto iter = m_componentTables.find( component_type_hash );
 		if ( iter == m_componentTables.end() )
-			iter = m_componentTables.insert( { component_type_hash, std::make_unique< ComponentTable< Component > >() } ).first;
+			iter = m_componentTables.emplace( component_type_hash, GenericComponentTable::MetaData::s_singleton< Component > ).first;
 
-		return *static_cast<ComponentTable< Component >*>( iter->second.get() );
+		return iter->second.Cast< Component >();
 	}
 
 	template< typename Component >
 	ComponentTable< Component >* GetOptionalComponentTableInternal()
 	{
-		return static_cast<ComponentTable< Component >*>( GetComponentTableByHash( typeid( Component ).hash_code() ) );
+		return reinterpret_cast< ComponentTable< Component >* >( GetComponentTableByHash( typeid( Component ).hash_code() ) );
 	}
 
 public:
@@ -160,10 +160,10 @@ public:
 };
 
 template< typename Component >
-void ComponentTable< Component >::CopyComponentToWorld( World& world, IPage& page, u8 index, EntityID entity_id ) const
+void GenericComponentTable::MetaData::__CopyComponentToWorld( World& world, Page& page, u8 index, EntityID dst_id )
 {
-	if ( Component* component = reinterpret_cast< Page& >( page ).GetComponent( index ) )
-		world.AddComponent( entity_id, Component( *component ) );
+	if ( const Component* const component = page.GetComponent< Component >( index ) )
+		world.AddComponent( dst_id, Component( *component ) );
 }
 
 }
