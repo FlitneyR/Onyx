@@ -60,10 +60,12 @@ struct World
 
 	struct EntityIterator
 	{
-		EntityID m_currentEntity = UINT32_MAX;
 		std::map< size_t, IComponentTable::IIterator > m_iterators;
+		EntityID m_currentEntity = UINT32_MAX;
+		bool m_dirtyOnly = false;
 
-		EntityIterator( const World& world, const std::set< size_t >* relevant_components = nullptr );
+		EntityIterator() = default;
+		EntityIterator( const World& world, const std::set< size_t >* relevant_components = nullptr, bool dirty_only = false );
 
 		operator bool() const { return (u32)GetEntityID() < UINT32_MAX; }
 		EntityIterator& operator ++();
@@ -111,8 +113,10 @@ struct World
 
 	QueryManager m_queryManager;
 
-	EntityIterator Iter( const std::set< size_t >* relevant_components = nullptr ) const
-	{ return EntityIterator( *this, relevant_components ); }
+	EntityIterator Iter( const std::set< size_t >* relevant_components = nullptr, bool dirty_only = false ) const
+	{ return EntityIterator( *this, relevant_components, dirty_only ); }
+
+	void CleanUpPages();
 
 private:
 	std::map< size_t, std::unique_ptr< IComponentTable > > m_componentTables;

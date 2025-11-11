@@ -28,7 +28,6 @@ void QuerySet::Update()
 			if ( query->NeedsRerun() )
 			{
 				query->ResetNeedsRerun();
-				query->ClearResults();
 				query->CollectComponentTypes( relevant_components );
 				queries_to_run.push_back( query );
 			}
@@ -39,12 +38,11 @@ void QuerySet::Update()
 	if ( !queries_to_run.empty() )
 	{
 		ZoneScopedN( "Iterate Entities" );
-		for (auto iter = m_world.Iter( &relevant_components ); iter; ++iter)
+
+		for ( World::EntityIterator iter = m_world.Iter( &relevant_components, true ); iter; ++iter )
 		{
 			for ( auto query : queries_to_run )
 				query->Consider( iter );
-
-			iter.ResetDirtyFlags();
 		}
 	}
 }

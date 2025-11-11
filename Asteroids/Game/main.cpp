@@ -173,6 +173,7 @@ int main( int argc, const char** argv )
 					graphics_context.EndFrame( *frame_context );
 				}
 
+				world.CleanUpPages();
 				cmd.Execute();
 				
 				FrameMark;

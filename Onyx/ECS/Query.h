@@ -9,7 +9,6 @@ namespace onyx::ecs
 
 struct IQuery
 {
-	virtual void ClearResults() = 0;
 	virtual void Consider( const World::EntityIterator& entity ) = 0;
 	virtual void OnComponentAddedOrRemoved( size_t component_type_hash ) = 0;
 	virtual void CollectComponentTypes( std::set< size_t >& component_set ) = 0;
@@ -168,11 +167,28 @@ struct Query : IQuery
 	std::vector< Result >::const_iterator begin() const { return m_results.cbegin(); }
 	std::vector< Result >::const_iterator end() const { return m_results.cend(); }
 
-	void ClearResults() override { m_results.clear(); }
 	void Consider( const World::EntityIterator& entity ) override
 	{
-		if ( Result result = Result( entity ) )
-			m_results.push_back( entity );
+		const Result result = Result( entity );
+
+		auto iter = std::lower_bound( m_results.begin(), m_results.end(), entity.GetEntityID(), [](const Result& result, EntityID entity) {
+			return result.GetEntityID() < entity;
+		} );
+
+		const bool iter_matches = iter != end() && iter->GetEntityID() == entity.GetEntityID();
+		
+		if ( result )
+		{
+			if ( iter_matches )
+				*iter = result;
+			else
+				m_results.insert( iter, result );
+		}
+		else
+		{
+			if ( iter_matches )
+				m_results.erase( iter );
+		}
 	}
 
 	void OnComponentAddedOrRemoved( size_t component_type_hash ) override

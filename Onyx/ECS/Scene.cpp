@@ -454,6 +454,7 @@ void SceneEditor::Run( IFrameContext& frame_context )
 
 		m_scene->m_world.m_queryManager.UpdateNeedsRerun( m_scene->m_world );
 		m_previewer->Tick( frame_context, m_renderTarget );
+		m_scene->m_world.CleanUpPages();
 		m_renderTarget->PrepareForSampling( frame_context );
 
 		frame_context.RegisterUsedResource( m_renderTarget );

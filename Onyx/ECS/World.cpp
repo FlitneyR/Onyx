@@ -34,19 +34,31 @@ void World::RemoveEntity( EntityID entity, bool and_children )
 	}
 }
 
-World::EntityIterator::EntityIterator( const World& world, const std::set< size_t >* relevant_components )
+World::EntityIterator::EntityIterator( const World& world, const std::set< size_t >* relevant_components, bool dirty_only )
+	: m_dirtyOnly( dirty_only )
 {
 	for ( auto& [hash, table] : world.m_componentTables )
 	{
 		if ( relevant_components && !relevant_components->contains( hash ) )
 			continue;
 
-		IComponentTable::IIterator iter( *table );
+		IComponentTable::IIterator iter( *table, !dirty_only );
 
-		// INFO( "iter.m_index = {}, iter.GetEntityID() = {}", iter.m_index, iter.GetEntityID() );
-
-		if ( const EntityID first_entity = iter.GetEntityID() )
-			m_currentEntity = std::min< u32 >( m_currentEntity, first_entity );
+		if ( m_dirtyOnly )
+		{
+			if ( iter.IsDirty() )
+			{
+				if ( const EntityID first_entity = iter.GetEntityID() )
+					m_currentEntity = std::min< u32 >( m_currentEntity, first_entity );
+			}
+			else if ( const EntityID first_entity = iter.FindNextDirtyEntityID() )
+				m_currentEntity = std::min< u32 >( m_currentEntity, first_entity );
+		}
+		else
+		{
+			if ( const EntityID first_entity = iter.GetEntityID() )
+				m_currentEntity = std::min< u32 >( m_currentEntity, first_entity );
+		}
 
 		m_iterators.insert( { hash, iter } );
 	}
@@ -58,17 +70,26 @@ World::EntityIterator& World::EntityIterator::operator ++()
 	EntityID lowest_next_entity_id = UINT32_MAX;
 	for ( auto& [_, iter] : m_iterators )
 	{
-		if ( const EntityID curr = iter.GetEntityID(); curr > m_currentEntity )
-			lowest_next_entity_id = std::min( lowest_next_entity_id, curr );
-		else if ( const EntityID next = iter.GetNextEntityID() )
-			lowest_next_entity_id = std::min( lowest_next_entity_id, next );
+		if ( m_dirtyOnly )
+		{
+			if ( const EntityID curr = iter.GetEntityID(); curr > m_currentEntity && iter.IsDirty() )
+				lowest_next_entity_id = std::min( lowest_next_entity_id, curr );
+			else if ( const EntityID next_dirty = iter.FindNextDirtyEntityID() )
+				lowest_next_entity_id = std::min( lowest_next_entity_id, next_dirty );
+		}
+		else
+		{
+			if ( const EntityID curr = iter.GetEntityID(); curr > m_currentEntity )
+				lowest_next_entity_id = std::min( lowest_next_entity_id, curr );
+			else if ( const EntityID next = iter.GetNextEntityID() )
+				lowest_next_entity_id = std::min( lowest_next_entity_id, next );
+		}
 	}
 
 	// progress to that entity ID
 	m_currentEntity = lowest_next_entity_id;
 	for ( auto& [_, iter] : m_iterators )
-		while ( iter && iter.GetEntityID() < lowest_next_entity_id )
-			++iter;
+		iter.GoTo( lowest_next_entity_id );
 
 	return *this;
 }
@@ -105,6 +126,12 @@ void World::QueryManager::UpdateNeedsRerun( World& world )
 	for ( const size_t& component_type_hash : changed_components )
 		for ( auto& [hash, query] : m_queries )
 			query.lock()->OnComponentAddedOrRemoved( component_type_hash );
+}
+
+void World::CleanUpPages()
+{
+	for ( auto& [_, table] : m_componentTables )
+		table->CleanUpPages();
 }
 
 IComponentTable* World::GetComponentTableByHash( size_t component_type_hash )

@@ -15,7 +15,8 @@ IComponentTable::IIterator& IComponentTable::IIterator::operator ++()
 		return *this;
 
 	// if it doesn't, step to the next page, if this is off the table, return
-	if ( ++m_page == m_table.End() )
+	while ( ++m_page != m_table.End() && m_page->m_occupancy == 0 );
+	if ( m_page == m_table.End() )
 		return *this;
 
 	// get the next component in this table
@@ -32,7 +33,7 @@ EntityID IComponentTable::IIterator::FindNextDirtyEntityID() const
 		return NoEntity;
 
 	// check if our current page has any dirty components after the current one
-	if ( const u8 next_dirty = page->GetNextDirty( m_index ); next_dirty < 16 )
+	if ( const u8 next_dirty = page->GetNextDirtyIndex( m_index ); next_dirty < 16 )
 		return page->GetEntityID( next_dirty );
 
 	// iterate through the pages until we reach the end, or one that has any dirty components
@@ -43,7 +44,7 @@ EntityID IComponentTable::IIterator::FindNextDirtyEntityID() const
 		return NoEntity;
 
 	// Gentlemen, we got 'em
-	return page->GetEntityID( page->GetNextDirty() );
+	return page->GetEntityID( page->GetNextDirtyIndex() );
 }
 
 EntityID IComponentTable::IIterator::GetNextEntityID() const
@@ -53,7 +54,10 @@ EntityID IComponentTable::IIterator::GetNextEntityID() const
 	if ( u8 next_index = m_page->GetNextOccupantIndex( m_index ); next_index < 16 )
 		return m_page->GetEntityID( next_index );
 
-	IPage* const next_page = m_page + 1;
+	IPage* next_page = m_page + 1;
+	while ( next_page != m_table.End() && next_page->m_occupancy == 0 )
+		++next_page;
+
 	if ( next_page == m_table.End() ) return NoEntity;
 
 	return next_page->GetEntityID( next_page->GetNextOccupantIndex() );
@@ -67,8 +71,9 @@ void IComponentTable::IIterator::GoToNext()
 	// go to the next occupant in this page, if one exists, then return
 	if ( ( m_index = m_page->GetNextOccupantIndex( m_index ) ) < 16 ) return;
 
-	// go to the next page, if it is the end page, return
-	if ( ++m_page == m_table.End() ) return;
+	// go to the next occupied page, if it is the end page, return
+	while ( ++m_page != m_table.End() && m_page->m_occupancy == 0 );
+	if ( m_page == m_table.End() ) return;
 
 	// go to the next occupant in the new page
 	m_index = m_page->GetNextOccupantIndex();
@@ -85,15 +90,7 @@ void IComponentTable::IIterator::GoTo( EntityID entity )
 	const u8 idx = u32( entity ) & IPage::c_pageIndexMask;
 
 	// walk through the page list to the matching page
-	while (
-		// don't walk off the end of the array
-		m_page + 1 != m_table.End() && (
-			// don't walk past the relevant page
-			( m_page + 1 )->m_pageId < page_id ||
-			// don't step into the relevant page if the component isn't there, and there isn't a smaller component
-			( m_page + 1 )->m_pageId == page_id && ( m_page + 1 )->GetNextOccupantIndex() <= idx
-			)
-		)
+	while ( m_page != m_table.End() && m_page->m_pageId < page_id )
 		++m_page;
 
 	// we reached the end and didn't find it
@@ -104,7 +101,7 @@ void IComponentTable::IIterator::GoTo( EntityID entity )
 	// so go to the last component in this page
 	if ( m_page->m_pageId != page_id )
 	{
-		m_index = m_page->GetLastOccupant();
+		m_index = m_page->GetNextOccupantIndex();
 		return;
 	}
 

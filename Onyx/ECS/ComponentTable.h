@@ -25,6 +25,15 @@ struct IComponentTable
 			, m_pageId( page_id )
 		{}
 
+		void FreeComponents()
+		{
+			if ( m_components )
+			{
+				free( m_components );
+				m_components = nullptr;
+			}
+		}
+
 		~IPage() = default;
 		IPage() = default;
 		IPage( IPage&& other ) noexcept : IPage() { *this = std::move( other ); }
@@ -72,15 +81,13 @@ struct IComponentTable
 #		endif
 		u8 GetNextOccupantIndex( u8 after_index = ~0 ) const
 		{
-			return std::countr_zero( m_occupancy & ~( ( 1u << ( after_index + 1 ) ) - 1 ) );
+			return std::countr_zero( u16( m_occupancy & ~( ( 1u << ( after_index + 1 ) ) - 1 ) ) );
 		}
 
-		inline u8 GetLastOccupant( u8 before_index = 16 ) const
-		{
-			return 15 - std::countl_zero( u16( m_occupancy & ( ( 1u << before_index ) - 1 ) ) );
-		}
-
-		inline u8 GetNextDirty( u8 after_index = 0 ) const
+#		if _WIN32 // thanks MSVC, very cool!
+		__declspec(noinline)
+#		endif
+		u8 GetNextDirtyIndex( u8 after_index = 0 ) const
 		{
 			return std::countr_zero( u16( m_dirty & ~( ( 1u << ( after_index + 1 ) ) - 1 ) ) );
 		}
@@ -119,12 +126,24 @@ struct IComponentTable
 		IPage* m_page = nullptr;
 		u8 m_index = 0;
 
-		IIterator( IComponentTable& table )
+		IIterator( IComponentTable& table, bool skip_dirty = true )
 			: m_table( table )
 			, m_page( table.Begin() )
 		{
-			if ( m_page != table.End() )
-				m_index = m_page->GetNextOccupantIndex();
+			if ( m_page == m_table.End() )
+				return;
+
+			if ( skip_dirty )
+			{
+				while ( m_page->m_occupancy == 0 && ++m_page != m_table.End() );
+
+				if ( m_page != m_table.End() )
+					m_index = m_page->GetNextOccupantIndex();
+			}
+			else
+			{
+				m_index = std::min( m_page->GetNextDirtyIndex(), m_page->GetNextOccupantIndex() );
+			}
 		}
 
 		inline operator bool() const { return m_page != m_table.End(); }
@@ -157,6 +176,17 @@ struct IComponentTable
 	IIterator Iter() { return IIterator( *this ); }
 
 	bool m_hasChanged = false;
+
+	void CleanUpPages()
+	{
+		std::erase_if( m_pages, []( IPage& page )
+			{
+				page.m_dirty = 0;
+				if ( page.m_occupancy != 0 ) return false;
+				page.FreeComponents();
+				return true;
+			} );
+	}
 };
 
 template< typename Component >
@@ -173,8 +203,7 @@ struct ComponentTable : IComponentTable
 			while ( ( next_occupant = GetNextOccupantIndex() ) < 16 )
 				RemoveComponent( next_occupant );
 
-			free( m_components );
-			m_components = nullptr;
+			FreeComponents();
 		}
 
 		Component* GetComponent( u8 index ) const
@@ -202,18 +231,20 @@ struct ComponentTable : IComponentTable
 			return *new( addr ) Component( std::move( component ) );
 		}
 
-		void RemoveComponent( u8 index )
+		bool RemoveComponent( u8 index )
 		{
 #			if _DEBUG
 			STRONG_ASSERT( ( index & c_pageIndexMask ) == index, "Invalid index into a component page: {}", index );
 #			endif
 
 			if ( !HasComponent( index ) )
-				return;
+				return false;
 
 			Components()[ index ].~Component();
 			m_occupancy &= ~( 1 << index );
 			m_dirty |= ( 1 << index );
+
+			return true;
 		}
 
 	private:
@@ -270,11 +301,12 @@ struct ComponentTable : IComponentTable
 			iter = m_pages.emplace( iter, sizeof( Component ), page_id );
 
 		Page& page = *reinterpret_cast< Page* >( &*iter );
-		m_hasChanged = true;
+		m_hasChanged |= !page.HasComponent( index );
+
 		return page.AddComponent( index, std::move( component ) );
 	}
 
-	void RemoveComponent( EntityID entity )
+	void RemoveComponent( EntityID entity ) override
 	{
 		ZoneScoped;
 
@@ -286,11 +318,7 @@ struct ComponentTable : IComponentTable
 			return;
 
 		Page& page = *reinterpret_cast< Page* >( &*iter );
-		m_hasChanged = true;
-		page.RemoveComponent( index );
-
-		if ( page.m_occupancy == 0 )
-			m_pages.erase( iter );
+		m_hasChanged |= page.RemoveComponent( index );
 	}
 };
 
