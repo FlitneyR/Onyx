@@ -45,6 +45,7 @@ VulkanGraphicsContext::VulkanGraphicsContext()
 
 	const vkb::Result< vkb::Instance > vkb_instance = vkb::InstanceBuilder()
 #ifdef _DEBUG
+		.add_validation_feature_enable( (VkValidationFeatureEnableEXT)vk::ValidationFeatureEnableEXT::eGpuAssisted ) // << improved debugging for bindless rendering
 		.set_debug_callback( VulkanDebugMessageCallback )
 		.set_debug_callback_user_data_pointer( this )
 		.enable_validation_layers()
@@ -58,6 +59,10 @@ VulkanGraphicsContext::VulkanGraphicsContext()
 
 	const vkb::Result< vkb::PhysicalDevice > vkb_physical_device = vkb::PhysicalDeviceSelector( vkb_instance.value() )
 		.defer_surface_initialization()
+		.add_required_extension_features( vk::PhysicalDeviceDescriptorIndexingFeatures()
+			.setDescriptorBindingPartiallyBound( true ) // << allows us to bind large descriptor sets that are sparsely bound for bindless rendering
+			.setRuntimeDescriptorArray( true ) // << allows us to have unbounded descriptor arrays in shaders
+			.setShaderSampledImageArrayNonUniformIndexing( true ) ) // << allows us to access unbounded arrays of sampled images in shaders
 		.set_required_features_13( vk::PhysicalDeviceVulkan13Features()
 			.setDynamicRendering( true ) )
 		.select();
@@ -821,8 +826,18 @@ void VulkanGraphicsContext::InitSpriteRendererResources()
 				.setStageFlags( vk::ShaderStageFlagBits::eFragment ),
 		};
 
+		// indicate that the texture array may not be fully bound at render time
+		const vk::DescriptorBindingFlags flags[] {
+			{},
+			vk::DescriptorBindingFlagBits::ePartiallyBound
+		};
+
+		const auto binding_flags = vk::DescriptorSetLayoutBindingFlagsCreateInfo()
+			.setBindingFlags( flags );
+
 		const vk::ResultValue< vk::DescriptorSetLayout > create_desc_set_layout = m_vkDevice.createDescriptorSetLayout( vk::DescriptorSetLayoutCreateInfo()
-			.setBindings( bindings ) );
+			.setBindings( bindings )
+			.setPNext( &binding_flags ) );
 
 		STRONG_ASSERT( create_desc_set_layout.result == vk::Result::eSuccess, "Failed to create sprite renderer descriptor set layout: {}", vk::to_string( create_desc_set_layout.result ) );
 
@@ -1138,7 +1153,7 @@ void VulkanGraphicsContext::WindowContext::SDLSetup()
 	m_resizeDeleteQueue.Add< Deleter< vk::SurfaceKHR > >( ctx.m_vkInstance, m_surface );
 
 	vkb::Result< vkb::Swapchain > swapchain = vkb::SwapchainBuilder( ctx.m_vkPhysicalDevice, ctx.m_vkDevice, surface )
-		.set_desired_present_mode( VkPresentModeKHR( vk::PresentModeKHR::eFifo ) )
+		.set_desired_present_mode( VkPresentModeKHR( vk::PresentModeKHR::eImmediate ) )
 		.add_image_usage_flags( VkImageUsageFlags( vk::ImageUsageFlagBits::eTransferDst ) )
 		.build();
 
@@ -1383,10 +1398,13 @@ void VulkanGraphicsContext::SpriteRenderer::Render( IFrameContext& frame_context
 	// get or create a frame data set
 	auto& [ _, frame_data ] = *m_perFrameData.insert( { &frame_context, {} } ).first;
 
-	// copy all sprites into one buffer, from lowest layer to highest
 	std::vector< SpriteRenderData::SpriteInstance > all_sprites;
-	for ( auto& layer : data.spriteInstances )
-		all_sprites.insert( all_sprites.end(), layer.begin(), layer.end() );
+	{
+		ZoneScopedN( "Flattening Sprite Layers" );
+
+		for ( auto& layer : data.spriteInstances )
+			all_sprites.insert( all_sprites.end(), layer.begin(), layer.end() );
+	}
 
 	// stop here if there's nothing to render
 	const u32 required_transform_buffer_size = u32( all_sprites.size() * sizeof( all_sprites[ 0 ] ) );
@@ -1403,82 +1421,91 @@ void VulkanGraphicsContext::SpriteRenderer::Render( IFrameContext& frame_context
 	if ( !frame_data )
 		frame_data = CreatePerFrameData( ctx, required_transform_buffer_size );
 
-	// update the transform buffer
-	const vk::ResultValue< void* > mapped_memory = ctx.m_vmaAllocator.mapMemory( frame_data->transformBufferAllocation );
-	if ( !WEAK_ASSERT( mapped_memory.result == vk::Result::eSuccess && mapped_memory.value, "Failed to map transform buffer: {}", vk::to_string( mapped_memory.result ) ) )
-		return;
-
-	std::memcpy( mapped_memory.value, all_sprites.data(), required_transform_buffer_size );
-	ctx.m_vmaAllocator.unmapMemory( frame_data->transformBufferAllocation );
-
-	// update the descriptor
-	std::vector< vk::WriteDescriptorSet > descriptor_writes;
-	std::vector< vk::DescriptorImageInfo > image_infos;
-	descriptor_writes.reserve( c_maxTextures );
-	image_infos.reserve( c_maxTextures );
-
-	for ( u32 idx = 0; idx < c_maxTextures; ++idx )
 	{
-		const std::shared_ptr< ITextureResource >& texture_resource = data.textures[ std::min( idx, (u32)data.textures.size() - 1 ) ];
-		frame.RegisterUsedResource( texture_resource );
+		ZoneScopedN( "Update Transform Buffer" );
 
-		TextureResource& texture = static_cast< TextureResource& >( *texture_resource );
+		const vk::ResultValue< void* > mapped_memory = ctx.m_vmaAllocator.mapMemory( frame_data->transformBufferAllocation );
+		if ( !WEAK_ASSERT( mapped_memory.result == vk::Result::eSuccess && mapped_memory.value, "Failed to map transform buffer: {}", vk::to_string( mapped_memory.result ) ) )
+			return;
 
-		image_infos.push_back( vk::DescriptorImageInfo()
-			.setSampler( texture.m_sampler )
-			.setImageView( texture.m_imageView )
-			.setImageLayout( vk::ImageLayout::eShaderReadOnlyOptimal ) );
+		std::memcpy( mapped_memory.value, all_sprites.data(), required_transform_buffer_size );
+		ctx.m_vmaAllocator.unmapMemory( frame_data->transformBufferAllocation );
+	}
+
+	{
+		ZoneScopedN( "Update Descriptors" );
+
+		std::vector< vk::WriteDescriptorSet > descriptor_writes;
+		std::vector< vk::DescriptorImageInfo > image_infos;
+		descriptor_writes.reserve( c_maxTextures );
+		image_infos.reserve( c_maxTextures );
+
+		for ( u32 idx = 0; idx < data.textures.size(); ++idx )
+		{
+			const std::shared_ptr< ITextureResource >& texture_resource = data.textures[ idx ];
+			frame.RegisterUsedResource( texture_resource );
+
+			TextureResource& texture = static_cast<TextureResource&>( *texture_resource );
+
+			image_infos.push_back( vk::DescriptorImageInfo()
+				.setSampler( texture.m_sampler )
+				.setImageView( texture.m_imageView )
+				.setImageLayout( vk::ImageLayout::eShaderReadOnlyOptimal ) );
+
+			descriptor_writes.push_back( vk::WriteDescriptorSet()
+				.setDstSet( frame_data->descriptorSet )
+				.setDescriptorType( vk::DescriptorType::eCombinedImageSampler )
+				.setDstBinding( 1 )
+				.setDescriptorCount( 1 )
+				.setDstArrayElement( idx )
+				.setImageInfo( image_infos.back() )
+			);
+		}
+
+		const auto buffer_info = vk::DescriptorBufferInfo()
+			.setBuffer( frame_data->transformBuffer )
+			.setRange( required_transform_buffer_size );
 
 		descriptor_writes.push_back( vk::WriteDescriptorSet()
 			.setDstSet( frame_data->descriptorSet )
-			.setDescriptorType( vk::DescriptorType::eCombinedImageSampler )
-			.setDstBinding( 1 )
+			.setDescriptorType( vk::DescriptorType::eStorageBuffer )
+			.setDstBinding( 0 )
 			.setDescriptorCount( 1 )
-			.setDstArrayElement( idx )
-			.setImageInfo( image_infos.back() )
-		);
+			.setBufferInfo( buffer_info ) );
+
+		ctx.m_vkDevice.updateDescriptorSets( descriptor_writes, {} );
 	}
 
-	const auto buffer_info = vk::DescriptorBufferInfo()
-		.setBuffer( frame_data->transformBuffer )
-		.setRange( required_transform_buffer_size );
+	{
+		ZoneScopedN( "Record command buffer" );
 
-	descriptor_writes.push_back( vk::WriteDescriptorSet()
-		.setDstSet( frame_data->descriptorSet )
-		.setDescriptorType( vk::DescriptorType::eStorageBuffer )
-		.setDstBinding( 0 )
-		.setDescriptorCount( 1 )
-		.setBufferInfo( buffer_info ) );
+		frame_context.RegisterUsedResource( frame_data );
+		frame_context.RegisterUsedResource( render_target );
+		rt.PrepareForRendering( frame_context );
 
-	ctx.m_vkDevice.updateDescriptorSets( descriptor_writes, {} );
+		const auto color_attachment = vk::RenderingAttachmentInfo()
+			.setImageLayout( vk::ImageLayout::eColorAttachmentOptimal )
+			.setImageView( rt.m_imageView )
+			.setLoadOp( vk::AttachmentLoadOp::eLoad )
+			.setStoreOp( vk::AttachmentStoreOp::eStore );
 
-	// time to render
-	frame_context.RegisterUsedResource( frame_data );
-	frame_context.RegisterUsedResource( render_target );
-	rt.PrepareForRendering( frame_context );
+		const vk::Rect2D rt_rect( {}, { render_target->GetSize().x, render_target->GetSize().y } );
 
-	const auto color_attachment = vk::RenderingAttachmentInfo()
-		.setImageLayout( vk::ImageLayout::eColorAttachmentOptimal )
-		.setImageView( rt.m_imageView )
-		.setLoadOp( vk::AttachmentLoadOp::eLoad )
-		.setStoreOp( vk::AttachmentStoreOp::eStore );
+		frame.m_cmd.beginRendering( vk::RenderingInfo()
+			.setColorAttachments( color_attachment )
+			.setLayerCount( 1 )
+			.setRenderArea( rt_rect ) );
 
-	const vk::Rect2D rt_rect( {}, { render_target->GetSize().x, render_target->GetSize().y } );
+		frame.m_cmd.bindPipeline( vk::PipelineBindPoint::eGraphics, ctx.m_spriteRenderingResources->pipeline );
+		frame.m_cmd.bindDescriptorSets( vk::PipelineBindPoint::eGraphics, ctx.m_spriteRenderingResources->pipelineLayout, 0, frame_data->descriptorSet, {} );
+		frame.m_cmd.pushConstants< glm::mat3x4 >( ctx.m_spriteRenderingResources->pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, data.cameraMatrix );
 
-	frame.m_cmd.beginRendering( vk::RenderingInfo()
-		.setColorAttachments( color_attachment )
-		.setLayerCount( 1 )
-		.setRenderArea( rt_rect ) );
+		frame.m_cmd.setScissor( 0, rt_rect );
+		frame.m_cmd.setViewport( 0, vk::Viewport( 0, 0, (f32)render_target->GetSize().x, (f32)render_target->GetSize().y, 0.f, 1.f ) );
+		frame.m_cmd.draw( 4, (u32)all_sprites.size(), 0, 0 );
 
-	frame.m_cmd.bindPipeline( vk::PipelineBindPoint::eGraphics, ctx.m_spriteRenderingResources->pipeline );
-	frame.m_cmd.bindDescriptorSets( vk::PipelineBindPoint::eGraphics, ctx.m_spriteRenderingResources->pipelineLayout, 0, frame_data->descriptorSet, {} );
-	frame.m_cmd.pushConstants< glm::mat3x4 >( ctx.m_spriteRenderingResources->pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, data.cameraMatrix );
-	
-	frame.m_cmd.setScissor( 0, rt_rect );
-	frame.m_cmd.setViewport( 0, vk::Viewport( 0, 0, (f32)render_target->GetSize().x, (f32)render_target->GetSize().y, 0.f, 1.f ) );
-	frame.m_cmd.draw( 4, (u32)all_sprites.size(), 0, 0 );
-
-	frame.m_cmd.endRendering();
+		frame.m_cmd.endRendering();
+	}
 }
 
 #pragma endregion
