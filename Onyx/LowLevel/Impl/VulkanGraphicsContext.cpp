@@ -328,27 +328,35 @@ void VulkanGraphicsContext::EndFrame( IFrameContext& _frame_context )
 		STRONG_ASSERT(m_vkDevice.resetFences(frame_context.m_swapchainImageAcquiredFence) == vk::Result::eSuccess);
 	}
 
-	const vk::Result submit_result = m_vkGraphicsQueue.submit( vk::SubmitInfo()
-		.setCommandBuffers( cmd )
-		.setSignalSemaphores( frame_context.m_finishedRenderingSemaphore ),
-		frame_context.m_finishedRenderingFence );
-
-	STRONG_ASSERT( submit_result == vk::Result::eSuccess );
-
-	const vk::Result present_result = m_vkGraphicsQueue.presentKHR( vk::PresentInfoKHR()
-		.setWaitSemaphores( frame_context.m_finishedRenderingSemaphore )
-		.setSwapchains( window_context.m_swapchain )
-		.setImageIndices( frame_context.m_swapchainImageIndex ) );
-
-	switch ( present_result )
 	{
-	case vk::Result::eErrorOutOfDateKHR:
-	case vk::Result::eSuboptimalKHR:
-		window_context.OnResize();
-		break;
-	default:
-		STRONG_ASSERT( present_result == vk::Result::eSuccess );
-		break;
+		ZoneScopedN( "Submit command buffer" );
+
+		const vk::Result submit_result = m_vkGraphicsQueue.submit( vk::SubmitInfo()
+			.setCommandBuffers( cmd )
+			.setSignalSemaphores( frame_context.m_finishedRenderingSemaphore ),
+			frame_context.m_finishedRenderingFence );
+
+		STRONG_ASSERT( submit_result == vk::Result::eSuccess );
+	}
+
+	{
+		ZoneScopedN( "Present image" );
+
+		const vk::Result present_result = m_vkGraphicsQueue.presentKHR( vk::PresentInfoKHR()
+			.setWaitSemaphores( frame_context.m_finishedRenderingSemaphore )
+			.setSwapchains( window_context.m_swapchain )
+			.setImageIndices( frame_context.m_swapchainImageIndex ) );
+
+		switch ( present_result )
+		{
+		case vk::Result::eErrorOutOfDateKHR:
+		case vk::Result::eSuboptimalKHR:
+			window_context.OnResize();
+			break;
+		default:
+			STRONG_ASSERT( present_result == vk::Result::eSuccess );
+			break;
+		}
 	}
 
 	window_context.m_frameCount++;
