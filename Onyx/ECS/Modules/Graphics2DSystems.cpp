@@ -5,7 +5,7 @@
 namespace onyx::Graphics2D
 {
 
-void CollectSprites( ecs::Context< SpriteRenderData > ctx, const CollectSpritesQuery& entities )
+void CollectSprites::System( Context ctx, const Entities& entities )
 {
 	ZoneScoped;
 
@@ -35,13 +35,13 @@ void CollectSprites( ecs::Context< SpriteRenderData > ctx, const CollectSpritesQ
 	}
 }
 
-void UpdateAnimatedSprites( ecs::Context< const Tick > ctx, const UpdateAnimatedSpritesQuery& animated_sprites )
+void UpdateAnimatedSprites::System( Context ctx, const Entities& entities )
 {
 	ZoneScoped;
 
 	auto [tick] = ctx.Break();
 
-	for ( auto& entity : animated_sprites )
+	for ( auto& entity : entities )
 	{
 		auto [id, animator, sprite] = entity.Break();
 
@@ -65,13 +65,13 @@ void UpdateAnimatedSprites( ecs::Context< const Tick > ctx, const UpdateAnimated
 	}
 }
 
-void UpdateParallaxBackgroundLayers( ecs::Context< const Camera2D > ctx, const UpdateParallaxBackgroundLayersQuery& background_layers )
+void UpdateParallaxBackgroundLayers::System( Context ctx, const Entities& entities )
 {
 	ZoneScoped;
 
 	auto [camera] = ctx.Break();
 
-	for ( auto& layer : background_layers )
+	for ( auto& layer : entities )
 	{
 		auto [id, sprite, transform, animator, background] = layer.Break();
 

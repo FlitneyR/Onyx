@@ -40,33 +40,46 @@ struct DamageOnCollision
 	f32 otherDamage;
 };
 
-using ColliderQuery = onyx::ecs::Query<
+namespace UpdateCollisions
+{
+using Context = onyx::ecs::Context< const onyx::Tick >;
+
+using Entities = onyx::ecs::Query<
 	onyx::ecs::Read< onyx::Core::Transform2D >,
 	onyx::ecs::Write< Collider >
 >;
 
-void UpdateCollisions( onyx::ecs::Context< const onyx::Tick > ctx, const ColliderQuery& colliders );
+void System( Context ctx, const Entities& colliders );
+}
 
-using PhysicsBodyQuery = onyx::ecs::Query<
+namespace UpdatePhysicsBodies
+{
+using Context = onyx::ecs::Context< const onyx::Tick >;
+
+using Entities = onyx::ecs::Query<
 	onyx::ecs::Write< PhysicsBody >,
 	onyx::ecs::Write< onyx::Core::Transform2D >
 >;
 
-void UpdatePhysicsBodies( onyx::ecs::Context< const onyx::Tick > ctx, const PhysicsBodyQuery& bodies );
+void System( Context ctx, const Entities& entities );
+}
 
-using DamageOnCollisionEntities = onyx::ecs::Query<
+namespace UpdateDamageOnCollision
+{
+using Context = onyx::ecs::Context<
+	const onyx::ecs::World,
+	onyx::ecs::CommandBuffer,
+	onyx::AssetManager
+>;
+
+using Entities = onyx::ecs::Query<
 	onyx::ecs::Read< Collider >,
 	onyx::ecs::Read< DamageOnCollision >,
 	onyx::ecs::WriteOptional< asteroids::Core::Health >,
 	onyx::ecs::ReadOptional< asteroids::Core::Team >
 >;
 
-using UpdateDamageOnCollision_Context = onyx::ecs::Context<
-	const onyx::ecs::World,
-	onyx::ecs::CommandBuffer,
-	onyx::AssetManager
->;
-
-void UpdateDamageOnCollision( UpdateDamageOnCollision_Context ctx, const DamageOnCollisionEntities& damagers );
+void System( Context ctx, const Entities& damagers );
+}
 
 }

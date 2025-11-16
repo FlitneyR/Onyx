@@ -80,16 +80,21 @@ struct AttachedTo
 	onyx::ecs::EntityID localeEntity;
 };
 
-using UpdateTransform2DLocales_Transforms = onyx::ecs::Query<
+namespace UpdateTransform2DLocales
+{
+using Context = onyx::ecs::Context<>;
+
+using Transforms = onyx::ecs::Query<
 	onyx::ecs::Read< Transform2D >
 >;
 
-using UpdateTransform2DLocales_AttachedTransforms = onyx::ecs::Query<
+using AttachedTransforms = onyx::ecs::Query<
 	onyx::ecs::Write< Transform2D >,
 	onyx::ecs::Read< AttachedTo >
 >;
 
-void UpdateTransform2DLocales( onyx::ecs::Context<> ctx, const UpdateTransform2DLocales_Transforms& parents, const UpdateTransform2DLocales_AttachedTransforms& children );
+void System( Context ctx, const Transforms& parents, const AttachedTransforms& children );
+}
 
 void PostCopyUpdateRootTransforms2D( const ecs::World& world, const ecs::IDMap& id_map, const glm::mat3& transform );
 

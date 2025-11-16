@@ -33,22 +33,25 @@ struct Projectile
 	f32 initialSpeed = 1.f;
 };
 
-using UpdatePlayers_Context = onyx::ecs::Context<
+namespace UpdatePlayers
+{
+using Context = onyx::ecs::Context<
 	const onyx::Tick,
 	onyx::AssetManager,
 	onyx::ecs::CommandBuffer
 >;
 
-using PlayerQuery = onyx::ecs::Query<
+using Players = onyx::ecs::Query<
 	onyx::ecs::Read< PlayerController >,
 	onyx::ecs::Read< onyx::Core::Transform2D >,
 	onyx::ecs::Write< asteroids::Physics::PhysicsBody >
 >;
 
-using PlayerEngineQuery = onyx::ecs::Query<
+using PlayerEngines = onyx::ecs::Query<
 	onyx::ecs::Write< onyx::Graphics2D::SpriteAnimator >
 >;
 
-void UpdatePlayers( UpdatePlayers_Context ctx, const PlayerQuery& players, const PlayerEngineQuery& engines );
+void System( Context ctx, const Players& players, const PlayerEngines& engines );
+}
 
 }

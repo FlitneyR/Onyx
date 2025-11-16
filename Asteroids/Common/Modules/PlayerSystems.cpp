@@ -9,7 +9,7 @@
 namespace asteroids::Player
 {
 
-void UpdatePlayers( UpdatePlayers_Context ctx, const PlayerQuery& players, const PlayerEngineQuery& engines )
+void UpdatePlayers::System( Context ctx, const Players& players, const PlayerEngines& engines )
 {
 	ZoneScoped;
 

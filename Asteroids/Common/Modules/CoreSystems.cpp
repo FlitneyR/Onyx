@@ -6,7 +6,7 @@
 namespace asteroids::Core
 {
 
-void UpdateCamera( onyx::ecs::Context< const onyx::Tick, onyx::Camera2D > ctx, const UpdateCamera_CameraFocusQuery& focii, const UpdateCamera_CameraQuery& cameras )
+void UpdateCamera::System( Context ctx, const CameraFocii& focii, const Cameras& cameras )
 {
 	ZoneScoped;
 
@@ -64,7 +64,7 @@ void UpdateCamera( onyx::ecs::Context< const onyx::Tick, onyx::Camera2D > ctx, c
 	}
 }
 
-void UpdateLifetimes( UpdateLifetimes_Context ctx, const UpdateLifetimes_Entities& entities )
+void UpdateLifetimes::System( Context ctx, const Entities& entities )
 {
 	ZoneScoped;
 
@@ -79,7 +79,7 @@ void UpdateLifetimes( UpdateLifetimes_Context ctx, const UpdateLifetimes_Entitie
 	}
 }
 
-void UpdateOffScreenSpawners( UpdateOffScreenSpawners_Context ctx, const UpdateOffScreenSpawners_Spawners& entities )
+void UpdateOffScreenSpawners::System( Context ctx, const Spawners& entities )
 {
 	ZoneScoped;
 

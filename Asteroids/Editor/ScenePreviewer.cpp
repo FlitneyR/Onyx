@@ -18,14 +18,14 @@ ScenePreviewer::ScenePreviewer( onyx::ecs::World& world )
 	, m_tickSystemSet( m_tickQuerySet )
 	, m_renderSystemSet( m_renderQuerySet )
 {
-	m_tickSystemSet.AddSystem( onyx::Graphics2D::UpdateAnimatedSprites );
-	m_tickSystemSet.AddSystem( onyx::Core::UpdateTransform2DLocales );
-	m_tickSystemSet.AddSystem( onyx::Graphics2D::UpdateParallaxBackgroundLayers );
+	m_tickSystemSet.AddSystem( onyx::Graphics2D::UpdateAnimatedSprites::System );
+	m_tickSystemSet.AddSystem( onyx::Core::UpdateTransform2DLocales::System );
+	m_tickSystemSet.AddSystem( onyx::Graphics2D::UpdateParallaxBackgroundLayers::System );
 
-	m_tickSystemSet.AddDependency( onyx::Graphics2D::UpdateAnimatedSprites, onyx::Core::UpdateTransform2DLocales );
-	m_tickSystemSet.AddDependency( onyx::Core::UpdateTransform2DLocales, onyx::Graphics2D::UpdateParallaxBackgroundLayers );
+	m_tickSystemSet.AddDependency( onyx::Graphics2D::UpdateAnimatedSprites::System, onyx::Core::UpdateTransform2DLocales::System );
+	m_tickSystemSet.AddDependency( onyx::Core::UpdateTransform2DLocales::System, onyx::Graphics2D::UpdateParallaxBackgroundLayers::System );
 
-	m_renderSystemSet.AddSystem( onyx::Graphics2D::CollectSprites );
+	m_renderSystemSet.AddSystem( onyx::Graphics2D::CollectSprites::System );
 
 	m_spriteRenderer = onyx::LowLevel::GetGraphicsContext().CreateSpriteRenderer();
 
@@ -74,6 +74,8 @@ void ScenePreviewer::Tick( onyx::IFrameContext& frame_context, std::shared_ptr< 
 	m_renderSystemSet.Run( sprite_render_data );
 
 	render_target->Clear( frame_context, {} );
+
+	onyx::LowLevel::GetWorkerPool().Wait();
 	m_spriteRenderer->Render( frame_context, render_target, sprite_render_data );
 }
 

@@ -68,43 +68,54 @@ struct Team
 	{ return lhs && rhs && lhs->team && lhs->team == rhs->team; }
 };
 
-using UpdateCamera_CameraFocusQuery = onyx::ecs::Query<
+namespace UpdateCamera
+{
+using CameraFocii = onyx::ecs::Query<
 	onyx::ecs::Read< onyx::Core::Transform2D >,
 	onyx::ecs::Read< CameraFocus >
 >;
 
-using UpdateCamera_CameraQuery = onyx::ecs::Query<
+using Cameras = onyx::ecs::Query<
 	onyx::ecs::Write< onyx::Core::Transform2D >,
 	onyx::ecs::Write< Camera >
 >;
 
-void UpdateCamera( onyx::ecs::Context< const onyx::Tick, onyx::Camera2D > ctx, const UpdateCamera_CameraFocusQuery& focii, const UpdateCamera_CameraQuery& cameras );
+using Context = onyx::ecs::Context< const onyx::Tick, onyx::Camera2D >;
 
-using UpdateLifetimes_Context = onyx::ecs::Context<
+void System( Context ctx, const CameraFocii& focii, const Cameras& cameras );
+}
+
+namespace UpdateLifetimes
+{
+using Context = onyx::ecs::Context<
 	const onyx::ecs::World,
 	const onyx::Tick,
 	onyx::AssetManager,
 	onyx::ecs::CommandBuffer
 >;
 
-using UpdateLifetimes_Entities = onyx::ecs::Query<
+using Entities = onyx::ecs::Query<
 	onyx::ecs::Write< Lifetime >
 >;
 
-void UpdateLifetimes( UpdateLifetimes_Context ctx, const UpdateLifetimes_Entities& entities );
+void System( Context ctx, const Entities& entities );
+}
 
-using UpdateOffScreenSpawners_Context = onyx::ecs::Context<
+namespace UpdateOffScreenSpawners
+{
+using Context = onyx::ecs::Context<
 	const onyx::Tick,
 	onyx::ecs::CommandBuffer,
 	const onyx::Camera2D,
 	const onyx::RNG
 >;
 
-using UpdateOffScreenSpawners_Spawners = onyx::ecs::Query<
+using Spawners = onyx::ecs::Query<
 	onyx::ecs::Write< OffScreenSpawner >
 >;
 
-void UpdateOffScreenSpawners( UpdateOffScreenSpawners_Context ctx, const UpdateOffScreenSpawners_Spawners& entities );
+void System( Context ctx, const Spawners& entities );
+}
 
 struct DamageParams
 {

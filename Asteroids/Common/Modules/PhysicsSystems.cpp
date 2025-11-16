@@ -5,7 +5,7 @@
 namespace asteroids::Physics
 {
 
-void UpdateCollisions( onyx::ecs::Context< const onyx::Tick > ctx, const ColliderQuery& colliders )
+void UpdateCollisions::System( Context ctx, const Entities& colliders )
 {
 	ZoneScoped;
 
@@ -44,13 +44,13 @@ void UpdateCollisions( onyx::ecs::Context< const onyx::Tick > ctx, const Collide
 	}
 }
 
-void UpdatePhysicsBodies( onyx::ecs::Context< const onyx::Tick > ctx, const PhysicsBodyQuery& bodies )
+void UpdatePhysicsBodies::System( Context ctx, const Entities& entities )
 {
 	ZoneScoped;
 
 	const onyx::Tick& tick = ctx.Get< const onyx::Tick >();
 
-	for ( auto& entity : bodies )
+	for ( auto& entity : entities )
 	{
 		auto [id, body, transform] = entity.Break();
 
@@ -72,7 +72,7 @@ void UpdatePhysicsBodies( onyx::ecs::Context< const onyx::Tick > ctx, const Phys
 	}
 }
 
-void UpdateDamageOnCollision( UpdateDamageOnCollision_Context ctx, const DamageOnCollisionEntities& damagers )
+void UpdateDamageOnCollision::System( Context ctx, const Entities& damagers )
 {
 	ZoneScoped;
 

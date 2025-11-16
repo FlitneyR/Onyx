@@ -76,28 +76,28 @@ int main( int argc, const char** argv )
 			INFO( "Registering systems and dependencies" );
 			ZoneScopedN( "Register systems and dependencies" );
 
-			tick_set.AddSystem( asteroids::Physics::UpdatePhysicsBodies );
-			tick_set.AddSystem( asteroids::Physics::UpdateCollisions );
-			tick_set.AddDependency( asteroids::Physics::UpdatePhysicsBodies, asteroids::Physics::UpdateCollisions );
+			tick_set.AddSystem( asteroids::Physics::UpdatePhysicsBodies::System );
+			tick_set.AddSystem( asteroids::Physics::UpdateCollisions::System );
+			tick_set.AddDependency( asteroids::Physics::UpdatePhysicsBodies::System, asteroids::Physics::UpdateCollisions::System );
 
-			tick_set.AddSystem( asteroids::Core::UpdateCamera );
-			tick_set.AddSystem( asteroids::Core::UpdateOffScreenSpawners );
-			tick_set.AddDependency( asteroids::Core::UpdateCamera, asteroids::Core::UpdateOffScreenSpawners );
+			tick_set.AddSystem( asteroids::Core::UpdateCamera::System );
+			tick_set.AddSystem( asteroids::Core::UpdateOffScreenSpawners::System );
+			tick_set.AddDependency( asteroids::Core::UpdateCamera::System, asteroids::Core::UpdateOffScreenSpawners::System );
 
-			tick_set.AddSystem( asteroids::Physics::UpdateDamageOnCollision );
-			tick_set.AddSystem( asteroids::Player::UpdatePlayers );
-			tick_set.AddSystem( onyx::Graphics2D::UpdateAnimatedSprites );
+			tick_set.AddSystem( asteroids::Physics::UpdateDamageOnCollision::System );
+			tick_set.AddSystem( asteroids::Player::UpdatePlayers::System );
+			tick_set.AddSystem( onyx::Graphics2D::UpdateAnimatedSprites::System );
 
-			tick_set.AddSystem( onyx::Core::UpdateTransform2DLocales );
-			tick_set.AddDependency( asteroids::Physics::UpdatePhysicsBodies, onyx::Core::UpdateTransform2DLocales );
+			tick_set.AddSystem( onyx::Core::UpdateTransform2DLocales::System );
+			tick_set.AddDependency( asteroids::Physics::UpdatePhysicsBodies::System, onyx::Core::UpdateTransform2DLocales::System );
 
-			tick_set.AddSystem( onyx::Graphics2D::UpdateParallaxBackgroundLayers );
-			tick_set.AddDependency( onyx::Graphics2D::UpdateAnimatedSprites, onyx::Graphics2D::UpdateParallaxBackgroundLayers );
-			tick_set.AddDependency( asteroids::Core::UpdateCamera, onyx::Graphics2D::UpdateParallaxBackgroundLayers );
+			tick_set.AddSystem( onyx::Graphics2D::UpdateParallaxBackgroundLayers::System );
+			tick_set.AddDependency( onyx::Graphics2D::UpdateAnimatedSprites::System, onyx::Graphics2D::UpdateParallaxBackgroundLayers::System );
+			tick_set.AddDependency( asteroids::Core::UpdateCamera::System, onyx::Graphics2D::UpdateParallaxBackgroundLayers::System );
 
-			tick_set.AddSystem( asteroids::Core::UpdateLifetimes );
+			tick_set.AddSystem( asteroids::Core::UpdateLifetimes::System );
 
-			prerender_set.AddSystem( onyx::Graphics2D::CollectSprites );
+			prerender_set.AddSystem( onyx::Graphics2D::CollectSprites::System );
 		}
 
 		INFO( "Loading entry point scene" );

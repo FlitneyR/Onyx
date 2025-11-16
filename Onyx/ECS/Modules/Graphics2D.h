@@ -62,28 +62,43 @@ struct ParallaxBackground
 	glm::vec2 scale;
 };
 
-using CollectSpritesQuery = ecs::Query<
+namespace CollectSprites
+{
+using Context = ecs::Context< SpriteRenderData >;
+
+using Entities = ecs::Query<
 	ecs::Read< Core::Transform2D >,
 	ecs::Write< Sprite >
 >;
 
-void CollectSprites( ecs::Context< SpriteRenderData > ctx, const CollectSpritesQuery& entities );
+void System( Context ctx, const Entities& entities );
+}
 
-using UpdateAnimatedSpritesQuery = ecs::Query<
+namespace UpdateAnimatedSprites
+{
+using Context = ecs::Context< const Tick >;
+
+using Entities = ecs::Query<
 	ecs::Write< SpriteAnimator >,
 	ecs::Write< Sprite >
 >;
 
-void UpdateAnimatedSprites( ecs::Context< const Tick > ctx, const UpdateAnimatedSpritesQuery& animated_sprites );
+void System( Context ctx, const Entities& entities );
+}
 
-using UpdateParallaxBackgroundLayersQuery = ecs::Query<
+namespace UpdateParallaxBackgroundLayers
+{
+using Context = ecs::Context< const Camera2D >;
+
+using Entities = ecs::Query<
 	ecs::Write< Sprite >,
 	ecs::Write< Core::Transform2D >,
 	ecs::ReadOptional< SpriteAnimator >,
 	ecs::Read< ParallaxBackground >
 >;
 
-void UpdateParallaxBackgroundLayers( ecs::Context< const Camera2D > ctx, const UpdateParallaxBackgroundLayersQuery& background_layers );
+void System( Context ctx, const Entities& entities );
+}
 
 }
 

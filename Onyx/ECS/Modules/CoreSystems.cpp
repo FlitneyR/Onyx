@@ -5,7 +5,7 @@
 namespace onyx::Core
 {
 
-void UpdateTransform2DLocales( onyx::ecs::Context<> ctx, const UpdateTransform2DLocales_Transforms& parents, const UpdateTransform2DLocales_AttachedTransforms& children )
+void UpdateTransform2DLocales::System( Context ctx, const Transforms& parents, const AttachedTransforms& children )
 {
 	ZoneScoped;
 
