@@ -62,16 +62,19 @@ int main( int argc, const char** argv )
 
 		onyx::ecs::QuerySet tick_query_set( world );
 		onyx::ecs::SystemSet<
-			const onyx::ecs::World,
-			onyx::ecs::CommandBuffer,
 			onyx::AssetManager,
-			const onyx::Tick,
 			onyx::Camera2D,
-			onyx::RNG
+			onyx::ecs::CommandBuffer,
+			const onyx::ecs::World,
+			onyx::RNG,
+			const onyx::Tick
 		> tick_set( tick_query_set );
 
 		onyx::ecs::QuerySet render_query_set( world );
-		onyx::ecs::SystemSet< onyx::SpriteRenderData, onyx::Camera2D > prerender_set( render_query_set );
+		onyx::ecs::SystemSet<
+			onyx::Camera2D,
+			onyx::SpriteRenderData
+		> prerender_set( render_query_set );
 
 		INFO( "Registering systems" );
 		{
@@ -135,7 +138,7 @@ int main( int argc, const char** argv )
 				tick_data.deltaTime = clock.GetDeltaTime();
 
 				tick_query_set.Update();
-				tick_set.Run( world, cmd, asteroids_asset_manager, tick_data, camera, rng );
+				tick_set.Run( asteroids_asset_manager, camera, cmd, world, rng, tick_data );
 
 				if ( onyx::IFrameContext* frame_context = graphics_context.BeginFrame( *game_window ) )
 				{
@@ -149,7 +152,7 @@ int main( int argc, const char** argv )
 					sprite_render_data.cameraMatrix = camera.GetMatrix();
 
 					render_query_set.Update();
-					prerender_set.Run( sprite_render_data, camera );
+					prerender_set.Run( camera, sprite_render_data );
 
 					render_target->Clear( *frame_context, {} );
 
