@@ -309,6 +309,8 @@
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ECS\Modules\Core.inl" />
+    <None Include="ECS\Modules\Graphics2D.inl" />
     <None Include="Graphics\Shaders\SpriteRenderer.frag">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>

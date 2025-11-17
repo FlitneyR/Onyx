@@ -14,17 +14,17 @@ IJob* JobQueue::GetNextJob( bool& any_unstarted_jobs )
 {
 	any_unstarted_jobs = false;
 
-	for ( auto& [id, _job] : m_jobs )
+	for ( auto& [_, job] : m_jobs )
 	{
-		if ( _job->hasFinished )
+		if ( job->hasFinished )
 			continue;
 
-		if ( !_job->hasStarted.exchange( true ) )
+		if ( !job->hasStarted.exchange( true ) )
 		{
 			any_unstarted_jobs = true;
 
 			bool can_start = true;
-			for ( const IJob* dependency : _job->dependencies )
+			for ( const IJob* dependency : job->dependencies )
 			{
 				if ( !dependency->hasFinished )
 					can_start = false;
@@ -34,11 +34,11 @@ IJob* JobQueue::GetNextJob( bool& any_unstarted_jobs )
 
 			if ( !can_start )
 			{
-				_job->hasStarted = false;
+				job->hasStarted = false;
 				continue;
 			}
 
-			return _job.get();
+			return job.get();
 		}
 	}
 

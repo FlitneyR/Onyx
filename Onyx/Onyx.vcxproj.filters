@@ -283,5 +283,11 @@
     <None Include="Graphics\Shaders\SpriteRenderer.frag">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="ECS\Modules\Core.inl">
+      <Filter>Header Files\ECS\Modules</Filter>
+    </None>
+    <None Include="ECS\Modules\Graphics2D.inl">
+      <Filter>Header Files\ECS\Modules</Filter>
+    </None>
   </ItemGroup>
 </Project>

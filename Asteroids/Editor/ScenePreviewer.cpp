@@ -1,7 +1,9 @@
 #include "ScenePreviewer.h"
 
-#include "Onyx/ECS/Modules/Core.h"
-#include "Onyx/ECS/Modules/Graphics2D.h"
+#include "Onyx/ECS/Modules/Core.inl"
+#include "Onyx/ECS/Modules/Graphics2D.inl"
+
+#include "Asteroids/Common/Modules/Core.inl"
 
 #include "Onyx/Graphics/RenderTarget.h"
 
@@ -18,14 +20,11 @@ ScenePreviewer::ScenePreviewer( onyx::ecs::World& world )
 	, m_tickSystemSet( m_tickQuerySet )
 	, m_renderSystemSet( m_renderQuerySet )
 {
-	m_tickSystemSet.AddSystem( onyx::Graphics2D::UpdateAnimatedSprites::System );
-	m_tickSystemSet.AddSystem( onyx::Core::UpdateTransform2DLocales::System );
-	m_tickSystemSet.AddSystem( onyx::Graphics2D::UpdateParallaxBackgroundLayers::System );
+	onyx::Core::Register2DEditorSystems( m_tickSystemSet );
+	onyx::Graphics2D::RegisterEditorSystems( m_tickSystemSet );
+	asteroids::Core::RegisterEditorSystems( m_tickSystemSet );
 
-	m_tickSystemSet.AddDependency( onyx::Graphics2D::UpdateAnimatedSprites::System, onyx::Core::UpdateTransform2DLocales::System );
-	m_tickSystemSet.AddDependency( onyx::Core::UpdateTransform2DLocales::System, onyx::Graphics2D::UpdateParallaxBackgroundLayers::System );
-
-	m_renderSystemSet.AddSystem( onyx::Graphics2D::CollectSprites::System );
+	onyx::Graphics2D::RegisterGraphicsSystems( m_renderSystemSet );
 
 	m_spriteRenderer = onyx::LowLevel::GetGraphicsContext().CreateSpriteRenderer();
 

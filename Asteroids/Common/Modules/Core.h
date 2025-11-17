@@ -27,8 +27,12 @@ struct CameraFocus
 
 struct Health
 {
-	f32 amount;
+	f32 max = 0.f;
+	f32 amount = 0.f;
 };
+
+struct HealthForAnimation
+{};
 
 struct OnDeath
 {
@@ -115,6 +119,19 @@ using Spawners = onyx::ecs::Query<
 >;
 
 void System( Context ctx, const Spawners& entities );
+}
+
+namespace UpdateHealthSprites
+{
+using Context = onyx::ecs::Context<>;
+
+using Entities = onyx::ecs::Query<
+	onyx::ecs::Read< Health >,
+	onyx::ecs::Read< HealthForAnimation >,
+	onyx::ecs::Write< onyx::Graphics2D::SpriteAnimator >
+>;
+
+void System( Context ctx, const Entities& entities );
 }
 
 struct DamageParams

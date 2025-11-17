@@ -57,4 +57,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Modules\Core.inl">
+      <Filter>Header Files\Modules</Filter>
+    </None>
+    <None Include="Modules\Physics.inl">
+      <Filter>Header Files\Modules</Filter>
+    </None>
+    <None Include="Modules\Player.inl">
+      <Filter>Header Files\Modules</Filter>
+    </None>
+  </ItemGroup>
 </Project>

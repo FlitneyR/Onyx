@@ -37,8 +37,19 @@ COMPONENT_REFLECTOR( Health )
 	
 	#define xproperties( f )\
 		f( Health, f32, amount, "Amount" )\
+		f( Health, f32, max, "Max" )\
 
 	DEFAULT_REFLECTOR( Health, xproperties );
+	#undef xproperties
+};
+
+COMPONENT_REFLECTOR( HealthForAnimation )
+{
+	COMPONENT_REFLECTOR_HEADER( HealthForAnimation );
+
+	#define xproperties( f )
+
+	DEFAULT_REFLECTOR( HealthForAnimation, xproperties );
 	#undef xproperties
 };
 
@@ -114,6 +125,7 @@ COMPONENT_REFLECTOR( Team )
 DEFINE_COMPONENT_REFLECTOR( Camera );
 DEFINE_COMPONENT_REFLECTOR( CameraFocus );
 DEFINE_COMPONENT_REFLECTOR( Health );
+DEFINE_COMPONENT_REFLECTOR( HealthForAnimation );
 DEFINE_COMPONENT_REFLECTOR( Lifetime );
 DEFINE_COMPONENT_REFLECTOR( OnDeath );
 DEFINE_COMPONENT_REFLECTOR( Team );
@@ -124,6 +136,7 @@ void asteroids::Core::RegisterReflectors( onyx::ecs::ComponentReflectorTable& ta
 	REGISTER_COMPONENT_REFLECTOR( table, Camera );
 	REGISTER_COMPONENT_REFLECTOR( table, CameraFocus );
 	REGISTER_COMPONENT_REFLECTOR( table, Health );
+	REGISTER_COMPONENT_REFLECTOR( table, HealthForAnimation );
 	REGISTER_COMPONENT_REFLECTOR( table, Lifetime );
 	REGISTER_COMPONENT_REFLECTOR( table, OnDeath );
 	REGISTER_COMPONENT_REFLECTOR( table, Team );

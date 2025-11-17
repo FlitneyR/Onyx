@@ -82,7 +82,7 @@ struct Context
 	{}
 
 	template< typename OtherContext >
-	Context( OtherContext& other_context )
+	Context( const OtherContext& other_context )
 		: m_components( other_context.template Get< Components >() ... )
 	{}
 

@@ -33,11 +33,11 @@ struct SystemSet
 private:
 	QuerySet& m_querySet;
 	std::vector< std::tuple< u64, u64 > > m_dependencies;
-	std::vector< std::unique_ptr< ISystem< IContext > > > m_systems;
+	std::vector< std::unique_ptr< const ISystem< IContext > > > m_systems;
 
 	struct RunSystemJob : IJob
 	{
-		RunSystemJob( ISystem< IContext >& system, IContext& context )
+		RunSystemJob( const ISystem< IContext >& system, const IContext& context )
 			: m_system( system )
 			, m_context( context )
 		{}
@@ -45,8 +45,8 @@ private:
 		void Run() override { m_system.Run( m_context ); }
 
 	private:
-		ISystem< IContext >& m_system;
-		IContext m_context;
+		const ISystem< IContext >& m_system;
+		const IContext m_context;
 	};
 
 public:
@@ -59,7 +59,7 @@ public:
 		WorkerPool& worker_pool = onyx::LowLevel::GetWorkerPool();
 		JobQueue& job_queue = worker_pool.GetJobQueue();
 
-		job_queue.Reserve( m_systems.size() );
+		job_queue.Reserve( (u32)m_systems.size() );
 
 		{
 			ZoneScopedN( "Adding System Jobs to queue" );
@@ -72,8 +72,8 @@ public:
 			ZoneScopedN( "Adding dependencies to queue" );
 
 			for ( auto& [first, second] : m_dependencies )
-				if ( IJob* first_job = job_queue.GetJob( first ) )
-					if ( IJob* second_job = job_queue.GetJob( second ) )
+				if ( IJob* const first_job = WEAK_ASSERT( job_queue.GetJob( first ) ) )
+					if ( IJob* const second_job = WEAK_ASSERT( job_queue.GetJob( second ) ) )
 						second_job->AddDependency( first_job );
 		}
 

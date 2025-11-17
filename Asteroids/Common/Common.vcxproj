@@ -231,6 +231,11 @@
       <Project>{a668d1f9-98ad-4fef-9d70-4432f488a20a}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Modules\Core.inl" />
+    <None Include="Modules\Physics.inl" />
+    <None Include="Modules\Player.inl" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

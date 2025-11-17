@@ -131,6 +131,21 @@ void UpdateOffScreenSpawners::System( Context ctx, const Spawners& entities )
 	}
 }
 
+void UpdateHealthSprites::System( Context ctx, const Entities& entities )
+{
+	for ( auto& entity : entities )
+	{
+		auto [id, health, health_for_animation, animator] = entity.Break();
+
+		if ( !animator.animation )
+			continue;
+
+		const f32 num_frames = animator.animation->m_frames.size();
+
+		animator.currentFrame = ( num_frames * health.amount / health.max ) - 0.5f;
+	}
+}
+
 void HandleEntityDeath( const onyx::ecs::World& world, onyx::ecs::CommandBuffer& cmd, onyx::AssetManager& asset_manager, onyx::ecs::EntityID entity )
 {
 	ZoneScoped;

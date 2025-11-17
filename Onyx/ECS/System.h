@@ -17,7 +17,7 @@ struct ISystem
 
 	virtual ~ISystem() = default;
 
-	virtual void Run( IContext& context ) const = 0;
+	virtual void Run( const IContext& context ) const = 0;
 
 	u64 GetID() const { return id; }
 
@@ -39,7 +39,7 @@ struct System< IContext, void( Context, const Queries& ... ) > : ISystem< IConte
 		, m_queries( query_set.Get< Queries >() ... )
 	{}
 
-	void Run( IContext& context ) const override
+	void Run( const IContext& context ) const override
 	{
 		( *m_callback )( Context( context ), *std::get< std::shared_ptr< Queries > >( m_queries ) ... );
 	}
