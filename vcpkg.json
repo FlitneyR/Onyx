@@ -19,10 +19,10 @@
         "vulkan"
       ]
     },
+    "tracy",
     "vk-bootstrap",
     "vulkan",
     "vulkan-memory-allocator",
-    "vulkan-memory-allocator-hpp",
-    "tracy"
+    "vulkan-memory-allocator-hpp"
   ]
 }
