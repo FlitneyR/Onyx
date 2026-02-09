@@ -12,7 +12,12 @@ namespace onyx
 
 struct DeleteQueue
 {
-	struct IDeleter { virtual void Delete() = 0; virtual void LogDebugInfo() { ERROR( "Unexecuted, unknown deleter" ); } };
+	struct IDeleter
+	{
+		virtual ~IDeleter() = default;
+		virtual void Delete() = 0;
+		virtual void LogDebugInfo() { ERROR( "Unexecuted, unknown deleter" ); }
+	};
 
 	#if DEBUG_HANGING_DELETERS
 	static std::vector< std::weak_ptr< IDeleter > > s_allDeleters;

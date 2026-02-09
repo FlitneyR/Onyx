@@ -267,8 +267,8 @@ void TexturePreviewWindow::Run( IFrameContext& frame_context )
 				i32 filter_mode = (i32)texture->m_filterMode;
 				i32 compression_mode = (i32)texture->m_compressionMode;
 
-				is_resource_out_of_date |= ImGui::Combo( "Filter", &filter_mode, s_ImageFilterModeNames, _countof( s_ImageFilterModeNames ) );
-				is_resource_out_of_date |= ImGui::Combo( "Compression", &compression_mode, s_ImageCompressionModeNames, _countof( s_ImageCompressionModeNames ) );
+				is_resource_out_of_date |= ImGui::Combo( "Filter", &filter_mode, s_ImageFilterModeNames, COUNTOF( s_ImageFilterModeNames ) );
+				is_resource_out_of_date |= ImGui::Combo( "Compression", &compression_mode, s_ImageCompressionModeNames, COUNTOF( s_ImageCompressionModeNames ) );
 
 				texture->m_filterMode = ImageFilterMode( filter_mode );
 				texture->m_compressionMode = ImageCompressionMode( compression_mode );

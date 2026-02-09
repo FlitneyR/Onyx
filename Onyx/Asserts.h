@@ -1,6 +1,13 @@
 #pragma once
 
-#include "log.h"
+#include "Log.h"
+
+#ifdef WIN32
+#	define DEBUGBREAK() __debugbreak()
+#endif
+#ifdef __APPLE__
+#	define DEBUGBREAK() __builtin_debugtrap()
+#endif
 
 #define ASSERT_INTERNAL( failure, fail_expr, condition, ... ) \
 	[ &, function_name = __FUNCTION__ ]() \
@@ -17,9 +24,9 @@
 		return __result__; \
 	} ()
 
-#define STRONG_ASSERT( condition, ... ) ASSERT_INTERNAL( !__result__, __debugbreak(); exit(-1);, condition __VA_OPT__( , __VA_ARGS__ ) )
-#define WEAK_ASSERT( condition, ... ) ASSERT_INTERNAL( !__result__, __debugbreak();, condition __VA_OPT__( , __VA_ARGS__ ) )
-#define WEAK_ASSERT_ONCE( condition, ... ) ASSERT_INTERNAL( !__result__ && !__has_failed_once__, __debugbreak();, condition __VA_OPT__( , __VA_ARGS__ ) )
+#define STRONG_ASSERT( condition, ... ) ASSERT_INTERNAL( !__result__, DEBUGBREAK(); exit(-1);, condition __VA_OPT__( , __VA_ARGS__ ) )
+#define WEAK_ASSERT( condition, ... ) ASSERT_INTERNAL( !__result__, DEBUGBREAK();, condition __VA_OPT__( , __VA_ARGS__ ) )
+#define WEAK_ASSERT_ONCE( condition, ... ) ASSERT_INTERNAL( !__result__ && !__has_failed_once__, DEBUGBREAK();, condition __VA_OPT__( , __VA_ARGS__ ) )
 #define LOG_ASSERT( condition, ... ) ASSERT_INTERNAL( !__result__, , condition __VA_OPT__( , __VA_ARGS__ ) )
 #define LOG_ASSERT_ONCE( condition, ... ) ASSERT_INTERNAL( !__result__ && !__has_failed_once__, , condition __VA_OPT__( , __VA_ARGS__ ) )
 

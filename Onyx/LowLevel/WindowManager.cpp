@@ -12,7 +12,7 @@ std::string IWindowManager::DoOpenFileDialog() const
 	OPENFILENAMEA ofn {};
 	ofn.lStructSize = sizeof( ofn );
 	ofn.lpstrFile = buffer;
-	ofn.nMaxFile = _countof( buffer );
+	ofn.nMaxFile = COUNTOF( buffer );
 	ofn.Flags = OFN_FILEMUSTEXIST;
 
 	if ( !GetOpenFileNameA( &ofn ) )
@@ -28,7 +28,7 @@ std::string IWindowManager::DoSaveFileDialog() const
 	OPENFILENAMEA ofn {};
 	ofn.lStructSize = sizeof( ofn );
 	ofn.lpstrFile = buffer;
-	ofn.nMaxFile = _countof( buffer );
+	ofn.nMaxFile = COUNTOF( buffer );
 
 	if ( !GetSaveFileNameA( &ofn ) )
 		return "";

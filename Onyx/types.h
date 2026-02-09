@@ -1,6 +1,8 @@
 #pragma once
 #include "glm/glm.hpp"
 
+#define COUNTOF(x) ( std::extent< decltype( x ) >::value )
+
 typedef float	f32;
 typedef double	f64;
 
