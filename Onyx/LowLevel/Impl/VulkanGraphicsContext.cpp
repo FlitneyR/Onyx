@@ -97,21 +97,43 @@ VulkanGraphicsContext::VulkanGraphicsContext()
 	const vkb::Result< u32 > transfer_queue_index = vkb_device.value().get_queue_index( vkb::QueueType::transfer );
 	const vkb::Result< u32 > compute_queue_index = vkb_device.value().get_queue_index( vkb::QueueType::compute );
 
-	STRONG_ASSERT( graphics_queue, "Failed to find a graphics queue: {}", graphics_queue.error().message() );
-	STRONG_ASSERT( transfer_queue, "Failed to find a transfer queue: {}", transfer_queue.error().message() );
-	STRONG_ASSERT( compute_queue, "Failed to find a compute queue: {}", compute_queue.error().message() );
+	if (
+		STRONG_ASSERT( graphics_queue, "Failed to find a graphics queue: {}", graphics_queue.error().message() ) &&
+		STRONG_ASSERT( graphics_queue_index, "Failed to find a graphics queue: {}", graphics_queue_index.error().message() )
+	)
+	{
+		m_vkGraphicsQueue = graphics_queue.value();
+		m_vkGraphicsQueueIndex = graphics_queue_index.value();
+	}
 
-	STRONG_ASSERT( graphics_queue_index, "Failed to find a graphics queue: {}", graphics_queue_index.error().message() );
-	STRONG_ASSERT( transfer_queue_index, "Failed to find a transfer queue: {}", transfer_queue_index.error().message() );
-	STRONG_ASSERT( compute_queue_index, "Failed to find a compute queue: {}", compute_queue_index.error().message() );
+	if (
+		WEAK_ASSERT( transfer_queue, "Failed to find a transfer queue: {}", transfer_queue.error().message() ) &&
+		WEAK_ASSERT( transfer_queue_index, "Failed to find a transfer queue: {}", transfer_queue_index.error().message() )
+	)
+	{
+		m_vkTransferQueue = transfer_queue.value();
+		m_vkTransferQueueIndex = transfer_queue_index.value();
+	}
+	else
+	{
+		m_vkTransferQueue = m_vkGraphicsQueue;
+		m_vkTransferQueueIndex = m_vkGraphicsQueueIndex;
+	}
+	
+	if (
+		WEAK_ASSERT( compute_queue, "Failed to find a compute queue: {}", compute_queue.error().message() ) &&
+		WEAK_ASSERT( compute_queue_index, "Failed to find a compute queue: {}", compute_queue_index.error().message() )
+	)
+	{
+		m_vkComputeQueue = compute_queue.value();
+		m_vkComputeQueueIndex = compute_queue_index.value();
+	}
+	else
+	{
+		m_vkComputeQueue = m_vkGraphicsQueue;
+		m_vkComputeQueueIndex = m_vkGraphicsQueueIndex;
+	}
 
-	m_vkGraphicsQueue = graphics_queue.value();
-	m_vkTransferQueue = transfer_queue.value();
-	m_vkComputeQueue = compute_queue.value();
-
-	m_vkGraphicsQueueIndex = graphics_queue_index.value();
-	m_vkTransferQueueIndex = transfer_queue_index.value();
-	m_vkComputeQueueIndex = compute_queue_index.value();
 
 	const vk::ResultValue< vk::CommandPool > command_pool = m_vkDevice.createCommandPool( vk::CommandPoolCreateInfo()
 		.setFlags( vk::CommandPoolCreateFlagBits::eResetCommandBuffer )
