@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Log.h"
-
 #ifdef WIN32
 #	define DEBUGBREAK() __debugbreak()
 #endif

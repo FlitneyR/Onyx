@@ -60,9 +60,9 @@ DEFINE_DEFAULT_PROPERTY_EDITOR_UI( EntityID )
 DEFINE_DEFAULT_PROPERTY_DIFF_HINT( EntityID )
 {
 	if ( const Core::Name* const name = src_world.GetComponent< Core::Name >( value ) )
-		ImGui::SetTooltip( "%s(%d)", name->name.c_str(), value );
+		ImGui::SetTooltip( "%s(%d)", name->name.c_str(), (u32)value );
 
-	ImGui::SetTooltip( "%d", value );
+	ImGui::SetTooltip( "%d", (u32)value );
 }
 
 DEFINE_DEFAULT_SERIALISE_PROPERTY( bool ) { writer.SetLiteral( name, value ); }
@@ -101,7 +101,7 @@ DEFINE_DEFAULT_PROPERTY_EDITOR_UI( glm::vec3 ) { return ImGui::DragFloat3( name,
 DEFINE_DEFAULT_PROPERTY_DIFF_HINT( glm::vec3 ) { ImGui::SetTooltip( "%f, %f, %f", value.x, value.y, value.z ); }
 
 DEFINE_DEFAULT_SERIALISE_PROPERTY( std::shared_ptr< Scene > ) { writer.SetLiteral( name, !value ? "" : value->m_path ); }
-DEFINE_DEFAULT_PROPERTY_DIFF_HINT( std::shared_ptr< Scene > ) { ImGui::SetTooltip( "%s", !value ? "" : value->m_path ); }
+DEFINE_DEFAULT_PROPERTY_DIFF_HINT( std::shared_ptr< Scene > ) { ImGui::SetTooltip( "%s", !value ? "" : value->m_path.c_str() ); }
 DEFINE_DEFAULT_DESERIALISE_PROPERTY( std::shared_ptr< Scene > )
 { value = asset_manager.Load< Scene >( reader.GetLiteral< std::string >( name ) ); }
 

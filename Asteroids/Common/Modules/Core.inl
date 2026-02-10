@@ -14,9 +14,9 @@ void RegisterGameplaySystems( SystemSet& system_set )
 	system_set.AddSystem( UpdateOffScreenSpawners::System );
 	system_set.AddSystem( UpdateHealthSprites::System );
 
-	system_set.AddDependency( UpdateCamera::System, UpdateOffScreenSpawners::System );
-	system_set.AddDependency( UpdateCamera::System, onyx::Graphics2D::UpdateParallaxBackgroundLayers::System );
-	system_set.AddDependency( UpdateHealthSprites::System, onyx::Graphics2D::UpdateAnimatedSprites::System );
+	system_set.AddDependency( (void*)UpdateCamera::System, (void*)UpdateOffScreenSpawners::System );
+	system_set.AddDependency( (void*)UpdateCamera::System, (void*)onyx::Graphics2D::UpdateParallaxBackgroundLayers::System );
+	system_set.AddDependency( (void*)UpdateHealthSprites::System, (void*)onyx::Graphics2D::UpdateAnimatedSprites::System );
 }
 
 template< typename SystemSet >
@@ -24,7 +24,7 @@ void RegisterEditorSystems( SystemSet& system_set )
 {
 	system_set.AddSystem( UpdateHealthSprites::System );
 
-	system_set.AddDependency( UpdateHealthSprites::System, onyx::Graphics2D::UpdateAnimatedSprites::System );
+	system_set.AddDependency( (void*)UpdateHealthSprites::System, (void*)onyx::Graphics2D::UpdateAnimatedSprites::System );
 }
 
 }
