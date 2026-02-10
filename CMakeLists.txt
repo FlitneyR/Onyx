@@ -4,6 +4,10 @@ set(CMAKE_TOOLCHAIN_FILE ~/vcpkg/scripts/buildsystems/vcpkg.cmake)
 set(VCPKG_MANIFEST_DIR "..")
 set(CMAKE_CXX_STANDARD 20)
 
+set(CMAKE_MACOSX_RPATH 1)
+set(CMAKE_BUILD_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+
 # Onyx Core
 project(Onyx)
 
@@ -32,7 +36,6 @@ target_link_libraries(Onyx PUBLIC
 
 target_link_libraries(Onyx PRIVATE
     assimp::assimp
-    glslang::OSDependent glslang::glslang glslang::MachineIndependent glslang::GenericCodeGen glslang::glslang-default-resource-limits glslang::OGLCompiler glslang::SPVRemapper glslang::SPIRV glslang::HLSL
     SDL2::SDL2
     vk-bootstrap::vk-bootstrap
     Vulkan::Headers
@@ -40,9 +43,21 @@ target_link_libraries(Onyx PRIVATE
     unofficial::VulkanMemoryAllocator-Hpp::VulkanMemoryAllocator-Hpp
 )
 
+target_link_libraries(Onyx PRIVATE
+    glslang::GenericCodeGen
+    glslang::glslang
+    glslang::glslang-default-resource-limits
+    glslang::HLSL
+    glslang::MachineIndependent
+    glslang::OGLCompiler
+    glslang::OSDependent
+    glslang::SPIRV
+    glslang::SPVRemapper
+)
+
 # Asteroids Demo
-file(GLOB_RECURSE Asteroids_Common_Src "Asteroids/Common/*.cpp")
-file(GLOB_RECURSE Asteroids_Game_Src "Asteroids/Game/*.cpp")
+file(GLOB_RECURSE Asteroids_Common_Src "Asteroids/Common/*.h" "Asteroids/Common/*.cpp")
+file(GLOB_RECURSE Asteroids_Game_Src "Asteroids/Game/*.h" "Asteroids/Game/*.cpp")
 
 add_library(Asteroids_Common)
 add_executable(Asteroids_Game)
