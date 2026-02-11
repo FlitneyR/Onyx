@@ -13,6 +13,7 @@ project(Onyx)
 
 file(GLOB_RECURSE Onyx_Src "Onyx/*.h" "Onyx/*.cpp")
 add_library(Onyx)
+target_compile_definitions(Onyx PUBLIC $<$<CONFIG:Debug>:_DEBUG>)
 target_sources(Onyx PUBLIC ${Onyx_Src})
 target_include_directories(Onyx PUBLIC "." "./Onyx")
 target_precompile_headers(Onyx PUBLIC Onyx/types.h Onyx/Log.h Onyx/Asserts.h)
