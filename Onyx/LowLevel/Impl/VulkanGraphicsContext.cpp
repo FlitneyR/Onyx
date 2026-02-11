@@ -837,6 +837,7 @@ void VulkanGraphicsContext::InitSpriteRendererResources()
 	SpriteRenderingResources& res = *( m_spriteRenderingResources = std::make_unique< SpriteRenderingResources >() );
 
 	SpriteRenderer::s_maxTextures = m_vkPhysicalDeviceProperties.limits.maxPerStageDescriptorSamplers;
+	INFO( "Sprite renderer max textures set to {}", SpriteRenderer::s_maxTextures );
 
 	{// create descriptor set layout
 		const vk::DescriptorSetLayoutBinding bindings[] {
