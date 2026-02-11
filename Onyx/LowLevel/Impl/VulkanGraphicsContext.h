@@ -44,6 +44,8 @@ private:
 	vk::PhysicalDevice m_vkPhysicalDevice;
 	vk::Device m_vkDevice;
 
+	vk::PhysicalDeviceProperties m_vkPhysicalDeviceProperties;
+
 	vma::Allocator m_vmaAllocator;
 
 	vk::Queue m_vkGraphicsQueue;
@@ -175,7 +177,7 @@ private:
 
 	struct SpriteRenderer final : ISpriteRenderer
 	{
-		static constexpr u32 c_maxTextures = 1'000;
+		static inline u32 s_maxTextures = 0;
 		
 		struct PerFrameData final : IGraphicsResource
 		{

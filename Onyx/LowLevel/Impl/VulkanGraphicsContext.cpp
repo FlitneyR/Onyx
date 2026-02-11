@@ -69,15 +69,16 @@ VulkanGraphicsContext::VulkanGraphicsContext()
 
 	STRONG_ASSERT( vkb_physical_device, "Failed to find a vulkan device: {}", vkb_physical_device.error().message() );
 	m_vkPhysicalDevice = vkb_physical_device.value().physical_device;
-
+	
 	const vkb::Result< vkb::Device > vkb_device = vkb::DeviceBuilder( vkb_physical_device.value() )
-		.build();
-
+	.build();
+	
 	STRONG_ASSERT( vkb_device, "Failed to create a vulkan logical device: {}", vkb_device.error().message() );
 	m_vkDevice = vkb_device.value().device;
 	m_shutdownDeleteQueue.Add< Deleter< vk::Device > >( m_vkDevice );
-
+	
 	VULKAN_HPP_DEFAULT_DISPATCHER.init( m_vkInstance, m_vkDevice );
+	m_vkPhysicalDeviceProperties = m_vkPhysicalDevice.getProperties();
 
 	const vk::ResultValue< vma::Allocator > allocator = vma::createAllocator( vma::AllocatorCreateInfo()
 		.setInstance( m_vkInstance )
@@ -97,39 +98,32 @@ VulkanGraphicsContext::VulkanGraphicsContext()
 	const vkb::Result< u32 > transfer_queue_index = vkb_device.value().get_queue_index( vkb::QueueType::transfer );
 	const vkb::Result< u32 > compute_queue_index = vkb_device.value().get_queue_index( vkb::QueueType::compute );
 
-	if (
-		STRONG_ASSERT( graphics_queue, "Failed to find a graphics queue: {}", graphics_queue.error().message() ) &&
-		STRONG_ASSERT( graphics_queue_index, "Failed to find a graphics queue: {}", graphics_queue_index.error().message() )
-	)
-	{
-		m_vkGraphicsQueue = graphics_queue.value();
-		m_vkGraphicsQueueIndex = graphics_queue_index.value();
-	}
+	STRONG_ASSERT( graphics_queue, "Failed to find a graphics queue: {}", graphics_queue.error().message() );
+	STRONG_ASSERT( graphics_queue_index, "Failed to find a graphics queue: {}", graphics_queue_index.error().message() );
 
-	if (
-		WEAK_ASSERT( transfer_queue, "Failed to find a transfer queue: {}", transfer_queue.error().message() ) &&
-		WEAK_ASSERT( transfer_queue_index, "Failed to find a transfer queue: {}", transfer_queue_index.error().message() )
-	)
+	m_vkGraphicsQueue = graphics_queue.value();
+	m_vkGraphicsQueueIndex = graphics_queue_index.value();
+
+	if ( transfer_queue && transfer_queue_index )
 	{
 		m_vkTransferQueue = transfer_queue.value();
 		m_vkTransferQueueIndex = transfer_queue_index.value();
 	}
 	else
 	{
+		WARN( "Defaulting to use graphics queue for transfers: {}", transfer_queue.error().message() );
 		m_vkTransferQueue = m_vkGraphicsQueue;
 		m_vkTransferQueueIndex = m_vkGraphicsQueueIndex;
 	}
 	
-	if (
-		WEAK_ASSERT( compute_queue, "Failed to find a compute queue: {}", compute_queue.error().message() ) &&
-		WEAK_ASSERT( compute_queue_index, "Failed to find a compute queue: {}", compute_queue_index.error().message() )
-	)
+	if ( compute_queue && compute_queue_index )
 	{
 		m_vkComputeQueue = compute_queue.value();
 		m_vkComputeQueueIndex = compute_queue_index.value();
 	}
 	else
 	{
+		WARN( "Defaulting to use graphics queue for compute: {}", compute_queue.error().message() );
 		m_vkComputeQueue = m_vkGraphicsQueue;
 		m_vkComputeQueueIndex = m_vkGraphicsQueueIndex;
 	}
@@ -842,6 +836,8 @@ void VulkanGraphicsContext::InitSpriteRendererResources()
 
 	SpriteRenderingResources& res = *( m_spriteRenderingResources = std::make_unique< SpriteRenderingResources >() );
 
+	SpriteRenderer::s_maxTextures = m_vkPhysicalDeviceProperties.limits.maxPerStageDescriptorSamplers;
+
 	{// create descriptor set layout
 		const vk::DescriptorSetLayoutBinding bindings[] {
 			vk::DescriptorSetLayoutBinding()
@@ -851,7 +847,7 @@ void VulkanGraphicsContext::InitSpriteRendererResources()
 				.setStageFlags( vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment ),
 			vk::DescriptorSetLayoutBinding()
 				.setBinding( 1 )
-				.setDescriptorCount( SpriteRenderer::c_maxTextures )
+				.setDescriptorCount( SpriteRenderer::s_maxTextures )
 				.setDescriptorType( vk::DescriptorType::eCombinedImageSampler )
 				.setStageFlags( vk::ShaderStageFlagBits::eFragment ),
 		};
@@ -876,9 +872,14 @@ void VulkanGraphicsContext::InitSpriteRendererResources()
 	}
 
 	{// create descriptor pool
-		const auto pool_sizes = vk::DescriptorPoolSize()
-			.setType( vk::DescriptorType::eCombinedImageSampler )
-			.setDescriptorCount( SpriteRenderer::c_maxTextures );
+		const vk::DescriptorPoolSize pool_sizes[] = {
+			vk::DescriptorPoolSize()
+				.setType( vk::DescriptorType::eCombinedImageSampler )
+				.setDescriptorCount( SpriteRenderer::s_maxTextures ),
+			vk::DescriptorPoolSize()
+				.setType( vk::DescriptorType::eStorageBuffer )
+				.setDescriptorCount( 100 )
+		};
 
 		const vk::ResultValue< vk::DescriptorPool > create_desc_pool = m_vkDevice.createDescriptorPool( vk::DescriptorPoolCreateInfo()
 			.setFlags( vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet )
@@ -1467,8 +1468,8 @@ void VulkanGraphicsContext::SpriteRenderer::Render( IFrameContext& frame_context
 
 		std::vector< vk::WriteDescriptorSet > descriptor_writes;
 		std::vector< vk::DescriptorImageInfo > image_infos;
-		descriptor_writes.reserve( c_maxTextures );
-		image_infos.reserve( c_maxTextures );
+		descriptor_writes.reserve( s_maxTextures );
+		image_infos.reserve( s_maxTextures );
 
 		for ( u32 idx = 0; idx < data.textures.size(); ++idx )
 		{
