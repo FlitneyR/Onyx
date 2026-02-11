@@ -30,7 +30,7 @@ static VkBool32 VulkanDebugMessageCallback(
 	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:		INFO( "Vulkan: {}", callback_data->pMessage ); break;
 	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:	WARN( "Vulkan: {}", callback_data->pMessage ); break;
 	default:
-		WEAK_ASSERT( message_severity != VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT, "Recieved a vulkan error: {}", callback_data->pMessage );
+		WEAK_ASSERT( message_severity != VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT, "received a vulkan error: {}", callback_data->pMessage );
 		break;
 	}
 
