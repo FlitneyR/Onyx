@@ -150,6 +150,8 @@ VulkanGraphicsContext::~VulkanGraphicsContext()
 {
 	ZoneScoped;
 
+	m_vkDevice.waitIdle();
+
 	for ( StagingBuffer& staging_buffer : m_stagingBuffers )
 	{
 		WEAK_ASSERT( staging_buffer.buffer && staging_buffer.allocation );
