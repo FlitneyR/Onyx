@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.0)
 
 set(CMAKE_TOOLCHAIN_FILE ~/vcpkg/scripts/buildsystems/vcpkg.cmake)
-set(VCPKG_MANIFEST_DIR "..")
+set(VCPKG_MANIFEST_DIR "../..")
 set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_MACOSX_RPATH 1)
@@ -13,7 +13,7 @@ project(Onyx)
 
 file(GLOB_RECURSE Onyx_Src "Onyx/*.h" "Onyx/*.cpp")
 add_library(Onyx)
-target_compile_definitions(Onyx PUBLIC $<$<CONFIG:Debug>:_DEBUG>)
+target_compile_definitions(Onyx PUBLIC __FUNCTION__=__PRETTY_FUNCTION__ $<$<CONFIG:Debug>:_DEBUG> $<$<CONFIG:Profile>:NDEBUG TRACY_ENABLE>)
 target_sources(Onyx PUBLIC ${Onyx_Src})
 target_include_directories(Onyx PUBLIC "." "./Onyx")
 target_precompile_headers(Onyx PUBLIC Onyx/types.h Onyx/Log.h Onyx/Asserts.h)

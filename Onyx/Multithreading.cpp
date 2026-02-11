@@ -61,6 +61,7 @@ bool JobQueue::StartNextAvailableJob()
 WorkerPool::WorkerPool( u32 num_workers )
 {
 	num_workers = std::min( num_workers, std::thread::hardware_concurrency() );
+	INFO( "Starting {} worker threads", num_workers );
 
 	m_workers.reserve( num_workers );
 	for ( u32 idx = 0; idx < num_workers; ++idx )
@@ -110,6 +111,18 @@ void WorkerPool::Worker( u32 index, u32 count )
 		wsprintf( thread_name, L"Worker %u", index );
 
 		SetThreadDescription( GetCurrentThread(), thread_name );
+	}
+#endif
+#ifdef __APPLE__
+	{
+		char thread_name[ 32 ] = "";
+		sprintf( thread_name, "Worker %u", index );
+
+		pthread_setname_np( thread_name );
+
+#	ifdef TRACY_ENABLE
+		tracy::SetThreadName( thread_name );
+#	endif
 	}
 #endif
 

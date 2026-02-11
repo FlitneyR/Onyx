@@ -1,17 +1,43 @@
 {
     "configurations": [
         {
-            "name": "Launch Asteroids Game",
+            "name": "Launch Asteroids_Game Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Asteroids_Game",
+            "program": "${workspaceFolder}/build/debug/Asteroids_Game",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/Asteroids/Game",
             "environment": [],
             "externalConsole": false,
             "MIMode": "lldb",
-            "preLaunchTask": "CMake: build"
-        }
+            "preLaunchTask": "Build Asteroids_Game Debug",
+        },
+        {
+            "name": "Launch Asteroids_Game Release",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/release/Asteroids_Game",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/Asteroids/Game",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb",
+            "preLaunchTask": "Build Asteroids_Game Release",
+        },
+        {
+            "name": "Launch Asteroids_Game Profile",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/profile/Asteroids_Game",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/Asteroids/Game",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb",
+            "preLaunchTask": "Profile Asteroids_Game Pre Launch",
+        },
     ]
 }
