@@ -11,7 +11,7 @@ void RegisterGameplaySystems( SystemSet& system_set )
 	system_set.AddSystem( UpdateAnimatedSprites::System );
 	system_set.AddSystem( UpdateParallaxBackgroundLayers::System );
 
-	system_set.AddDependency( (void*)UpdateAnimatedSprites::System, (void*)UpdateParallaxBackgroundLayers::System );
+	system_set.AddDependency( UpdateAnimatedSprites::System, UpdateParallaxBackgroundLayers::System );
 }
 
 template< typename SystemSet >
@@ -20,7 +20,7 @@ void RegisterEditorSystems( SystemSet& system_set )
 	system_set.AddSystem( UpdateAnimatedSprites::System );
 	system_set.AddSystem( UpdateParallaxBackgroundLayers::System );
 
-	system_set.AddDependency( (void*)UpdateAnimatedSprites::System, (void*)UpdateParallaxBackgroundLayers::System );
+	system_set.AddDependency( UpdateAnimatedSprites::System, UpdateParallaxBackgroundLayers::System );
 }
 
 template< typename SystemSet >

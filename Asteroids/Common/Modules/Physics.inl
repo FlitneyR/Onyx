@@ -12,9 +12,9 @@ void RegisterGameplaySystems( SystemSet& system_set )
 	system_set.AddSystem( UpdateCollisions::System );
 	system_set.AddSystem( UpdateDamageOnCollision::System );
 
-	system_set.AddDependency( (void*)UpdatePhysicsBodies::System, (void*)UpdateCollisions::System );
-	system_set.AddDependency( (void*)UpdateCollisions::System, (void*)UpdateDamageOnCollision::System );
-	system_set.AddDependency( (void*)UpdatePhysicsBodies::System, (void*)onyx::Core::UpdateTransform2DLocales::System );
+	system_set.AddDependency( UpdatePhysicsBodies::System, UpdateCollisions::System );
+	system_set.AddDependency( UpdateCollisions::System, UpdateDamageOnCollision::System );
+	system_set.AddDependency( UpdatePhysicsBodies::System, onyx::Core::UpdateTransform2DLocales::System );
 }
 
 }
