@@ -1,6 +1,13 @@
 {
 	"version": "2.0.0",
 	"tasks": [
+		// cleanup commands
+		{
+			"label": "Clean",
+			"command": "rm",
+			"args": [ "-rf", "build" ],
+			"options": { "cwd": "${workspaceFolder}" },
+		},
 		// setup commands
 		{
 			"label": "Make build directories",
