@@ -116,7 +116,7 @@ void WorkerPool::Worker( u32 index, u32 count )
 #ifdef __APPLE__
 	{
 		char thread_name[ 32 ] = "";
-		sprintf( thread_name, "Worker %u", index );
+		snprintf( thread_name, COUNTOF(thread_name), "Worker %u", index );
 
 		pthread_setname_np( thread_name );
 

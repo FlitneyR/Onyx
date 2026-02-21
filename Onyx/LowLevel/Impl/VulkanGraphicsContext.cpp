@@ -150,7 +150,7 @@ VulkanGraphicsContext::~VulkanGraphicsContext()
 {
 	ZoneScoped;
 
-	m_vkDevice.waitIdle();
+	STRONG_ASSERT( m_vkDevice.waitIdle() == vk::Result::eSuccess );
 
 	for ( StagingBuffer& staging_buffer : m_stagingBuffers )
 	{
@@ -497,7 +497,7 @@ VulkanGraphicsContext::TransientCommand VulkanGraphicsContext::BeginTransientCom
 	}
 
 	STRONG_ASSERT( staging_buffer );
-	m_vkDevice.resetFences( staging_buffer->inUseFence );
+	STRONG_ASSERT( m_vkDevice.resetFences( staging_buffer->inUseFence ) == vk::Result::eSuccess );
 
 	const vk::ResultValue< std::vector< vk::CommandBuffer > > command_buffers = m_vkDevice.allocateCommandBuffers( vk::CommandBufferAllocateInfo()
 		.setCommandPool( m_vkTransientCommandPool )

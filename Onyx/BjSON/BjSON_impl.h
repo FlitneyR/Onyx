@@ -9,6 +9,8 @@ namespace BjSON
 
 struct Reader
 {
+	virtual ~Reader() = default;
+
 	template< typename T >
 	u32 Read( u32& offset, T* dest, u32 count = 1 )
 	{
@@ -125,6 +127,8 @@ struct DecoderImpl : IDecoder
 
 struct IEncoderNode
 {
+	virtual ~IEncoderNode() = default;
+
 	// writes this node into the writer at the requested address
 	// returns how many bytes were written
 	virtual void Write( Writer& writer, u32& offset ) const = 0;

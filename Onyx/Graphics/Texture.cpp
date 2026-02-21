@@ -16,13 +16,13 @@ DEFINE_DEFAULT_DESERIALISE_PROPERTY( std::shared_ptr< TextureAsset > )
 { std::string path; value = !reader.GetLiteral( name, path ) || path.empty() ? nullptr : asset_manager.Load< TextureAsset >( path ); }
 
 DEFINE_DEFAULT_PROPERTY_DIFF_HINT( std::shared_ptr< TextureAsset > )
-{ ImGui::SetTooltip( !value ? "No Texture" : value->m_path.c_str() ); }
+{ ImGui::SetTooltip( "%s", !value ? "No Texture" : value->m_path.c_str() ); }
 
 DEFINE_DEFAULT_PROPERTY_EDITOR_UI( std::shared_ptr< TextureAsset > )
 {
 	ImGuiScopedID scoped_id( name );
 
-	ImGui::Text( name );
+	ImGui::Text( "%s", name );
 	if ( value ? ImGui::ImageButton( value->GetGraphicsResource()->GetImTextureID(), { 100, 100 } ) : ImGui::Button( "Select Texture" ) )
 		ImGui::OpenPopup( "Select Texture" );
 
@@ -64,7 +64,7 @@ DEFINE_DEFAULT_DESERIALISE_PROPERTY( std::shared_ptr< TextureAnimationAsset > )
 { std::string path; reader.GetLiteral( name, path ); if ( !path.empty() ) value = asset_manager.Load< TextureAnimationAsset >( path ); }
 
 DEFINE_DEFAULT_PROPERTY_DIFF_HINT( std::shared_ptr< TextureAnimationAsset > )
-{ ImGui::SetTooltip( !value ? "No Texture" : value->m_path.c_str() ); }
+{ ImGui::SetTooltip( "%s", !value ? "No Texture" : value->m_path.c_str() ); }
 
 DEFINE_DEFAULT_PROPERTY_EDITOR_UI( std::shared_ptr< TextureAnimationAsset > )
 {

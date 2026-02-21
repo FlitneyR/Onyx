@@ -65,12 +65,16 @@ void Init( const Config& config, AssetManager* core_asset_manager )
 		s_windowManager = new SDLWindowManager();
 		s_lowLevelInput = new SDLInput();
 		break;
+	default:
+		break;
 	}
 
 	switch ( config.graphicsAPI )
 	{
 	case Config::GraphicsAPI::Vulkan:
 		s_graphicsContext = new VulkanGraphicsContext();
+		break;
+	default:
 		break;
 	}
 

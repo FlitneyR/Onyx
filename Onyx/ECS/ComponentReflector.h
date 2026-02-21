@@ -128,7 +128,7 @@ private:
 	bool __any_edits = false;\
 	if ( SceneInstance* const scene_instance = world.GetComponent< SceneInstance >( entity ) )\
 	{\
-		if ( src_##component = ( src_world = &scene_instance->m_scene->m_world )->GetComponent< Component >( src_entity = scene_instance->m_sceneEntityId ) )\
+		if (( src_##component = ( src_world = &scene_instance->m_scene->m_world )->GetComponent< Component >( src_entity = scene_instance->m_sceneEntityId ) ))\
 			edits = &scene_instance->m_edits.insert( { #Component##_name, {} } ).first->second;\
 	}\
 	if ( src_##component )\
