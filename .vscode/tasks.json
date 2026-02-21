@@ -7,6 +7,7 @@
 			"command": "rm",
 			"args": [ "-rf", "build" ],
 			"options": { "cwd": "${workspaceFolder}" },
+			"problemMatcher": []
 		},
 		// setup commands
 		{
@@ -14,6 +15,7 @@
 			"command": "mkdir",
 			"args": [ "-p", "build/debug", "build/release", "build/profile" ],
 			"options": { "cwd": "${workspaceFolder}" },
+			"problemMatcher": []
 		},
 		// configure commands
 		{
@@ -22,6 +24,7 @@
 			"args": [ "../.." ],
 			"options": { "cwd": "${workspaceFolder}/build/debug" },
 			"dependsOn": [ "Make build directories" ],
+			"problemMatcher": []
 		},
 		{
 			"label": "Configure Release",
@@ -29,6 +32,7 @@
 			"args": [ "../.." ],
 			"options": { "cwd": "${workspaceFolder}/build/release" },
 			"dependsOn": [ "Make build directories" ],
+			"problemMatcher": []
 		},
 		{
 			"label": "Configure Profile",
@@ -36,29 +40,84 @@
 			"args": [ "../.." ],
 			"options": { "cwd": "${workspaceFolder}/build/profile" },
 			"dependsOn": [ "Make build directories" ],
+			"problemMatcher": []
 		},
 		// build commands
-		{
-			"label": "Build Asteroids_Game Debug",
-			"command": "cmake",
-			"args": [ "--build", ".", "--config", "Debug", "--", "Asteroids_Game" ],
-			"options": { "cwd": "${workspaceFolder}/build/debug" },
-			"dependsOn": [ "Configure Debug", "Make build directories" ],
-		},
-		{
-			"label": "Build Asteroids_Game Release",
-			"command": "cmake",
-			"args": [ "--build", ".", "--config", "Release", "--", "Asteroids_Game" ],
-			"options": { "cwd": "${workspaceFolder}/build/release" },
-			"dependsOn": [ "Configure Release", "Make build directories" ],
-		},
-		{
-			"label": "Build Asteroids_Game Profile",
-			"command": "cmake",
-			"args": [ "--build", ".", "--config", "Profile", "--", "Asteroids_Game" ],
-			"options": { "cwd": "${workspaceFolder}/build/profile" },
-			"dependsOn": [ "Configure Profile", "Make build directories" ],
-		},
+			// Debug
+			{
+				"label": "Build Debug",
+				"command": "cmake",
+				"args": [ "--build", ".", "--config", "Debug" ],
+				"options": { "cwd": "${workspaceFolder}/build/debug" },
+				"dependsOn": [ "Configure Debug", "Make build directories" ],
+				"problemMatcher": []
+			},
+			{
+				"label": "Build Asteroids_Game Debug",
+				"command": "cmake",
+				"args": [ "--build", ".", "--config", "Debug", "--", "Asteroids_Game" ],
+				"options": { "cwd": "${workspaceFolder}/build/debug" },
+				"dependsOn": [ "Configure Debug", "Make build directories" ],
+				"problemMatcher": []
+			},
+			{
+				"label": "Build Asteroids_Editor Debug",
+				"command": "cmake",
+				"args": [ "--build", ".", "--config", "Debug", "--", "Asteroids_Editor" ],
+				"options": { "cwd": "${workspaceFolder}/build/debug" },
+				"dependsOn": [ "Configure Debug", "Make build directories" ],
+				"problemMatcher": []
+			},
+			// Release
+			{
+				"label": "Build Release",
+				"command": "cmake",
+				"args": [ "--build", ".", "--config", "Release" ],
+				"options": { "cwd": "${workspaceFolder}/build/release" },
+				"dependsOn": [ "Configure Release", "Make build directories" ],
+				"problemMatcher": []
+			},
+			{
+				"label": "Build Asteroids_Game Release",
+				"command": "cmake",
+				"args": [ "--build", ".", "--config", "Release", "--", "Asteroids_Game" ],
+				"options": { "cwd": "${workspaceFolder}/build/release" },
+				"dependsOn": [ "Configure Release", "Make build directories" ],
+				"problemMatcher": []
+			},
+			{
+				"label": "Build Asteroids_Editor Release",
+				"command": "cmake",
+				"args": [ "--build", ".", "--config", "Release", "--", "Asteroids_Editor" ],
+				"options": { "cwd": "${workspaceFolder}/build/release" },
+				"dependsOn": [ "Configure Release", "Make build directories" ],
+				"problemMatcher": []
+			},
+			// Profile
+			{
+				"label": "Build Profile",
+				"command": "cmake",
+				"args": [ "--build", ".", "--config", "Profile" ],
+				"options": { "cwd": "${workspaceFolder}/build/profile" },
+				"dependsOn": [ "Configure Profile", "Make build directories" ],
+				"problemMatcher": []
+			},
+			{
+				"label": "Build Asteroids_Game Profile",
+				"command": "cmake",
+				"args": [ "--build", ".", "--config", "Profile", "--", "Asteroids_Game" ],
+				"options": { "cwd": "${workspaceFolder}/build/profile" },
+				"dependsOn": [ "Configure Profile", "Make build directories" ],
+				"problemMatcher": []
+			},
+			{
+				"label": "Build Asteroids_Editor Profile",
+				"command": "cmake",
+				"args": [ "--build", ".", "--config", "Profile", "--", "Asteroids_Editor" ],
+				"options": { "cwd": "${workspaceFolder}/build/profile" },
+				"dependsOn": [ "Configure Profile", "Make build directories" ],
+				"problemMatcher": []
+			},
 		// tool commands
 		{
 			"label": "Launch Tracy",
@@ -87,6 +146,13 @@
 			"label": "Profile Asteroids_Game Pre Launch",
 			"dependsOn": [ "Build Asteroids_Game Profile", "Launch Tracy" ],
 			"dependsOrder": "sequence",
+			"problemMatcher": []
+		},
+		{
+			"label": "Profile Asteroids_Editor Pre Launch",
+			"dependsOn": [ "Build Asteroids_Editor Profile", "Launch Tracy" ],
+			"dependsOrder": "sequence",
+			"problemMatcher": []
 		},
 	]
 }

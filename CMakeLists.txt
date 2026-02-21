@@ -59,12 +59,16 @@ target_link_libraries(Onyx PRIVATE
 # Asteroids Demo
 file(GLOB_RECURSE Asteroids_Common_Src "Asteroids/Common/*.h" "Asteroids/Common/*.cpp")
 file(GLOB_RECURSE Asteroids_Game_Src "Asteroids/Game/*.h" "Asteroids/Game/*.cpp")
+file(GLOB_RECURSE Asteroids_Editor_Src "Asteroids/Editor/*.h" "Asteroids/Editor/*.cpp")
 
 add_library(Asteroids_Common)
 add_executable(Asteroids_Game)
+add_executable(Asteroids_Editor)
 
 target_sources(Asteroids_Common PUBLIC ${Asteroids_Common_Src})
 target_sources(Asteroids_Game PRIVATE ${Asteroids_Game_Src})
+target_sources(Asteroids_Editor PRIVATE ${Asteroids_Editor_Src})
 
 target_link_libraries(Asteroids_Common PUBLIC Onyx)
 target_link_libraries(Asteroids_Game PRIVATE Asteroids_Common)
+target_link_libraries(Asteroids_Editor PRIVATE Asteroids_Common)
