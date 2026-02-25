@@ -2,7 +2,7 @@
     "configurations": [
         // Asteroids Game
         {
-            "name": "Launch Asteroids_Game Debug",
+            "name": "Asteroids_Game Debug",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/debug/Asteroids_Game",
@@ -12,10 +12,10 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "lldb",
-            "preLaunchTask": "Build Asteroids_Game Debug",
+            "preLaunchTask": "Build Debug",
         },
         {
-            "name": "Launch Asteroids_Game Release",
+            "name": "Asteroids_Game Release",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/release/Asteroids_Game",
@@ -25,10 +25,10 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "lldb",
-            "preLaunchTask": "Build Asteroids_Game Release",
+            "preLaunchTask": "Build Release",
         },
         {
-            "name": "Launch Asteroids_Game Profile",
+            "name": "Asteroids_Game Profile",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/profile/Asteroids_Game",
@@ -38,11 +38,11 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "lldb",
-            "preLaunchTask": "Profile Asteroids_Game Pre Launch",
+            "preLaunchTask": "Profile Pre Launch",
         },
         // Asteroids Editor
         {
-            "name": "Launch Asteroids_Editor Debug",
+            "name": "Asteroids_Editor Debug",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/debug/Asteroids_Editor",
@@ -52,10 +52,10 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "lldb",
-            "preLaunchTask": "Build Asteroids_Editor Debug",
+            "preLaunchTask": "Build Debug",
         },
         {
-            "name": "Launch Asteroids_Editor Release",
+            "name": "Asteroids_Editor Release",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/release/Asteroids_Editor",
@@ -65,10 +65,10 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "lldb",
-            "preLaunchTask": "Build Asteroids_Editor Release",
+            "preLaunchTask": "Build Release",
         },
         {
-            "name": "Launch Asteroids_Editor Profile",
+            "name": "Asteroids_Editor Profile",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/profile/Asteroids_Editor",
@@ -78,7 +78,7 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "lldb",
-            "preLaunchTask": "Profile Asteroids_Editor Pre Launch",
+            "preLaunchTask": "Profile Pre Launch",
         },
     ]
 }

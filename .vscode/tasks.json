@@ -43,81 +43,30 @@
 			"problemMatcher": []
 		},
 		// build commands
-			// Debug
-			{
-				"label": "Build Debug",
-				"command": "cmake",
-				"args": [ "--build", ".", "--config", "Debug", "--parallel" ],
-				"options": { "cwd": "${workspaceFolder}/build/debug" },
-				"dependsOn": [ "Configure Debug", "Make build directories" ],
-				"problemMatcher": []
-			},
-			{
-				"label": "Build Asteroids_Game Debug",
-				"command": "cmake",
-				"args": [ "--build", ".", "--config", "Debug", "--parallel", "--", "Asteroids_Game" ],
-				"options": { "cwd": "${workspaceFolder}/build/debug" },
-				"dependsOn": [ "Configure Debug", "Make build directories" ],
-				"problemMatcher": []
-			},
-			{
-				"label": "Build Asteroids_Editor Debug",
-				"command": "cmake",
-				"args": [ "--build", ".", "--config", "Debug", "--parallel", "--", "Asteroids_Editor" ],
-				"options": { "cwd": "${workspaceFolder}/build/debug" },
-				"dependsOn": [ "Configure Debug", "Make build directories" ],
-				"problemMatcher": []
-			},
-			// Release
-			{
-				"label": "Build Release",
-				"command": "cmake",
-				"args": [ "--build", ".", "--config", "Release", "--parallel" ],
-				"options": { "cwd": "${workspaceFolder}/build/release" },
-				"dependsOn": [ "Configure Release", "Make build directories" ],
-				"problemMatcher": []
-			},
-			{
-				"label": "Build Asteroids_Game Release",
-				"command": "cmake",
-				"args": [ "--build", ".", "--config", "Release", "--parallel", "--", "Asteroids_Game" ],
-				"options": { "cwd": "${workspaceFolder}/build/release" },
-				"dependsOn": [ "Configure Release", "Make build directories" ],
-				"problemMatcher": []
-			},
-			{
-				"label": "Build Asteroids_Editor Release",
-				"command": "cmake",
-				"args": [ "--build", ".", "--config", "Release", "--parallel", "--", "Asteroids_Editor" ],
-				"options": { "cwd": "${workspaceFolder}/build/release" },
-				"dependsOn": [ "Configure Release", "Make build directories" ],
-				"problemMatcher": []
-			},
-			// Profile
-			{
-				"label": "Build Profile",
-				"command": "cmake",
-				"args": [ "--build", ".", "--config", "Profile", "--parallel" ],
-				"options": { "cwd": "${workspaceFolder}/build/profile" },
-				"dependsOn": [ "Configure Profile", "Make build directories" ],
-				"problemMatcher": []
-			},
-			{
-				"label": "Build Asteroids_Game Profile",
-				"command": "cmake",
-				"args": [ "--build", ".", "--config", "Profile", "--parallel", "--", "Asteroids_Game" ],
-				"options": { "cwd": "${workspaceFolder}/build/profile" },
-				"dependsOn": [ "Configure Profile", "Make build directories" ],
-				"problemMatcher": []
-			},
-			{
-				"label": "Build Asteroids_Editor Profile",
-				"command": "cmake",
-				"args": [ "--build", ".", "--config", "Profile", "--parallel", "--", "Asteroids_Editor" ],
-				"options": { "cwd": "${workspaceFolder}/build/profile" },
-				"dependsOn": [ "Configure Profile", "Make build directories" ],
-				"problemMatcher": []
-			},
+		{
+			"label": "Build Debug",
+			"command": "cmake",
+			"args": [ "--build", ".", "--config", "Debug", "--parallel" ],
+			"options": { "cwd": "${workspaceFolder}/build/debug" },
+			"dependsOn": [ "Configure Debug", "Make build directories" ],
+			"problemMatcher": []
+		},
+		{
+			"label": "Build Release",
+			"command": "cmake",
+			"args": [ "--build", ".", "--config", "Release", "--parallel" ],
+			"options": { "cwd": "${workspaceFolder}/build/release" },
+			"dependsOn": [ "Configure Release", "Make build directories" ],
+			"problemMatcher": []
+		},
+		{
+			"label": "Build Profile",
+			"command": "cmake",
+			"args": [ "--build", ".", "--config", "Profile", "--parallel" ],
+			"options": { "cwd": "${workspaceFolder}/build/profile" },
+			"dependsOn": [ "Configure Profile", "Make build directories" ],
+			"problemMatcher": []
+		},
 		// tool commands
 		{
 			"label": "Launch Tracy",
@@ -144,13 +93,7 @@
 		// group commands
 		{
 			"label": "Profile Asteroids_Game Pre Launch",
-			"dependsOn": [ "Build Asteroids_Game Profile", "Launch Tracy" ],
-			"dependsOrder": "sequence",
-			"problemMatcher": []
-		},
-		{
-			"label": "Profile Asteroids_Editor Pre Launch",
-			"dependsOn": [ "Build Asteroids_Editor Profile", "Launch Tracy" ],
+			"dependsOn": [ "Build Profile", "Launch Tracy" ],
 			"dependsOrder": "sequence",
 			"problemMatcher": []
 		},
