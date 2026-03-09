@@ -92,7 +92,7 @@
 		},
 		// group commands
 		{
-			"label": "Profile Asteroids_Game Pre Launch",
+			"label": "Profile Pre Launch",
 			"dependsOn": [ "Build Profile", "Launch Tracy" ],
 			"dependsOrder": "sequence",
 			"problemMatcher": []
