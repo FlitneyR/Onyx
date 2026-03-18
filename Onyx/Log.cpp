@@ -1,6 +1,7 @@
-#include "log.h"
+#include "Log.h"
 #include <fstream>
 #include <vector>
+#include <ctime>
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -24,13 +25,26 @@ void __LogInternal( const char* string )
 	s_log.Add( string );
 }
 
+struct LogFileInitException : std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Failed to create log file";
+	}
+};
+
 Log::Log()
 {
 	time_t now;
 	tm _now;
 
 	std::time( &now );
+
+#ifdef WIN32
 	gmtime_s( &_now, &now );
+#else
+	gmtime_r( &now, &_now );
+#endif
 
 	char buf[ sizeof "YYYY-MM-DDTHH-MM-SSZ" ];
 	strftime( buf, sizeof buf, "%FT%TZ", &_now );
@@ -39,10 +53,10 @@ Log::Log()
 		if ( c == ':' )
 			c = '-';
 
-	file = std::ofstream( std::format( "./logs/{}.txt", buf ), std::ios::app );
+	file = std::ofstream( fmt::format( "./logs/{}.txt", buf ), std::ios::app );
 
 	if ( !file.is_open() )
-		throw std::exception( "Failed to create log file" );
+		throw LogFileInitException();
 }
 
 Log::~Log()

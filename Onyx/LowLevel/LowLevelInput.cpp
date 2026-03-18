@@ -31,7 +31,7 @@ void LowLevelInput::UpdateButtonStates()
 
 std::string LowLevelInput::DebugWindow::GetWindowTitle() const
 {
-	return std::format( "Input Debug###{}", (u64)this );
+	return fmt::format( "Input Debug###{}", (u64)this );
 }
 
 void LowLevelInput::DebugWindow::Run( IFrameContext& frame_context )

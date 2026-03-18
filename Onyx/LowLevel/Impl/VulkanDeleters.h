@@ -48,7 +48,11 @@ struct VulkanGraphicsContext::Deleter< vk::DescriptorSet > : DeleteQueue::IDelet
 	Deleter( vk::Device device, vk::DescriptorPool descriptor_pool, vk::DescriptorSet descriptor_set )
 		: m_device( device ), m_descriptorPool( descriptor_pool ), m_descriptorSet( descriptor_set ) {}
 
-	void Delete() override { ZoneScoped; m_device.freeDescriptorSets( m_descriptorPool, m_descriptorSet ); }
+	void Delete() override
+	{
+		ZoneScoped;
+		m_device.freeDescriptorSets( m_descriptorPool, m_descriptorSet );
+	}
 };
 
 template<>

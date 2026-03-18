@@ -40,7 +40,7 @@ struct ShaderAsset final : IAsset
 struct ShaderEditorWindow : editor::IWindow
 {
 	inline static const char* const s_name = "Shader Editor";
-	const char* GetName() const { return s_name; }
+	const char* GetName() const override { return s_name; }
 
 	void Run( IFrameContext& frame_context ) override;
 	std::string GetWindowTitle() const override;

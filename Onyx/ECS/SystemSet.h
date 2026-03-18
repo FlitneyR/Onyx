@@ -25,7 +25,8 @@ struct SystemSet
 		m_systems.push_back( std::make_unique< System< IContext, Func > >( m_querySet, callback ) );
 	}
 
-	void AddDependency( void* first, void* second )
+	template< typename Func1, typename Func2 >
+	void AddDependency( Func1* first, Func2* second )
 	{
 		m_dependencies.push_back( { (u64)first, (u64)second } );
 	}

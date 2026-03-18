@@ -30,7 +30,7 @@ static VkBool32 VulkanDebugMessageCallback(
 	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:		INFO( "Vulkan: {}", callback_data->pMessage ); break;
 	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:	WARN( "Vulkan: {}", callback_data->pMessage ); break;
 	default:
-		WEAK_ASSERT( message_severity != VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT, "Recieved a vulkan error: {}", callback_data->pMessage );
+		WEAK_ASSERT( message_severity != VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT, "received a vulkan error: {}", callback_data->pMessage );
 		break;
 	}
 
@@ -69,15 +69,16 @@ VulkanGraphicsContext::VulkanGraphicsContext()
 
 	STRONG_ASSERT( vkb_physical_device, "Failed to find a vulkan device: {}", vkb_physical_device.error().message() );
 	m_vkPhysicalDevice = vkb_physical_device.value().physical_device;
-
+	
 	const vkb::Result< vkb::Device > vkb_device = vkb::DeviceBuilder( vkb_physical_device.value() )
-		.build();
-
+	.build();
+	
 	STRONG_ASSERT( vkb_device, "Failed to create a vulkan logical device: {}", vkb_device.error().message() );
 	m_vkDevice = vkb_device.value().device;
 	m_shutdownDeleteQueue.Add< Deleter< vk::Device > >( m_vkDevice );
-
+	
 	VULKAN_HPP_DEFAULT_DISPATCHER.init( m_vkInstance, m_vkDevice );
+	m_vkPhysicalDeviceProperties = m_vkPhysicalDevice.getProperties();
 
 	const vk::ResultValue< vma::Allocator > allocator = vma::createAllocator( vma::AllocatorCreateInfo()
 		.setInstance( m_vkInstance )
@@ -98,20 +99,35 @@ VulkanGraphicsContext::VulkanGraphicsContext()
 	const vkb::Result< u32 > compute_queue_index = vkb_device.value().get_queue_index( vkb::QueueType::compute );
 
 	STRONG_ASSERT( graphics_queue, "Failed to find a graphics queue: {}", graphics_queue.error().message() );
-	STRONG_ASSERT( transfer_queue, "Failed to find a transfer queue: {}", transfer_queue.error().message() );
-	STRONG_ASSERT( compute_queue, "Failed to find a compute queue: {}", compute_queue.error().message() );
-
 	STRONG_ASSERT( graphics_queue_index, "Failed to find a graphics queue: {}", graphics_queue_index.error().message() );
-	STRONG_ASSERT( transfer_queue_index, "Failed to find a transfer queue: {}", transfer_queue_index.error().message() );
-	STRONG_ASSERT( compute_queue_index, "Failed to find a compute queue: {}", compute_queue_index.error().message() );
 
 	m_vkGraphicsQueue = graphics_queue.value();
-	m_vkTransferQueue = transfer_queue.value();
-	m_vkComputeQueue = compute_queue.value();
-
 	m_vkGraphicsQueueIndex = graphics_queue_index.value();
-	m_vkTransferQueueIndex = transfer_queue_index.value();
-	m_vkComputeQueueIndex = compute_queue_index.value();
+
+	if ( transfer_queue && transfer_queue_index )
+	{
+		m_vkTransferQueue = transfer_queue.value();
+		m_vkTransferQueueIndex = transfer_queue_index.value();
+	}
+	else
+	{
+		WARN( "Defaulting to use graphics queue for transfers: {}", transfer_queue.error().message() );
+		m_vkTransferQueue = m_vkGraphicsQueue;
+		m_vkTransferQueueIndex = m_vkGraphicsQueueIndex;
+	}
+	
+	if ( compute_queue && compute_queue_index )
+	{
+		m_vkComputeQueue = compute_queue.value();
+		m_vkComputeQueueIndex = compute_queue_index.value();
+	}
+	else
+	{
+		WARN( "Defaulting to use graphics queue for compute: {}", compute_queue.error().message() );
+		m_vkComputeQueue = m_vkGraphicsQueue;
+		m_vkComputeQueueIndex = m_vkGraphicsQueueIndex;
+	}
+
 
 	const vk::ResultValue< vk::CommandPool > command_pool = m_vkDevice.createCommandPool( vk::CommandPoolCreateInfo()
 		.setFlags( vk::CommandPoolCreateFlagBits::eResetCommandBuffer )
@@ -133,6 +149,8 @@ VulkanGraphicsContext::VulkanGraphicsContext()
 VulkanGraphicsContext::~VulkanGraphicsContext()
 {
 	ZoneScoped;
+
+	STRONG_ASSERT( m_vkDevice.waitIdle() == vk::Result::eSuccess );
 
 	for ( StagingBuffer& staging_buffer : m_stagingBuffers )
 	{
@@ -413,8 +431,8 @@ void VulkanGraphicsContext::StagingBuffer::Resize( u32 new_size )
 	);
 
 	STRONG_ASSERT( create_buffer_result.result == vk::Result::eSuccess, "Failed to resize staging buffer: {}", vk::to_string( create_buffer_result.result ) );
-	buffer = create_buffer_result.value.first;
-	allocation = create_buffer_result.value.second;
+	buffer = create_buffer_result.value.second;
+	allocation = create_buffer_result.value.first;
 
 	ctx.m_vmaAllocator.setAllocationName( allocation, "Transient staging buffer" );
 }
@@ -479,7 +497,7 @@ VulkanGraphicsContext::TransientCommand VulkanGraphicsContext::BeginTransientCom
 	}
 
 	STRONG_ASSERT( staging_buffer );
-	m_vkDevice.resetFences( staging_buffer->inUseFence );
+	STRONG_ASSERT( m_vkDevice.resetFences( staging_buffer->inUseFence ) == vk::Result::eSuccess );
 
 	const vk::ResultValue< std::vector< vk::CommandBuffer > > command_buffers = m_vkDevice.allocateCommandBuffers( vk::CommandBufferAllocateInfo()
 		.setCommandPool( m_vkTransientCommandPool )
@@ -517,7 +535,7 @@ std::shared_ptr< IRenderTarget > VulkanGraphicsContext::CreateRenderTarget( cons
 
 	std::shared_ptr< RenderTarget > render_target = std::make_shared< RenderTarget >( dimensions );
 
-	const vk::ResultValue< std::pair< vk::Image, vma::Allocation > > create_image_result = m_vmaAllocator.createImage(
+	const vk::ResultValue< std::pair< vma::Allocation, vk::Image > > create_image_result = m_vmaAllocator.createImage(
 		vk::ImageCreateInfo()
 			.setArrayLayers( 1 )
 			.setExtent( { dimensions.x, dimensions.y, 1 } )	
@@ -536,10 +554,10 @@ std::shared_ptr< IRenderTarget > VulkanGraphicsContext::CreateRenderTarget( cons
 	if ( !WEAK_ASSERT( create_image_result.result == vk::Result::eSuccess, "Failed to create render target: {}", vk::to_string( create_image_result.result ) ) )
 		return nullptr;
 
-	m_vmaAllocator.setAllocationName( create_image_result.value.second, "Render Target" );
+	m_vmaAllocator.setAllocationName( create_image_result.value.first, "Render Target" );
 
-	render_target->m_deleteQueue.Add< Deleter< vk::Image, vma::Allocation > >( m_vmaAllocator, create_image_result.value.first, create_image_result.value.second );
-	render_target->m_image = create_image_result.value.first;
+	render_target->m_deleteQueue.Add< Deleter< vk::Image, vma::Allocation > >( m_vmaAllocator, create_image_result.value.second, create_image_result.value.first );
+	render_target->m_image = create_image_result.value.second;
 
 	const vk::ResultValue< vk::ImageView > create_image_view = m_vkDevice.createImageView( vk::ImageViewCreateInfo()
 		.setFormat( vk::Format::eR8G8B8A8Srgb )
@@ -590,7 +608,7 @@ std::shared_ptr< ITextureResource > VulkanGraphicsContext::CreateTextureResource
 	// create resources
 	{
 		constexpr vk::Format format = vk::Format::eR8G8B8A8Srgb;
-		const vk::ResultValue< std::pair< vk::Image, vma::Allocation > > create_image_result = m_vmaAllocator.createImage(
+		const vk::ResultValue< std::pair< vma::Allocation, vk::Image > > create_image_result = m_vmaAllocator.createImage(
 			vk::ImageCreateInfo()
 				.setArrayLayers( 1 )
 				.setExtent( vk::Extent3D( dimensions.x, dimensions.y, 1 ) )
@@ -610,9 +628,9 @@ std::shared_ptr< ITextureResource > VulkanGraphicsContext::CreateTextureResource
 		if ( !WEAK_ASSERT( create_image_result.result == vk::Result::eSuccess, "Failed to create image: {}", vk::to_string( create_image_result.result ) ) )
 			return nullptr;
 
-		m_vmaAllocator.setAllocationName( create_image_result.value.second, std::format( "Texture Resource: {}", asset.m_path ).c_str() );
-		texture->m_deleteQueue.Add< Deleter< vk::Image, vma::Allocation > >( m_vmaAllocator, create_image_result.value.first, create_image_result.value.second );
-		texture->m_image = create_image_result.value.first;
+		m_vmaAllocator.setAllocationName( create_image_result.value.first, fmt::format( "Texture Resource: {}", asset.m_path ).c_str() );
+		texture->m_deleteQueue.Add< Deleter< vk::Image, vma::Allocation > >( m_vmaAllocator, create_image_result.value.second, create_image_result.value.first );
+		texture->m_image = create_image_result.value.second;
 
 		const vk::ResultValue< vk::ImageView > create_image_view_result = m_vkDevice.createImageView(
 			vk::ImageViewCreateInfo()
@@ -820,6 +838,9 @@ void VulkanGraphicsContext::InitSpriteRendererResources()
 
 	SpriteRenderingResources& res = *( m_spriteRenderingResources = std::make_unique< SpriteRenderingResources >() );
 
+	SpriteRenderer::s_maxTextures = std::min< u32 >( m_vkPhysicalDeviceProperties.limits.maxPerStageDescriptorSamplers, 1'000 );
+	INFO( "Sprite renderer max textures set to {}", SpriteRenderer::s_maxTextures );
+
 	{// create descriptor set layout
 		const vk::DescriptorSetLayoutBinding bindings[] {
 			vk::DescriptorSetLayoutBinding()
@@ -829,7 +850,7 @@ void VulkanGraphicsContext::InitSpriteRendererResources()
 				.setStageFlags( vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment ),
 			vk::DescriptorSetLayoutBinding()
 				.setBinding( 1 )
-				.setDescriptorCount( SpriteRenderer::c_maxTextures )
+				.setDescriptorCount( SpriteRenderer::s_maxTextures )
 				.setDescriptorType( vk::DescriptorType::eCombinedImageSampler )
 				.setStageFlags( vk::ShaderStageFlagBits::eFragment ),
 		};
@@ -854,9 +875,14 @@ void VulkanGraphicsContext::InitSpriteRendererResources()
 	}
 
 	{// create descriptor pool
-		const auto pool_sizes = vk::DescriptorPoolSize()
-			.setType( vk::DescriptorType::eCombinedImageSampler )
-			.setDescriptorCount( SpriteRenderer::c_maxTextures );
+		const vk::DescriptorPoolSize pool_sizes[] = {
+			vk::DescriptorPoolSize()
+				.setType( vk::DescriptorType::eCombinedImageSampler )
+				.setDescriptorCount( SpriteRenderer::s_maxTextures ),
+			vk::DescriptorPoolSize()
+				.setType( vk::DescriptorType::eStorageBuffer )
+				.setDescriptorCount( 100 )
+		};
 
 		const vk::ResultValue< vk::DescriptorPool > create_desc_pool = m_vkDevice.createDescriptorPool( vk::DescriptorPoolCreateInfo()
 			.setFlags( vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet )
@@ -1105,7 +1131,7 @@ void VulkanGraphicsContext::WindowContext::OnResize()
 	{
 		VulkanGraphicsContext& ctx = static_cast<VulkanGraphicsContext&>( LowLevel::GetGraphicsContext() );
 
-		const vk::ResultValue< std::pair< vk::Image, vma::Allocation > > imgui_render_target = ctx.m_vmaAllocator.createImage(
+		const vk::ResultValue< std::pair< vma::Allocation, vk::Image > > imgui_render_target = ctx.m_vmaAllocator.createImage(
 			vk::ImageCreateInfo()
 				.setImageType( vk::ImageType::e2D )
 				.setExtent( vk::Extent3D( window_size.x, window_size.y, 1 ) )
@@ -1122,7 +1148,7 @@ void VulkanGraphicsContext::WindowContext::OnResize()
 		);
 
 		STRONG_ASSERT( imgui_render_target.result == vk::Result::eSuccess, "Failed to create imgui render target" );
-		const auto [imgui_render_target_image, imgui_render_target_allocation] = imgui_render_target.value;
+		const auto [imgui_render_target_allocation, imgui_render_target_image] = imgui_render_target.value;
 		ctx.m_vmaAllocator.setAllocationName( imgui_render_target_allocation, "Imgui Render Target" );
 
 		m_resizeDeleteQueue.Add< Deleter< vk::Image, vma::Allocation > >( ctx.m_vmaAllocator, imgui_render_target_image, imgui_render_target_allocation );
@@ -1161,7 +1187,7 @@ void VulkanGraphicsContext::WindowContext::SDLSetup()
 	m_resizeDeleteQueue.Add< Deleter< vk::SurfaceKHR > >( ctx.m_vkInstance, m_surface );
 
 	vkb::Result< vkb::Swapchain > swapchain = vkb::SwapchainBuilder( ctx.m_vkPhysicalDevice, ctx.m_vkDevice, surface )
-		.set_desired_present_mode( VkPresentModeKHR( vk::PresentModeKHR::eImmediate ) )
+		.set_desired_present_mode( VkPresentModeKHR( vk::PresentModeKHR::eFifo ) )
 		.add_image_usage_flags( VkImageUsageFlags( vk::ImageUsageFlagBits::eTransferDst ) )
 		.build();
 
@@ -1360,7 +1386,7 @@ std::shared_ptr< VulkanGraphicsContext::SpriteRenderer::PerFrameData > VulkanGra
 {
 	ZoneScoped;
 
-	const vk::ResultValue< std::pair< vk::Buffer, vma::Allocation > > create_buffer_result = ctx.m_vmaAllocator.createBuffer(
+	const vk::ResultValue< std::pair< vma::Allocation, vk::Buffer > > create_buffer_result = ctx.m_vmaAllocator.createBuffer(
 		vk::BufferCreateInfo()
 			.setSize( required_transform_buffer_size )
 			.setUsage( vk::BufferUsageFlagBits::eStorageBuffer ),
@@ -1373,9 +1399,9 @@ std::shared_ptr< VulkanGraphicsContext::SpriteRenderer::PerFrameData > VulkanGra
 
 	std::shared_ptr< PerFrameData > frame_data = std::make_shared< PerFrameData >();
 
-	ctx.m_vmaAllocator.setAllocationName( create_buffer_result.value.second, "Transform Buffer" );
-	frame_data->transformBuffer = create_buffer_result.value.first;
-	frame_data->transformBufferAllocation = create_buffer_result.value.second;
+	ctx.m_vmaAllocator.setAllocationName( create_buffer_result.value.first, "Transform Buffer" );
+	frame_data->transformBuffer = create_buffer_result.value.second;
+	frame_data->transformBufferAllocation = create_buffer_result.value.first;
 	frame_data->m_deleteQueue.Add< Deleter< vk::Buffer, vma::Allocation > >( ctx.m_vmaAllocator, frame_data->transformBuffer, frame_data->transformBufferAllocation );
 
 	if ( !ctx.m_spriteRenderingResources )
@@ -1445,8 +1471,8 @@ void VulkanGraphicsContext::SpriteRenderer::Render( IFrameContext& frame_context
 
 		std::vector< vk::WriteDescriptorSet > descriptor_writes;
 		std::vector< vk::DescriptorImageInfo > image_infos;
-		descriptor_writes.reserve( c_maxTextures );
-		image_infos.reserve( c_maxTextures );
+		descriptor_writes.reserve( s_maxTextures );
+		image_infos.reserve( s_maxTextures );
 
 		for ( u32 idx = 0; idx < data.textures.size(); ++idx )
 		{

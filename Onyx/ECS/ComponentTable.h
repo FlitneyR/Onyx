@@ -291,12 +291,7 @@ struct GenericComponentTable
 
 	public:
 		template< typename Component >
-		inline static const MetaData s_singleton {
-			typeid( Component ).hash_code(),
-			__DestructorCallback< Component >,
-			__CopyComponentToWorld< Component >,
-			__RemoveComponent< Component >,
-		};
+		static const MetaData s_singleton;
 	};
 
 	Iterator Iter() { return Iterator( *this ); }
@@ -431,6 +426,14 @@ public:
 
 	bool HasChanged() const { return m_hasChanged; }
 	void ResetHasChanged() { m_hasChanged = false; }
+};
+
+template< typename Component >
+const GenericComponentTable::MetaData GenericComponentTable::MetaData::s_singleton {
+	typeid( Component ).hash_code(),
+	__DestructorCallback< Component >,
+	__CopyComponentToWorld< Component >,
+	__RemoveComponent< Component >,
 };
 
 template< typename Component >

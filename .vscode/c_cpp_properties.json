@@ -1,0 +1,34 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "cStandard": "c17",
+            "forcedInclude": [
+                "Onyx/types.h",
+                "Onyx/Log.h",
+                "Onyx/Asserts.h"
+            ]
+        },
+        {
+            "name": "Windows",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "cStandard": "c17",
+            "forcedInclude": [
+                "Onyx/types.h",
+                "Onyx/Log.h",
+                "Onyx/Asserts.h"
+            ],
+            "compilerArgs": [
+                "/Zc:preprocessor"
+            ]
+        }
+    ],
+    "version": 4
+}

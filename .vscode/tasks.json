@@ -1,0 +1,159 @@
+{
+	"version": "2.0.0",
+	"windows": {
+		"type": "shell",
+		"options": { "shell": { "executable": "powershell" } }
+	},
+	"tasks": [
+		// cleanup commands
+		{
+			"label": "Clean",
+			"command": "rm",
+			"options": { "cwd": "${workspaceFolder}" },
+			"problemMatcher": [],
+
+			"osx": {
+				"args": [ "-rf", "build" ],
+			},
+
+			"windows": {
+				"args": [ "-Recurse", "-Force", "build" ],
+			}
+		},
+		// setup commands
+		{
+			"label": "Make build directories",
+			"command": "mkdir",
+			"options": { "cwd": "${workspaceFolder}" },
+			"problemMatcher": [],
+
+			"osx": {
+				"args": [
+					"-p",
+					"build/debug", "build/release", "build/profile"
+				]
+			},
+
+			"windows": {
+				"args": [
+					"-Force",
+					"build/debug,build/release,build/profile"
+				],
+			}
+		},
+		// configure commands
+		{
+			"label": "Configure Debug",
+			"command": "cmake",
+			"options": { "cwd": "${workspaceFolder}/build/debug" },
+			"dependsOn": [ "Make build directories" ],
+			"problemMatcher": [],
+
+			"osx": {
+				"args": [
+					"../..",
+				]
+			},
+
+			"windows": {
+				"args": [
+					"../..",
+					/*"-G", "Ninja",*/
+				]
+			}
+		},
+		{
+			"label": "Configure Release",
+			"command": "cmake",
+			"args": [ "../.." ],
+			"options": { "cwd": "${workspaceFolder}/build/release" },
+			"dependsOn": [ "Make build directories" ],
+			"problemMatcher": [],
+
+			"osx": {
+				"args": [ "../.." ]
+			},
+
+			"windows": {
+				"args": [
+					"../..",
+					/*"-G", "Ninja",*/
+				]
+			}
+		},
+		{
+			"label": "Configure Profile",
+			"command": "cmake",
+			"args": [ "../.." ],
+			"options": { "cwd": "${workspaceFolder}/build/profile" },
+			"dependsOn": [ "Make build directories" ],
+			"problemMatcher": [],
+
+			"osx": {
+				"args": [ "../.." ]
+			},
+
+			"windows": {
+				"args": [
+					"../..",
+					/*"-G", "Ninja",*/
+				]
+			}
+		},
+		// build commands
+		{
+			"label": "Build Debug",
+			"command": "cmake",
+			"args": [ "--build", ".", "--config", "Debug", "--parallel" ],
+			"options": { "cwd": "${workspaceFolder}/build/debug" },
+			"dependsOn": [ "Configure Debug", "Make build directories" ],
+			"problemMatcher": []
+		},
+		{
+			"label": "Build Release",
+			"command": "cmake",
+			"args": [ "--build", ".", "--config", "Release", "--parallel" ],
+			"options": { "cwd": "${workspaceFolder}/build/release" },
+			"dependsOn": [ "Configure Release", "Make build directories" ],
+			"problemMatcher": []
+		},
+		{
+			"label": "Build Profile",
+			"command": "cmake",
+			"args": [ "--build", ".", "--config", "Profile", "--parallel" ],
+			"options": { "cwd": "${workspaceFolder}/build/profile" },
+			"dependsOn": [ "Configure Profile", "Make build directories" ],
+			"problemMatcher": []
+		},
+		// tool commands
+		{
+			"label": "Launch Tracy",
+			"command": "tracy",
+			"isBackground": true,
+			"args": [ "-a", "localhost" ],
+			// some magic required to let tracy run in the background ... why isn't `"isBackground": true` enough?
+			"problemMatcher": [
+				{
+					"pattern": {
+						"regexp": ".",
+						"file": 1,
+						"location": 2,
+						"message": 3
+					},
+					"background": {
+						"activeOnStart": true,
+						"beginsPattern": ".",
+						"endsPattern": ".",
+					}
+				}
+			]
+		},
+		// group commands
+		{
+			"label": "Profile Pre Launch",
+			"dependsOn": [ "Build Profile", "Launch Tracy" ],
+			"dependsOrder": "sequence",
+			"problemMatcher": []
+		},
+	]
+}

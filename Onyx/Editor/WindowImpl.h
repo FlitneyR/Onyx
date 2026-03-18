@@ -36,7 +36,7 @@ void DoWindowsMenu()
 		{
 			const std::string window_title = window->GetWindowTitle();
 
-			if ( ImGui::Selectable( std::format( "[x]##{}", window_title ).c_str(), false, 0, ImGui::CalcTextSize( "[x]" ) ) )
+			if ( ImGui::Selectable( fmt::format( "[x]##{}", window_title ).c_str(), false, 0, ImGui::CalcTextSize( "[x]" ) ) )
 				window->m_open = false;
 
 			ImGui::SameLine();

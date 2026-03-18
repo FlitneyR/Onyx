@@ -10,6 +10,8 @@ namespace onyx
 
 struct IWindowManager
 {
+	virtual ~IWindowManager() = default;
+
 	struct CreateWindowArgs
 	{
 		glm::ivec2 size { 1280, 720 };

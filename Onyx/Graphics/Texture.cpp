@@ -16,13 +16,13 @@ DEFINE_DEFAULT_DESERIALISE_PROPERTY( std::shared_ptr< TextureAsset > )
 { std::string path; value = !reader.GetLiteral( name, path ) || path.empty() ? nullptr : asset_manager.Load< TextureAsset >( path ); }
 
 DEFINE_DEFAULT_PROPERTY_DIFF_HINT( std::shared_ptr< TextureAsset > )
-{ ImGui::SetTooltip( !value ? "No Texture" : value->m_path.c_str() ); }
+{ ImGui::SetTooltip( "%s", !value ? "No Texture" : value->m_path.c_str() ); }
 
 DEFINE_DEFAULT_PROPERTY_EDITOR_UI( std::shared_ptr< TextureAsset > )
 {
 	ImGuiScopedID scoped_id( name );
 
-	ImGui::Text( name );
+	ImGui::Text( "%s", name );
 	if ( value ? ImGui::ImageButton( value->GetGraphicsResource()->GetImTextureID(), { 100, 100 } ) : ImGui::Button( "Select Texture" ) )
 		ImGui::OpenPopup( "Select Texture" );
 
@@ -64,13 +64,13 @@ DEFINE_DEFAULT_DESERIALISE_PROPERTY( std::shared_ptr< TextureAnimationAsset > )
 { std::string path; reader.GetLiteral( name, path ); if ( !path.empty() ) value = asset_manager.Load< TextureAnimationAsset >( path ); }
 
 DEFINE_DEFAULT_PROPERTY_DIFF_HINT( std::shared_ptr< TextureAnimationAsset > )
-{ ImGui::SetTooltip( !value ? "No Texture" : value->m_path.c_str() ); }
+{ ImGui::SetTooltip( "%s", !value ? "No Texture" : value->m_path.c_str() ); }
 
 DEFINE_DEFAULT_PROPERTY_EDITOR_UI( std::shared_ptr< TextureAnimationAsset > )
 {
 	ImGuiScopedID scoped_id( name );
 
-	if ( ImGui::Button( std::format( "{} : {}", name, !value ? "No Animation" : value->m_path ).c_str() ) )
+	if ( ImGui::Button( fmt::format( "{} : {}", name, !value ? "No Animation" : value->m_path ).c_str() ) )
 		ImGui::OpenPopup( "Select Texture" );
 
 	bool was_edited = false;
@@ -267,8 +267,8 @@ void TexturePreviewWindow::Run( IFrameContext& frame_context )
 				i32 filter_mode = (i32)texture->m_filterMode;
 				i32 compression_mode = (i32)texture->m_compressionMode;
 
-				is_resource_out_of_date |= ImGui::Combo( "Filter", &filter_mode, s_ImageFilterModeNames, _countof( s_ImageFilterModeNames ) );
-				is_resource_out_of_date |= ImGui::Combo( "Compression", &compression_mode, s_ImageCompressionModeNames, _countof( s_ImageCompressionModeNames ) );
+				is_resource_out_of_date |= ImGui::Combo( "Filter", &filter_mode, s_ImageFilterModeNames, COUNTOF( s_ImageFilterModeNames ) );
+				is_resource_out_of_date |= ImGui::Combo( "Compression", &compression_mode, s_ImageCompressionModeNames, COUNTOF( s_ImageCompressionModeNames ) );
 
 				texture->m_filterMode = ImageFilterMode( filter_mode );
 				texture->m_compressionMode = ImageCompressionMode( compression_mode );
@@ -306,7 +306,7 @@ void TexturePreviewWindow::Run( IFrameContext& frame_context )
 
 std::string TexturePreviewWindow::GetWindowTitle() const
 {
-	return std::format( "Texture Preview: {}###{}", texture ? texture->m_path : "", (u64)this );
+	return fmt::format( "Texture Preview: {}###{}", texture ? texture->m_path : "", (u64)this );
 }
 
 void TextureAnimationAsset::Load( LoadType type )
@@ -548,7 +548,7 @@ void TextureAnimationEditor::Run( IFrameContext& frame_context )
 
 std::string TextureAnimationEditor::GetWindowTitle() const
 {
-	return std::format( "Texture Animation Preview: {}###{}", animation ? animation->m_path : "", (u64)this );
+	return fmt::format( "Texture Animation Preview: {}###{}", animation ? animation->m_path : "", (u64)this );
 }
 
 }

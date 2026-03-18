@@ -207,7 +207,7 @@ void ShaderEditorWindow::Run( IFrameContext& frame_context )
 				if ( ImGui::MenuItem( "Compile", nullptr, nullptr, m_shader != nullptr ) )
 				{
 					const bool success = m_shader->CompileSource( m_compileGraphicsAPI, m_compileShaderStage, m_log );
-					m_log = std::format( "{}\n{}", success ? "Success" : "Failed", m_log );
+					m_log = fmt::format( "{}\n{}", success ? "Success" : "Failed", m_log );
 				}
 
 				ImGui::EndMenu();
@@ -235,7 +235,7 @@ void ShaderEditorWindow::Run( IFrameContext& frame_context )
 
 std::string ShaderEditorWindow::GetWindowTitle() const
 {
-	return std::format( "Shader Editor: {}###{}", m_shader ? m_shader->m_path : "", (u64)this );
+	return fmt::format( "Shader Editor: {}###{}", m_shader ? m_shader->m_path : "", (u64)this );
 }
 
 }

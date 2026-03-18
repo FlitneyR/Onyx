@@ -170,6 +170,9 @@ int main( int argc, const char** argv )
 				
 				FrameMark;
 			}
+
+			// wait for any workers to finish
+			onyx::LowLevel::GetWorkerPool().Wait();
 		}
 	}
 

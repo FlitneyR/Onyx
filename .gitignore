@@ -17,6 +17,7 @@
 mono_crash.*
 
 # Build results
+build/
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
@@ -364,3 +365,6 @@ FodyWeavers.xsd
 
 # vcpkg
 vcpkg_installed/
+
+# imgui
+**/imgui.ini

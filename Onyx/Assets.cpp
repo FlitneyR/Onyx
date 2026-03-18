@@ -194,7 +194,7 @@ static int AssetManagerPathEditCallback( ImGuiInputTextCallbackData* data )
 
 std::string AssetManagerWindow::GetWindowTitle() const
 {
-	return std::format( "Asset Pack Manager: {}###{}", m_osFilePath, (u64)this );
+	return fmt::format( "Asset Pack Manager: {}###{}", m_osFilePath, (u64)this );
 }
 
 void AssetManagerWindow::Run( IFrameContext& frame_context )
@@ -286,7 +286,7 @@ void AssetManagerWindow::Run( IFrameContext& frame_context )
 			while ( !remaining_path.empty() );
 
 			ImGui::SetNextItemWidth( 100.f );
-			ImGui::InputText( "##New Folder Name", m_newFolderName, _countof( m_newFolderName ), ImGuiInputTextFlags_CallbackAlways, &AssetManagerPathEditCallback, this );
+			ImGui::InputText( "##New Folder Name", m_newFolderName, COUNTOF( m_newFolderName ), ImGuiInputTextFlags_CallbackAlways, &AssetManagerPathEditCallback, this );
 
 			ImGui::SameLine();
 			if ( ImGui::Button( "New" ) )

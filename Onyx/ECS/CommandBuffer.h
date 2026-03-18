@@ -143,7 +143,7 @@ struct CommandBuffer
 	void RemoveComponent( EntityID entity )
 	{
 		std::scoped_lock lock( m_mutex );
-		m_commands.push_back( std::make_unique< RemoveComponentCommand >( entity ) );
+		m_commands.push_back( std::make_unique< RemoveComponentCommand< Component > >( entity ) );
 	}
 
 	static void IgnorePostCopySceneToWorld( World&, const IDMap& ) {}

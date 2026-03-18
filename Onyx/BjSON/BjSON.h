@@ -130,10 +130,10 @@ struct IReadWriteObject
 	}
 
 	template< typename T >
-	T* GetLiteral( NameHash name, u32* out_count = nullptr ) const
+	const T* GetLiteral( NameHash name, u32* out_count = nullptr ) const
 	{
 		u32 size = 0;
-		void* ptr = GetLiteral( name );
+		const void* ptr = GetLiteral( name );
 		
 		BjSON_ASSERT( size % sizeof( name ) == 0 );
 
@@ -162,11 +162,13 @@ struct IReadWriteObjectArray
 
 struct IDecoder
 {
+	virtual ~IDecoder() = default;
 	virtual const IReadOnlyObject& GetRootObject() const = 0;
 };
 
 struct IEncoder
 {
+	virtual ~IEncoder() = default;
 	virtual IReadWriteObject& GetRootObject() = 0;
 	virtual void WriteTo( std::vector< byte >& dest ) const = 0;
 	virtual void WriteTo( std::ofstream& file ) const = 0;

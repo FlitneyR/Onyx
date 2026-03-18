@@ -1,0 +1,25 @@
+{
+    "cSpell.words": [
+        "assimp",
+        "blit",
+        "buildsystems",
+        "COMDAT",
+        "GAMECONTROLLER",
+        "glslang",
+        "HLSL",
+        "imgui",
+        "multisample",
+        "NDEBUG",
+        "NOMINMAX",
+        "prerender",
+        "rapidjson",
+        "Remapper",
+        "SPIRV",
+        "stdcpp",
+        "swapchain",
+        "Swapchain",
+        "Unexecuted",
+        "vkbootstrap"
+    ],
+    "C_Cpp.errorSquiggles": "disabled"
+}

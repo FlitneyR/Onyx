@@ -24,9 +24,9 @@ COMPONENT_REFLECTOR( AttachedTo )
 		BEGIN_COMPONENT_EDITOR_UI( AttachedTo, attachment );
 
 		if ( const Name* parent_name = world.GetComponent< Name >( attachment.localeEntity ) )
-			ImGui::Text( "%s(%d)", parent_name->name.c_str(), attachment.localeEntity );
+			ImGui::Text( "%s(%d)", parent_name->name.c_str(), (u32)attachment.localeEntity );
 		else
-			ImGui::Text( "%d", attachment.localeEntity );
+			ImGui::Text( "%d", (u32)attachment.localeEntity );
 	}
 
 	POST_COPY_TO_WORLD()
