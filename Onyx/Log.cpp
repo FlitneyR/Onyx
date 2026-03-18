@@ -1,6 +1,7 @@
 #include "Log.h"
 #include <fstream>
 #include <vector>
+#include <ctime>
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -52,7 +53,7 @@ Log::Log()
 		if ( c == ':' )
 			c = '-';
 
-	file = std::ofstream( std::format( "./logs/{}.txt", buf ), std::ios::app );
+	file = std::ofstream( fmt::format( "./logs/{}.txt", buf ), std::ios::app );
 
 	if ( !file.is_open() )
 		throw LogFileInitException();

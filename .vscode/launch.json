@@ -5,80 +5,122 @@
             "name": "Asteroids_Game Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/debug/Asteroids_Game",
+            "program": "",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/Asteroids/Game",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "lldb",
             "preLaunchTask": "Build Debug",
+            "osx": {
+                "program": "${workspaceFolder}/build/debug/Asteroids_Game",
+                "MIMode": "lldb",
+            },
+            "windows": {
+                "program": "${workspaceFolder}/build/debug/Debug/Asteroids_Game.exe",
+                "miDebuggerPath": "gdb.exe"
+            }
         },
         {
             "name": "Asteroids_Game Release",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/release/Asteroids_Game",
+            "program": "",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/Asteroids/Game",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "lldb",
             "preLaunchTask": "Build Release",
+            "osx": {
+                "program": "${workspaceFolder}/build/release/Asteroids_Game",
+                "MIMode": "lldb",
+            },
+            "windows": {
+                "program": "${workspaceFolder}/build/release/Release/Asteroids_Game.exe",
+                "miDebuggerPath": "gdb.exe"
+            }
         },
         {
             "name": "Asteroids_Game Profile",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/profile/Asteroids_Game",
+            "program": "",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/Asteroids/Game",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "lldb",
             "preLaunchTask": "Profile Pre Launch",
+            "osx": {
+                "program": "${workspaceFolder}/build/profile/Asteroids_Game",
+                "MIMode": "lldb",
+            },
+            "windows": {
+                "program": "${workspaceFolder}/build/profile/Profile/Asteroids_Game.exe",
+                "miDebuggerPath": "gdb.exe"
+            }
         },
         // Asteroids Editor
         {
             "name": "Asteroids_Editor Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/debug/Asteroids_Editor",
+            "program": "",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/Asteroids/Editor",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "lldb",
             "preLaunchTask": "Build Debug",
+            "osx": {
+                "program": "${workspaceFolder}/build/debug/Asteroids_Editor",
+                "MIMode": "lldb",
+            },
+            "windows": {
+                "program": "${workspaceFolder}/build/debug/Debug/Asteroids_Editor.exe",
+                "miDebuggerPath": "gdb.exe"
+            }
         },
         {
             "name": "Asteroids_Editor Release",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/release/Asteroids_Editor",
+            "program": "",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/Asteroids/Editor",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "lldb",
             "preLaunchTask": "Build Release",
+            "osx": {
+                "program": "${workspaceFolder}/build/release/Asteroids_Editor",
+                "MIMode": "lldb",
+            },
+            "windows": {
+                "program": "${workspaceFolder}/build/release/Release/Asteroids_Editor.exe",
+                "miDebuggerPath": "gdb.exe"
+            }
         },
         {
             "name": "Asteroids_Editor Profile",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/profile/Asteroids_Editor",
+            "program": "",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/Asteroids/Editor",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "lldb",
             "preLaunchTask": "Profile Pre Launch",
+            "osx": {
+                "program": "${workspaceFolder}/build/profile/Asteroids_Editor",
+                "MIMode": "lldb",
+            },
+            "windows": {
+                "program": "${workspaceFolder}/build/profile/Profile/Asteroids_Editor.exe",
+                "miDebuggerPath": "gdb.exe"
+            }
         },
     ]
 }

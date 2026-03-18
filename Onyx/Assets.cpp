@@ -194,7 +194,7 @@ static int AssetManagerPathEditCallback( ImGuiInputTextCallbackData* data )
 
 std::string AssetManagerWindow::GetWindowTitle() const
 {
-	return std::format( "Asset Pack Manager: {}###{}", m_osFilePath, (u64)this );
+	return fmt::format( "Asset Pack Manager: {}###{}", m_osFilePath, (u64)this );
 }
 
 void AssetManagerWindow::Run( IFrameContext& frame_context )

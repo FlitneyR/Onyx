@@ -19,11 +19,11 @@ DEFINE_DEFAULT_PROPERTY_EDITOR_UI( EntityID )
 	// ImGui::DragInt( name, (int*)&value, 1.f, 0, INT_MAX );
 	ImGuiScopedID scoped_id( name );
 
-	std::string name_str = std::format( "{}", value );
+	std::string name_str = fmt::format( "{}", value );
 	if ( const Core::Name* name_comp = world.GetComponent< Core::Name >( value ) )
-		name_str = std::format( "{}({})", name_comp->name, value );
+		name_str = fmt::format( "{}({})", name_comp->name, value );
 
-	if ( ImGui::Button( std::format( "{} : {}", name, name_str.c_str() ).c_str() ) )
+	if ( ImGui::Button( fmt::format( "{} : {}", name, name_str.c_str() ).c_str() ) )
 		ImGui::OpenPopup( "Entity Picker" );
 
 	bool has_changed = false;
@@ -34,14 +34,14 @@ DEFINE_DEFAULT_PROPERTY_EDITOR_UI( EntityID )
 
 		for ( auto iter = world.Iter(); iter; ++iter )
 		{
-			std::string entity_name = std::format( "{}", iter.GetEntityID() );
+			std::string entity_name = fmt::format( "{}", iter.GetEntityID() );
 
 			if ( const Core::Name* name = iter.Get< Core::Name >() )
 			{
 				if ( !strstr( name->name.c_str(), search_term.c_str() ) )
 					continue;
 
-				entity_name = std::format( "{}({})", name->name, iter.GetEntityID() );
+				entity_name = fmt::format( "{}({})", name->name, iter.GetEntityID() );
 			}
 
 			if ( ImGui::Selectable( entity_name.c_str() ) )
@@ -109,7 +109,7 @@ DEFINE_DEFAULT_PROPERTY_EDITOR_UI( std::shared_ptr< Scene > )
 {
 	ImGuiScopedID scoped_id( name );
 
-	if ( ImGui::Button( std::format( "{}: {}", name, !value ? "" : value->m_path ).c_str() ) )
+	if ( ImGui::Button( fmt::format( "{}: {}", name, !value ? "" : value->m_path ).c_str() ) )
 		ImGui::OpenPopup( "Select Scene" );
 
 	bool was_edited = false;
@@ -261,7 +261,7 @@ void Scene::Load( LoadType type )
 			{
 				m_world.AddEntity(
 					SceneInstance( scene, scene_root ),
-					Core::Name( std::format( "Scene Instance: {}", scene->m_path ) )
+					Core::Name( fmt::format( "Scene Instance: {}", scene->m_path ) )
 				);
 			}
 			else
@@ -483,7 +483,7 @@ void SceneEditor::Run( IFrameContext& frame_context )
 		}
 	}
 
-	if ( ImGui::Begin( std::format( "Entity Inspector: {}###{}", m_scene->m_path, (u64)(this + 1) ).c_str(), &m_open, ImGuiWindowFlags_MenuBar ) )
+	if ( ImGui::Begin( fmt::format( "Entity Inspector: {}###{}", m_scene->m_path, (u64)(this + 1) ).c_str(), &m_open, ImGuiWindowFlags_MenuBar ) )
 	{
 		ImGui::SetWindowSize( { 320, 720 }, ImGuiCond_Once );
 
@@ -495,7 +495,7 @@ void SceneEditor::Run( IFrameContext& frame_context )
 			{
 				const Core::Name* const name = si->m_scene->m_world.GetComponent< Core::Name >( si->m_sceneEntityId );
 
-				if ( ImGui::Button( std::format( "{}: {}({})", si->m_scene->m_path, !name ? "" : name->name, si->m_sceneEntityId ).c_str() ) )
+				if ( ImGui::Button( fmt::format( "{}: {}({})", si->m_scene->m_path, !name ? "" : name->name, si->m_sceneEntityId ).c_str() ) )
 				{
 					m_scene = si->m_scene;
 					m_selectedEntity = si->m_sceneEntityId;
@@ -513,7 +513,7 @@ void SceneEditor::Run( IFrameContext& frame_context )
 
 	ImGui::End();
 
-	if ( ImGui::Begin( std::format( "Entity Hierarchy: {}###{}", m_scene->m_path, (u64)(this + 2) ).c_str(), &m_open, ImGuiWindowFlags_MenuBar ) )
+	if ( ImGui::Begin( fmt::format( "Entity Hierarchy: {}###{}", m_scene->m_path, (u64)(this + 2) ).c_str(), &m_open, ImGuiWindowFlags_MenuBar ) )
 	{
 		ImGui::SetWindowSize( { 320, 720 }, ImGuiCond_Once );
 
@@ -582,7 +582,7 @@ void SceneEditor::Run( IFrameContext& frame_context )
 				if ( scene && LOG_ASSERT( scene->GetLoadingState() == LoadingState::Loaded ) )
 				{
 					const onyx::ecs::EntityID scene_instance_root = m_scene->m_world.AddEntity(
-						onyx::Core::Name( std::format( "Scene Instance: {}", path ) )
+						onyx::Core::Name( fmt::format( "Scene Instance: {}", path ) )
 					);
 
 					m_scene->m_world.AddComponent( scene_instance_root, SceneInstance( scene, scene_instance_root ) );
@@ -615,7 +615,7 @@ void SceneEditor::Run( IFrameContext& frame_context )
 
 std::string SceneEditor::GetWindowTitle() const
 {
-	return std::format( "{}: {}###{}", s_name, !m_scene ? "" : m_scene->m_path, (u64)this );
+	return fmt::format( "{}: {}###{}", s_name, !m_scene ? "" : m_scene->m_path, (u64)this );
 }
 
 void SceneEditor::DoRecursiveEntityHierarchy( const std::unordered_map< EntityID, std::vector< EntityID > >& hierarchy, EntityID entity )
@@ -624,9 +624,9 @@ void SceneEditor::DoRecursiveEntityHierarchy( const std::unordered_map< EntityID
 
 	std::string name;
 	if ( const Core::Name* const name_component = m_scene->m_world.GetComponent< Core::Name >( entity ) )
-		name = std::format( "{}({})###{}", name_component->name, entity, entity );
+		name = fmt::format( "{}({})###{}", name_component->name, entity, entity );
 	else
-		name = std::format( "{}###{}", entity, entity );
+		name = fmt::format( "{}###{}", entity, entity );
 
 	if ( ImGui::Button( "[-]" ) )
 	{

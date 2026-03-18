@@ -1,14 +1,14 @@
 #pragma once
 
 #include <string>
-#include <format>
+#include <fmt/format.h>
 
 void __LogInternal( const char* string );
 
-#define LOG_INTERNAL( FUNCTION_NAME, severity, fmt, ... ) \
-	__LogInternal( std::format( "[" severity "] [ {} : {} ] [ {} ]\n\t{}\n", \
+#define LOG_INTERNAL( FUNCTION_NAME, severity, _fmt, ... ) \
+	__LogInternal( fmt::format( "[" severity "] [ {} : {} ] [ {} ]\n\t{}\n", \
 		__FILE__, __LINE__, FUNCTION_NAME, \
-		std::format( fmt __VA_OPT__(, __VA_ARGS__ ) ) ).c_str() )
+		fmt::format( _fmt __VA_OPT__(, __VA_ARGS__ ) ) ).c_str() )
 
 #define LOG( severity, fmt, ... ) LOG_INTERNAL( __FUNCTION__, severity, fmt __VA_OPT__( , __VA_ARGS__ ) )
 #define DEBUG( fmt, ... ) LOG_INTERNAL( __FUNCTION__, "D", fmt __VA_OPT__( , __VA_ARGS__ ) )

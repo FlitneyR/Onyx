@@ -4,6 +4,9 @@
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include "Windows.h"
 #endif
 
@@ -107,8 +110,8 @@ void WorkerPool::Worker( u32 index, u32 count )
 {
 #ifdef _WIN32
 	{
-		TCHAR thread_name[ 32 ] = L"";
-		wsprintf( thread_name, L"Worker %u", index );
+		WCHAR thread_name[ 32 ] = L"";
+		wsprintfW( thread_name, L"Worker %u", index );
 
 		SetThreadDescription( GetCurrentThread(), thread_name );
 	}

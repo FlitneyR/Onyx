@@ -20,5 +20,6 @@
         "Swapchain",
         "Unexecuted",
         "vkbootstrap"
-    ]
+    ],
+    "C_Cpp.errorSquiggles": "disabled"
 }

@@ -51,7 +51,7 @@ struct VulkanGraphicsContext::Deleter< vk::DescriptorSet > : DeleteQueue::IDelet
 	void Delete() override
 	{
 		ZoneScoped;
-		STRONG_ASSERT( m_device.freeDescriptorSets( m_descriptorPool, m_descriptorSet ) == vk::Result::eSuccess );
+		m_device.freeDescriptorSets( m_descriptorPool, m_descriptorSet );
 	}
 };
 

@@ -6,13 +6,27 @@
                 "${workspaceFolder}/**"
             ],
             "defines": [],
-            "compilerPath": "/usr/bin/clang",
             "cStandard": "c17",
-            "intelliSenseMode": "macos-clang-arm64",
             "forcedInclude": [
                 "Onyx/types.h",
                 "Onyx/Log.h",
                 "Onyx/Asserts.h"
+            ]
+        },
+        {
+            "name": "Windows",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "cStandard": "c17",
+            "forcedInclude": [
+                "Onyx/types.h",
+                "Onyx/Log.h",
+                "Onyx/Asserts.h"
+            ],
+            "compilerArgs": [
+                "/Zc:preprocessor"
             ]
         }
     ],

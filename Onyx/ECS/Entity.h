@@ -1,5 +1,5 @@
 #pragma once
-#include <format>
+#include <fmt/format.h>
 
 namespace onyx::ecs
 {
@@ -36,12 +36,12 @@ static constexpr EntityID NoEntity;
 }
 
 template< typename Char >
-struct std::formatter< onyx::ecs::EntityID, Char > : std::formatter< u32, Char >
+struct fmt::formatter< onyx::ecs::EntityID, Char > : fmt::formatter< u32, Char >
 {
 	template<class FmtContext>
 	FmtContext::iterator format( onyx::ecs::EntityID entity, FmtContext& ctx ) const
 	{
-		return std::formatter< u32, Char >::format( u32( entity ), ctx );
+		return fmt::formatter< u32, Char >::format( u32( entity ), ctx );
 	}
 };
 

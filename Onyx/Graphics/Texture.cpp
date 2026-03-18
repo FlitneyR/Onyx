@@ -70,7 +70,7 @@ DEFINE_DEFAULT_PROPERTY_EDITOR_UI( std::shared_ptr< TextureAnimationAsset > )
 {
 	ImGuiScopedID scoped_id( name );
 
-	if ( ImGui::Button( std::format( "{} : {}", name, !value ? "No Animation" : value->m_path ).c_str() ) )
+	if ( ImGui::Button( fmt::format( "{} : {}", name, !value ? "No Animation" : value->m_path ).c_str() ) )
 		ImGui::OpenPopup( "Select Texture" );
 
 	bool was_edited = false;
@@ -306,7 +306,7 @@ void TexturePreviewWindow::Run( IFrameContext& frame_context )
 
 std::string TexturePreviewWindow::GetWindowTitle() const
 {
-	return std::format( "Texture Preview: {}###{}", texture ? texture->m_path : "", (u64)this );
+	return fmt::format( "Texture Preview: {}###{}", texture ? texture->m_path : "", (u64)this );
 }
 
 void TextureAnimationAsset::Load( LoadType type )
@@ -548,7 +548,7 @@ void TextureAnimationEditor::Run( IFrameContext& frame_context )
 
 std::string TextureAnimationEditor::GetWindowTitle() const
 {
-	return std::format( "Texture Animation Preview: {}###{}", animation ? animation->m_path : "", (u64)this );
+	return fmt::format( "Texture Animation Preview: {}###{}", animation ? animation->m_path : "", (u64)this );
 }
 
 }

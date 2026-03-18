@@ -1,30 +1,66 @@
 {
 	"version": "2.0.0",
+	"windows": {
+		"type": "shell",
+		"options": { "shell": { "executable": "powershell" } }
+	},
 	"tasks": [
 		// cleanup commands
 		{
 			"label": "Clean",
 			"command": "rm",
-			"args": [ "-rf", "build" ],
 			"options": { "cwd": "${workspaceFolder}" },
-			"problemMatcher": []
+			"problemMatcher": [],
+
+			"osx": {
+				"args": [ "-rf", "build" ],
+			},
+
+			"windows": {
+				"args": [ "-Recurse", "-Force", "build" ],
+			}
 		},
 		// setup commands
 		{
 			"label": "Make build directories",
 			"command": "mkdir",
-			"args": [ "-p", "build/debug", "build/release", "build/profile" ],
 			"options": { "cwd": "${workspaceFolder}" },
-			"problemMatcher": []
+			"problemMatcher": [],
+
+			"osx": {
+				"args": [
+					"-p",
+					"build/debug", "build/release", "build/profile"
+				]
+			},
+
+			"windows": {
+				"args": [
+					"-Force",
+					"build/debug,build/release,build/profile"
+				],
+			}
 		},
 		// configure commands
 		{
 			"label": "Configure Debug",
 			"command": "cmake",
-			"args": [ "../.." ],
 			"options": { "cwd": "${workspaceFolder}/build/debug" },
 			"dependsOn": [ "Make build directories" ],
-			"problemMatcher": []
+			"problemMatcher": [],
+
+			"osx": {
+				"args": [
+					"../..",
+				]
+			},
+
+			"windows": {
+				"args": [
+					"../..",
+					/*"-G", "Ninja",*/
+				]
+			}
 		},
 		{
 			"label": "Configure Release",
@@ -32,7 +68,18 @@
 			"args": [ "../.." ],
 			"options": { "cwd": "${workspaceFolder}/build/release" },
 			"dependsOn": [ "Make build directories" ],
-			"problemMatcher": []
+			"problemMatcher": [],
+
+			"osx": {
+				"args": [ "../.." ]
+			},
+
+			"windows": {
+				"args": [
+					"../..",
+					/*"-G", "Ninja",*/
+				]
+			}
 		},
 		{
 			"label": "Configure Profile",
@@ -40,7 +87,18 @@
 			"args": [ "../.." ],
 			"options": { "cwd": "${workspaceFolder}/build/profile" },
 			"dependsOn": [ "Make build directories" ],
-			"problemMatcher": []
+			"problemMatcher": [],
+
+			"osx": {
+				"args": [ "../.." ]
+			},
+
+			"windows": {
+				"args": [
+					"../..",
+					/*"-G", "Ninja",*/
+				]
+			}
 		},
 		// build commands
 		{

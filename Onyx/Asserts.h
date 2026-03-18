@@ -10,12 +10,12 @@
 #define ASSERT_INTERNAL( failure, fail_expr, condition, ... ) \
 	[ &, function_name = __FUNCTION__ ]() \
 	{ \
-		auto __result__ = condition; \
+		auto __result__ = ( condition ); \
 		static bool __has_failed_once__ = false; \
 		if ( failure ) { \
 			__has_failed_once__ = true; \
 			std::string s = ""; \
-			__VA_OPT__(s = std::format( __VA_ARGS__ ); )\
+			__VA_OPT__(s = fmt::format( __VA_ARGS__ ); )\
 			LOG_INTERNAL( function_name, "E", "ASSERT FAILED: {}\n\tCondition: {}", s, #condition ); \
 			fail_expr \
 		} \
