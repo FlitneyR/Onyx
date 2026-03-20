@@ -20,12 +20,22 @@ endif()
 # Onyx Core
 project(Onyx)
 
-file(GLOB_RECURSE Onyx_Src "Onyx/*.h" "Onyx/*.cpp")
 add_library(Onyx)
-target_compile_definitions(Onyx PUBLIC $<$<CONFIG:Debug>:_DEBUG> $<$<CONFIG:Profile>:NDEBUG TRACY_ENABLE>)
+file(GLOB_RECURSE Onyx_Src "Onyx/*.h" "Onyx/*.cpp")
 target_sources(Onyx PRIVATE ${Onyx_Src})
 target_include_directories(Onyx PUBLIC "." "./Onyx")
-target_precompile_headers(Onyx PUBLIC Onyx/types.h Onyx/Log.h Onyx/Asserts.h)
+target_compile_definitions(Onyx PUBLIC $<$<CONFIG:Debug>:_DEBUG> $<$<CONFIG:Profile>:NDEBUG TRACY_ENABLE>)
+
+if(WIN32)
+    target_compile_options(Onyx PUBLIC /FI"Onyx/CommonIncludes.h")
+elseif(APPLE)
+    target_compile_options(Onyx PUBLIC -include "Onyx/CommonIncludes.h")
+
+    add_library(Onyx_Mac)
+    file(GLOB_RECURSE Onyx_Src_Mac "Onyx/*.m")
+    target_sources(Onyx_Mac PRIVATE ${Onyx_Src_Mac})
+    target_link_libraries(Onyx PRIVATE Onyx_Mac)
+endif()
 
 find_package(assimp CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)

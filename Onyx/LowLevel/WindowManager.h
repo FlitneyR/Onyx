@@ -27,8 +27,8 @@ struct IWindowManager
 
 	virtual void ImGuiNewFrame() {}
 
-	virtual std::string DoOpenFileDialog() const;
-	virtual std::string DoSaveFileDialog() const;
+	virtual std::string DoOpenFileDialog() const = 0;
+	virtual std::string DoSaveFileDialog() const = 0;
 };
 
 }

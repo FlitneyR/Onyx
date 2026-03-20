@@ -9,6 +9,14 @@
 
 #include "tracy/Tracy.hpp"
 
+#ifdef WIN32
+#include "Windows.h"
+#endif
+
+#ifdef __APPLE__
+#include "CocoaWrappers.h"
+#endif
+
 namespace onyx
 {
 
@@ -151,6 +159,59 @@ void SDLWindowManager::ImGuiNewFrame()
 bool SDLWindowManager::WantsToQuit() const
 {
 	return m_wantsToQuit;
+}
+
+std::string SDLWindowManager::DoOpenFileDialog() const
+{
+	#ifdef WIN32
+	char buffer[ 512 ] = "";
+	
+	OPENFILENAMEA ofn {};
+	ofn.lStructSize = sizeof( ofn );
+	ofn.lpstrFile = buffer;
+	ofn.nMaxFile = COUNTOF( buffer );
+	ofn.Flags = OFN_FILEMUSTEXIST;
+	
+	if ( !GetOpenFileNameA( &ofn ) )
+		return "";
+	
+	return buffer;
+	#elif __APPLE__
+	if ( const char* const buffer = Cocoa_DoOpenFileDialog() )
+	{
+		const std::string result( buffer );
+		free( (void*)buffer );
+		return result;
+	}
+
+	return "";
+	#endif
+}
+
+std::string SDLWindowManager::DoSaveFileDialog() const
+{
+	#ifdef WIN32
+	char buffer[ 512 ] = "";
+
+	OPENFILENAMEA ofn {};
+	ofn.lStructSize = sizeof( ofn );
+	ofn.lpstrFile = buffer;
+	ofn.nMaxFile = COUNTOF( buffer );
+
+	if ( !GetSaveFileNameA( &ofn ) )
+		return "";
+
+	return buffer;
+	#elif __APPLE__
+	if ( const char* const buffer = Cocoa_DoSaveFileDialog() )
+	{
+		const std::string result( buffer );
+		free( (void*)buffer );
+		return result;
+	}
+
+	return "";
+	#endif
 }
 
 }

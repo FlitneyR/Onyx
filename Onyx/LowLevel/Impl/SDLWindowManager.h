@@ -29,6 +29,9 @@ struct SDLWindowManager : IWindowManager
 
 	void ImGuiNewFrame() override;
 
+	std::string DoOpenFileDialog() const override;
+	std::string DoSaveFileDialog() const override;
+
 private:
 	bool m_wantsToQuit = false;
 
