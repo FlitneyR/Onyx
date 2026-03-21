@@ -52,12 +52,14 @@
 			"osx": {
 				"args": [
 					"../..",
+					"-DCMAKE_BUILD_TYPE=Debug",
 				]
 			},
 
 			"windows": {
 				"args": [
 					"../..",
+					"-DCMAKE_BUILD_TYPE=Debug",
 					/*"-G", "Ninja",*/
 				]
 			}
@@ -71,7 +73,9 @@
 			"problemMatcher": [],
 
 			"osx": {
-				"args": [ "../.." ]
+				"args": [
+					"../.."
+				]
 			},
 
 			"windows": {
