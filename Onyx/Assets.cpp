@@ -220,7 +220,7 @@ void AssetManagerWindow::Run( IFrameContext& frame_context )
 
 						m_fileSource = std::ifstream( asset_pack_path, std::ios::binary | std::ios::beg );
 
-						if ( m_fileSource.is_open() )
+						if ( WEAK_ASSERT( m_fileSource.is_open(), "Couldn't open file: {}", asset_pack_path ) )
 						{
 							m_decoder = std::make_unique< BjSON::Decoder >( m_fileSource );
 							m_assetManager = std::make_unique< AssetManager >( m_decoder->GetRootObject(), AssetManager::PreLoad );

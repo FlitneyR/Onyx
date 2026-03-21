@@ -11,7 +11,7 @@ const char* Cocoa_DoOpenFileDialog()
 
     if ([panel runModal] == NSModalResponseOK) {
         NSURL* const url = [[panel URLs] objectAtIndex:0];
-        NSString* const path_nsstring = [url absoluteString];
+        NSString* const path_nsstring = [url relativePath];
         char* out_filename = (char*)malloc( [path_nsstring length] );
         strcpy( out_filename, [path_nsstring UTF8String] );
         return out_filename;
@@ -26,7 +26,7 @@ const char* Cocoa_DoSaveFileDialog()
 
     if ( [panel runModal] == NSModalResponseOK ) {
         NSURL* const url = [panel URL];
-        NSString* const path_nsstring = [url absoluteString];
+        NSString* const path_nsstring = [url relativePath];
         char* out_filename = (char*)malloc( [path_nsstring length] );
         strcpy( out_filename, [path_nsstring UTF8String] );
         return out_filename;
