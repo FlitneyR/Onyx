@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <ctime>
+#include <filesystem>
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -53,6 +54,7 @@ Log::Log()
 		if ( c == ':' )
 			c = '-';
 
+	std::filesystem::create_directory( "./logs" );
 	file = std::ofstream( fmt::format( "./logs/{}.txt", buf ), std::ios::app );
 
 	if ( !file.is_open() )
